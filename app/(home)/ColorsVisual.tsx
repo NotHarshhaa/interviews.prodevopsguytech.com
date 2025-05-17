@@ -48,14 +48,11 @@ export default function ColorsVisual() {
     <div id="container"className="w-full h-full sm:overflow-x-scroll overflow-y-clip hide-scrollbar"
       onMouseMove={(e) => {
         if (window.innerWidth < 768) return;
-        const { clientX, clientY, currentTarget } = e;
-        const { left, top, right, bottom } = currentTarget.getBoundingClientRect();
+        const { clientX, currentTarget } = e;
+        const { left, right } = currentTarget.getBoundingClientRect();
         const centerX = (left + right) / 2;
-        const centerY = (top + bottom) / 2;
         const scrollLeft =
           ((clientX - centerX) / (centerX - left)) * currentTarget.scrollWidth;
-        const scrollTop =
-          ((clientY - centerY) / (centerY - top)) * currentTarget.scrollHeight;
         currentTarget.scrollTo({
           left: scrollLeft,
           // top: scrollTop,

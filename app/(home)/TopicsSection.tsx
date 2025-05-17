@@ -1,4 +1,4 @@
-import { Container, Cloud, Database, GitBranch, Terminal, Server, Settings } from 'lucide-react';
+import { Container, Cloud, GitBranch, Terminal, Server, Settings } from 'lucide-react';
 
 interface TopicCardProps {
   icon: React.ReactNode;

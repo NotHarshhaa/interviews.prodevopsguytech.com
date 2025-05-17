@@ -23,13 +23,6 @@ const colorVariants = {
   purple: 'text-indigo-500 dark:text-indigo-400',
 }
 
-const borderVariants = {
-  pink: 'group-hover:border-pink-500/40',
-  cyan: 'group-hover:border-cyan-500/40',
-  orange: 'group-hover:border-orange-500/40',
-  purple: 'group-hover:border-indigo-500/40',
-}
-
 function FeatureCard({ title, description, icon, color, number }: FeatureCardProps) {
   return (
     <div className="group relative overflow-hidden rounded-lg border p-6 hover:border-opacity-40 transition-all duration-300">

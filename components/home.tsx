@@ -48,9 +48,6 @@ export function HomeLayout(props: HomeLayoutProps) {
     nav,
     links,
     githubUrl,
-    i18n: _i18n,
-    themeSwitch: _themeSwitch,
-    afterTitle,
     ...rest
   } = props;
 

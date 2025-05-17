@@ -15,7 +15,7 @@ export default function VectorField() {
         let width = window.innerWidth;
         let height = window.innerHeight;
 
-        let particles: { x: number; y: number; age: number; }[] = [];
+        const particles: { x: number; y: number; age: number; }[] = [];
         const numParticles = 1000;
 
         canvas.width = width;
@@ -329,23 +329,6 @@ export default function VectorField() {
         //   };
         // }
         
-
-        function applyMouseForce(p: { x: any; y: any; age?: number; }) {
-          if (mouse.current.x === null || mouse.current.y === null) return;
-    
-          const dx = p.x - mouse.current.x;
-          const dy = p.y - mouse.current.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-    
-          if (dist < mouse.current.radius) {
-            const force = (mouse.current.radius - dist) / mouse.current.radius;
-            const angle = Math.atan2(dy, dx);
-            const strength = force * 2.5; // strength of push
-            p.x += Math.cos(angle) * strength;
-            p.y += Math.sin(angle) * strength;
-          }
-        }
-        
         // let burstActive = false;
         // let burstCenter = { x: width / 2, y: height / 2 };
         // let burstRadius = 200;
@@ -366,7 +349,7 @@ export default function VectorField() {
         // // Start a burst every 4–6 seconds
         // setInterval(triggerBurst, 4000 + Math.random() * 2000);
 
-        function draw(t: any) {
+        function draw(t: number) {
           if (!ctx || !canvas) return;
 
           ctx.globalCompositeOperation = 'destination-out';
@@ -381,7 +364,8 @@ export default function VectorField() {
           // ctx.restore();
 
           
-          for (let p of particles) {
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
             const centerX = mouse.current.x ?? width / 2;
             const centerY = mouse.current.y ?? height / 2;
 

@@ -9,7 +9,7 @@ import { type ButtonProps, buttonVariants } from '../ui/button';
 export function SearchToggle({
   hideIfDisabled,
   size = 'icon',
-  color = 'ghost',
+  variant = 'ghost',
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> &
   ButtonProps & {
@@ -24,7 +24,7 @@ export function SearchToggle({
       className={cn(
         buttonVariants({
           size,
-          color,
+          variant,
         }),
         props.className,
       )}

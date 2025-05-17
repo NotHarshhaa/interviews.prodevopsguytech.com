@@ -48,7 +48,7 @@ export function NavbarSidebarTrigger(
       {...props}
       className={cn(
         buttonVariants({
-          color: 'ghost',
+          variant: 'ghost',
           size: 'icon',
         }),
         props.className,

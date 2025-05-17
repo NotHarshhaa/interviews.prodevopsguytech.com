@@ -38,7 +38,7 @@ export default function HeroSection() {
       <div className="flex justify-center border-y border-dashed relative backdrop-blur dark:opacity-90"> 
           <div className="w-full max-w-fd-container mx-auto relative">
           <p className="text-fd-muted-foreground text-pretty max-w-[65ch] max-lg:px-4 text-start">
-            Your one-stop destination for mastering DevOps, Cloud, and SRE interviews! Contains 550+ carefully curated interview questions with detailed answers, covering all major DevOps tools, cloud platforms, and best practices. Whether you're a beginner preparing for your first DevOps job or an experienced engineer aiming for top-tier roles, this resource will help you understand core concepts, ace technical interviews, and build confidence.
+            Your one-stop destination for mastering DevOps, Cloud, and SRE interviews! Contains 550+ carefully curated interview questions with detailed answers, covering all major DevOps tools, cloud platforms, and best practices. Whether your are a beginner preparing for your first DevOps job or an experienced engineer aiming for top-tier roles, this resource will help you understand core concepts, ace technical interviews, and build confidence.
           </p>
         </div>
       </div>
