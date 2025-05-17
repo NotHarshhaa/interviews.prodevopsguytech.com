@@ -1,4 +1,3 @@
-import { Wordmark } from "../assets";
 import Link from "next/link";
 import SectionLink from "./SectionLink";
 import { ExternalLink } from "lucide-react";
@@ -85,7 +84,18 @@ export default function FooterSection() {
           
           <div className="flex-col items-start gap-3 flex sm:hidden">
             <Socials />
-            <Wordmark className="text-fd-foreground h-7" />
+            <div className="flex items-center gap-2">
+              <img
+                src="/favicon.ico"
+                alt="logo"
+                width={32} 
+                height={32}
+                className="h-8 w-8"
+              />
+              <span className="font-medium text-xl">
+                DevOps Interview Hub
+              </span>
+            </div>
             <div className="text-xs">
               <div className="inline-block -scale-x-100 mr-1">©</div>
               Copyright {new Date().getFullYear()}
