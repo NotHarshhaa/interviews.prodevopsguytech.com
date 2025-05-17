@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SectionLink from "./SectionLink";
 import { ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 const socials = [
   {
@@ -49,14 +50,15 @@ export default function FooterSection() {
           
           <div className="flex-col gap-3 hidden sm:flex my-auto">
             <div className="flex items-center gap-2">
-              <img
+              <Image
                 src="/favicon.ico"
                 alt="logo"
-                width={32} 
+                width={32}
                 height={32}
                 className="h-8 w-8"
+                priority
               />
-              <span className="font-medium text-xl">
+              <span className="font-medium text-xl whitespace-nowrap">
                 DevOps Interview Hub
               </span>
             </div>
@@ -85,14 +87,15 @@ export default function FooterSection() {
           <div className="flex-col items-start gap-3 flex sm:hidden">
             <Socials />
             <div className="flex items-center gap-2">
-              <img
+              <Image
                 src="/favicon.ico"
                 alt="logo"
-                width={32} 
+                width={32}
                 height={32}
                 className="h-8 w-8"
+                priority
               />
-              <span className="font-medium text-xl">
+              <span className="font-medium text-xl whitespace-nowrap">
                 DevOps Interview Hub
               </span>
             </div>
