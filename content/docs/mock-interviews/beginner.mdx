@@ -1,0 +1,185 @@
+---
+title: Beginner Level
+description: Basic DevOps interview questions and answers for beginners.
+root: mock-interviews
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental DevOps concepts and questions commonly asked in entry-level interviews.
+
+<Steps>
+<Step>
+**What is DevOps, and why is it important?**  
+
+DevOps is a **set of practices** that combines **software development (Dev)** and **IT operations (Ops)** to shorten the **software development lifecycle (SDLC)** while ensuring **high quality and reliability**.  
+</Step>
+
+<Step>
+**How does DevOps differ from traditional IT operations?**  
+
+| **Aspect**       | **Traditional IT Operations** | **DevOps** |
+|-----------------|------------------------------|------------|
+| Development & Operations | Separate teams | Integrated teams |
+| Deployment Frequency | Weeks/Months | Daily/Weekly |
+| Automation | Limited | Extensive (CI/CD, IaC) |
+| Collaboration | Siloed | Cross-functional |
+| Feedback Loop | Slow | Fast (Continuous Monitoring) |
+</Step>
+
+<Step>
+**What are the key principles of DevOps?**  
+
+1. **Collaboration** – Breaking silos between Dev & Ops  
+2. **Automation** – CI/CD, Infrastructure as Code (IaC)  
+3. **Continuous Integration & Continuous Deployment (CI/CD)**  
+4. **Monitoring & Logging** – Observability, real-time feedback  
+5. **Security (DevSecOps)** – Security integrated into SDLC  
+</Step>
+
+<Step>
+**Explain the DevOps lifecycle.**  
+
+1. **Plan** – Jira, Trello  
+2. **Develop** – Git, GitHub  
+3. **Build** – Maven, Gradle  
+4. **Test** – Selenium, JUnit  
+5. **Release** – GitHub Actions, Jenkins  
+6. **Deploy** – Kubernetes, Docker  
+7. **Monitor** – Prometheus, Grafana  
+</Step>
+
+<Step>
+**What are some common DevOps tools?**  
+
+- **CI/CD**: Jenkins, GitHub Actions, GitLab CI  
+- **Configuration Management**: Ansible, Puppet  
+- **Containerization**: Docker, Kubernetes  
+- **Monitoring & Logging**: Prometheus, Grafana, ELK Stack  
+</Step>
+
+<Step>
+**What is CI/CD, and how does it work?**  
+
+CI/CD is a DevOps practice that automates code integration, testing, and deployment.  
+
+- **Continuous Integration (CI)** – Automates code merging & testing.  
+- **Continuous Deployment (CD)** – Automates production releases.  
+</Step>
+
+<Step>
+**Explain the difference between Continuous Deployment and Continuous Delivery.**  
+
+| **Aspect**      | **Continuous Delivery** | **Continuous Deployment** |
+|---------------|------------------------|--------------------------|
+| Automation   | Deployments require manual approval | Fully automated deployments |
+| Risk        | Lower risk, manual control | Higher automation, requires testing reliability |
+</Step>
+
+<Step>
+**What is version control, and why is Git used in DevOps?**  
+
+Version control tracks code changes, allowing collaboration. Git is widely used because of:  
+
+- **Branching & Merging** – Parallel development  
+- **Distributed Version Control** – No central dependency  
+</Step>
+
+<Step>
+**What is Infrastructure as Code (IaC)?**  
+
+IaC automates infrastructure provisioning using code. Example: **Terraform, Ansible, CloudFormation**.  
+</Step>
+
+<Step>
+**How does a DevOps engineer handle configuration management?**  
+
+Using **Ansible, Puppet, Chef**, engineers automate configuration setup, ensuring consistency.  
+</Step>
+
+<Step>
+**What is a container, and how does Docker help DevOps?**  
+
+A container packages an app with dependencies, ensuring it runs identically anywhere. Docker simplifies container management.  
+</Step>
+
+<Step>
+**Explain Kubernetes and why it's used in DevOps.**  
+
+Kubernetes orchestrates containers, automating deployment, scaling, and networking.  
+</Step>
+
+<Step>
+**What is a microservices architecture?**  
+
+Microservices break apps into independent, loosely coupled services for scalability and agility.  
+</Step>
+
+<Step>
+**What is a reverse proxy, and why use Nginx in DevOps?**  
+
+A reverse proxy (e.g., **Nginx**) balances traffic, improves security, and caches content.  
+</Step>
+
+<Step>
+**How do you monitor system performance in DevOps?**  
+
+Using tools like **Prometheus, Grafana, ELK Stack** to track logs, metrics, and alerts.  
+</Step>
+
+<Step>
+**What is the purpose of logging in DevOps?**  
+
+Logging helps capture system and application events, allowing developers and operations teams to diagnose issues and improve performance.  
+
+- **Tools**: ELK Stack, Loki, Splunk  
+</Step>
+
+<Step>
+**What are environment variables, and why are they important in DevOps?**  
+
+Environment variables store configuration settings (e.g., API keys, DB credentials). They help manage different environments (Dev, QA, Production) without modifying code.  
+</Step>
+
+<Step>
+**What is a load balancer, and why is it used?**  
+
+A **load balancer** distributes traffic across multiple servers to improve availability, reliability, and performance.  
+
+- **Example**: Nginx, AWS ELB  
+</Step>
+
+<Step>
+**What is a service discovery mechanism in microservices?**  
+
+Service discovery helps microservices locate and communicate with each other dynamically.  
+
+- **Examples**: Consul, Eureka, Kubernetes Service Discovery  
+</Step>
+
+<Step>
+**How do you implement error handling in a CI/CD pipeline?**  
+
+1. **Automated Testing** – Detects issues early  
+2. **Logging & Monitoring** – Alerts and logs errors  
+3. **Rollback Strategy** – Deploys a stable version if errors occur
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

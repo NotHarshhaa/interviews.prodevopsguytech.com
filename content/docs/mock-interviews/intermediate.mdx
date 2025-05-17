@@ -1,0 +1,174 @@
+---
+title: Intermediate Level
+description: Advanced DevOps interview questions and answers for experienced professionals.
+root: mock-interviews
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers advanced DevOps concepts and questions commonly asked in interviews for experienced professionals.
+
+<Steps>
+<Step>
+**Explain the difference between Docker and Kubernetes.**  
+
+| **Feature**    | **Docker**                     | **Kubernetes** |
+|--------------|--------------------------------|--------------|
+| Purpose     | Containerization tool | Orchestration of containers |
+| Deployment | Single-node containers | Multi-node cluster management |
+| Scaling    | Manual scaling | Auto-scaling |
+</Step>
+
+<Step>
+**What is Blue-Green Deployment?**  
+
+A strategy where two environments (Blue & Green) exist:  
+
+- **Blue** – Active  
+- **Green** – Staging (new version)  
+Switching traffic to Green reduces downtime.
+</Step>
+
+<Step>
+**How does Terraform differ from Ansible?**  
+
+- **Terraform**: Declarative, cloud provisioning  
+- **Ansible**: Configuration management, procedural  
+</Step>
+
+<Step>
+**What is Canary Deployment?**  
+
+A small subset of users receives the new update before a full rollout.
+</Step>
+
+<Step>
+**What are Helm charts in Kubernetes?**  
+
+Helm automates Kubernetes app deployment using **predefined templates**.
+</Step>
+
+<Step>
+**What is a rolling update in Kubernetes?**  
+
+A **rolling update** gradually replaces old pods with new ones without downtime.  
+</Step>
+
+<Step>
+**How do you handle secrets securely in a DevOps pipeline?**  
+
+1. **HashiCorp Vault**  
+2. **AWS Secrets Manager**  
+3. **Kubernetes Secrets**  
+</Step>
+
+<Step>
+**What is an immutable infrastructure?**  
+
+Infrastructure where components are **never modified** after deployment, reducing configuration drift.  
+</Step>
+
+<Step>
+**What are the different types of Kubernetes services?**  
+
+1. **ClusterIP** – Internal communication  
+2. **NodePort** – Exposes a service on a port  
+3. **LoadBalancer** – External traffic balancing  
+</Step>
+
+<Step>
+**How does Prometheus monitor Kubernetes clusters?**  
+
+- Uses **exporters** to collect metrics  
+- **Stores time-series data**  
+- **Alerts on anomalies** via Alertmanager  
+</Step>
+
+<Step>
+**What is the difference between monolithic and microservices architectures?**  
+
+| **Aspect**   | **Monolithic** | **Microservices** |
+|-------------|--------------|------------------|
+| Scalability | Harder       | Easier |
+| Deployment  | Single unit  | Independent services |
+| Maintenance | Complex     | Easier |
+</Step>
+
+<Step>
+**How does Ansible differ from Chef and Puppet?**  
+
+- **Ansible** – Agentless, YAML-based, simple  
+- **Chef/Puppet** – Require agents, more complex  
+</Step>
+
+<Step>
+**How do you ensure high availability in a cloud environment?**  
+
+1. **Multi-AZ Deployments**  
+2. **Load Balancing**  
+3. **Auto Scaling**  
+</Step>
+
+<Step>
+**How do you handle stateful applications in Kubernetes?**  
+
+Using **StatefulSets**, **Persistent Volumes**, and **Storage Classes**.  
+</Step>
+
+<Step>
+**What is a sidecar container pattern in Kubernetes?**  
+
+A sidecar runs alongside the main app container to handle **logging, monitoring, or proxying**.  
+</Step>
+
+<Step>
+**How do you implement security in a CI/CD pipeline?**  
+
+1. **Static Code Analysis (SAST)**  
+2. **Container Scanning**  
+3. **Dependency Scanning**  
+</Step>
+
+<Step>
+**What is the concept of "Shift Left" in DevOps security?**  
+
+"Shift Left" integrates security **earlier in the development cycle**, reducing vulnerabilities.  
+</Step>
+
+<Step>
+**What is a Kubernetes DaemonSet?**  
+
+A **DaemonSet** ensures that a pod runs on every node.  
+</Step>
+
+<Step>
+**What is the difference between proactive and reactive monitoring?**  
+
+- **Proactive** – Prevents issues (threshold-based alerts)  
+- **Reactive** – Responds to issues (post-failure logs)  
+</Step>
+
+<Step>
+**What is the role of service mesh in Kubernetes?**  
+
+A **service mesh** (e.g., Istio) manages service-to-service communication, security, and monitoring.
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

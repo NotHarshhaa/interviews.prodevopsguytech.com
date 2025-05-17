@@ -1,0 +1,194 @@
+---
+title: Intermediate Level
+description: Mid-level automation and scripting interview questions covering advanced scripting concepts, error handling, and automation tools.
+root: automation-scripting
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers more advanced concepts in automation and scripting, including error handling, scheduling, and integration with various DevOps tools.
+
+<Steps>
+<Step>
+**How do you pass arguments to a Bash script?**
+
+```bash
+#!/bin/bash
+echo "Hello, $1!"
+```
+
+Run: `./script.sh DevOps` → Output: `Hello, DevOps!`  
+</Step>
+
+<Step>
+**How do you handle errors in Bash scripts?**
+
+Use `set -e` to stop execution on errors.  
+</Step>
+
+<Step>
+**What is an Ansible playbook?**
+
+A YAML file that defines automation tasks for servers.  
+</Step>
+
+<Step>
+**How do you handle exceptions in Python?**
+
+```python
+try:
+    print(1 / 0)
+except ZeroDivisionError:
+    print("Cannot divide by zero")
+```
+</Step>
+
+<Step>
+**How do you schedule a script with Cron?**
+
+Edit `crontab -e` and add:  
+
+```bash
+0 5 * * * /path/to/script.sh
+```
+
+Runs the script daily at 5 AM.  
+</Step>
+
+<Step>
+**How do you execute a Groovy script in Jenkins?**
+
+Use `script {}` inside a Jenkins pipeline.  
+</Step>
+
+<Step>
+**How do you create a list in Python?**
+
+```python
+mylist = [1, 2, 3]
+print(mylist[0])
+```
+</Step>
+
+<Step>
+**What is `sed` in Bash?**
+
+Used for text replacement. Example:  
+
+```bash
+sed -i 's/old/new/g' file.txt
+```
+</Step>
+
+<Step>
+**How do you define a dictionary in Python?**
+
+```python
+mydict = {"name": "DevOps"}
+print(mydict["name"])
+```
+</Step>
+
+<Step>
+**How do you validate a YAML file?**
+
+Use `yamllint` or `kubectl apply -f --dry-run=client`.  
+</Step>
+
+<Step>
+**How do you install Python modules?**
+
+```bash
+pip install requests
+```
+</Step>
+
+<Step>
+**What is Jenkins pipeline syntax for automation?**
+
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo "Building..."
+            }
+        }
+    }
+}
+```
+</Step>
+
+<Step>
+**How do you iterate over a dictionary in Python?**
+
+```python
+for key, value in mydict.items():
+    print(key, value)
+```
+</Step>
+
+<Step>
+**How do you set environment variables in Bash?**
+
+```bash
+export VAR="DevOps"
+```
+</Step>
+
+<Step>
+**What is an Ansible role?**
+
+A reusable way to organize Ansible tasks, handlers, and templates.  
+</Step>
+
+<Step>
+**What is a multiline string in YAML?**
+
+```yaml
+message: |
+  Line 1
+  Line 2
+```
+</Step>
+
+<Step>
+**What is an associative array in Bash?**
+
+```bash
+declare -A myarray
+myarray[name]="DevOps"
+echo ${myarray[name]}
+```
+</Step>
+
+<Step>
+**How do you run a shell command in Python?**
+
+```python
+import os
+os.system("ls")
+```
+</Step>
+
+<Step>
+**What is `jq` in Linux?**
+
+Used to parse JSON. Example:  
+
+```bash
+cat data.json | jq '.name'
+```
+</Step>
+
+<Step>
+**How do you exit a script with a status code?**
+
+```bash
+exit 1
+```
+</Step>
+</Steps> 

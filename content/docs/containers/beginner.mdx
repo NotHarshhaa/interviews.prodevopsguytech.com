@@ -1,0 +1,233 @@
+---
+title: Beginner Level
+description: Basic concepts and fundamentals of Docker and Kubernetes for DevOps interviews.
+root: containers
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental concepts of Docker and Kubernetes, including basic principles, commands, and common practices.
+
+## Docker Basics
+
+<Steps>
+<Step>
+**What is Docker, and why is it used?**  
+
+Docker is a **containerization platform** that allows developers to package applications along with their dependencies into a single unit called a **container**.  
+
+- **Why use Docker?**  
+  ✅ Ensures **consistent environments** across different machines.  
+  ✅ **Lightweight & faster** than virtual machines.  
+  ✅ **Easy scaling** of applications in microservices architectures.  
+</Step>
+
+<Step>
+**What is the difference between Docker and a Virtual Machine (VM)?**  
+
+| Feature | Docker | Virtual Machine |
+|---------|--------|----------------|
+| **Isolation** | Uses **containers** to isolate apps | Uses **hypervisor** to run separate OS instances |
+| **Performance** | **Faster, lightweight** | **Slower, resource-intensive** |
+| **Startup Time** | **Milliseconds** | **Minutes** |
+| **Use Case** | Ideal for **microservices** | Best for **full OS emulation** |
+</Step>
+
+<Step>
+**What is a Docker image?**  
+
+A **Docker image** is a **read-only template** containing everything needed to run an application, including:  
+
+- Source code  
+- Libraries & dependencies  
+- Configuration files  
+
+A container is created from a **Docker image** using the `docker run` command.  
+</Step>
+
+<Step>
+**What is a Docker container?**  
+
+A **Docker container** is a **running instance of a Docker image**. It is:  
+✅ **Lightweight** (shares OS kernel)  
+✅ **Isolated** (has its own filesystem, network, and process space)  
+✅ **Portable** (can run on any system with Docker installed)  
+</Step>
+
+<Step>
+**How do you create and run a Docker container?**  
+
+To run a container from an image:  
+
+```sh
+docker run -d --name myapp nginx
+```
+
+- `-d`: Run in **detached mode** (background).  
+- `--name myapp`: Name the container `myapp`.  
+- `nginx`: Use the **nginx image**.  
+</Step>
+
+<Step>
+**What is the purpose of the Dockerfile?**  
+
+A **Dockerfile** is a script that contains **instructions to build a Docker image**.  
+Example `Dockerfile`:  
+
+```go
+FROM node:16
+WORKDIR /app
+COPY . .
+RUN npm install
+CMD ["node", "app.js"]
+```
+
+- `FROM`: Base image.  
+- `WORKDIR`: Set working directory.  
+- `COPY`: Copy files.  
+- `RUN`: Execute commands (install dependencies).  
+- `CMD`: Define the default command to run.  
+</Step>
+
+<Step>
+**What are Docker volumes?**  
+
+Docker **volumes** store persistent data outside a container's filesystem.  
+
+- **Types:**  
+  - **Anonymous Volumes**: `docker run -v /data nginx`  
+  - **Named Volumes**: `docker volume create mydata`  
+  - **Bind Mounts**: `docker run -v /host/path:/container/path nginx`  
+</Step>
+
+<Step>
+**How do you list running Docker containers?**  
+
+Use the command:  
+
+```sh
+docker ps
+```
+
+To list **all containers** (including stopped ones):  
+
+```sh
+docker ps -a
+```
+</Step>
+
+<Step>
+**What is Docker Compose?**  
+
+Docker Compose is a tool for **defining and running multi-container applications**.  
+
+- Example `docker-compose.yml`:  
+
+  ```yaml
+  version: "3"
+  services:
+    web:
+      image: nginx
+      ports:
+        - "80:80"
+    db:
+      image: mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+  ```
+
+- Start with: `docker-compose up -d`  
+- Stop with: `docker-compose down`  
+</Step>
+
+<Step>
+**What is the difference between CMD and ENTRYPOINT in Docker?**  
+
+| Feature | CMD | ENTRYPOINT |
+|---------|-----|-----------|
+| **Purpose** | Default command | Fixed executable command |
+| **Overridable?** | Yes | No (unless `--entrypoint` is used) |
+| **Example** | `CMD ["python", "app.py"]` | `ENTRYPOINT ["nginx", "-g", "daemon off;"]` |
+</Step>
+</Steps>
+
+## Kubernetes Basics
+
+<Steps>
+<Step>
+**What is Kubernetes?**  
+
+Kubernetes (K8s) is an **orchestration platform** for managing containerized applications.  
+
+- **Features:**  
+  ✅ **Automated scaling**  
+  ✅ **Self-healing** (restarts failed containers)  
+  ✅ **Load balancing**  
+  ✅ **Rolling updates**  
+</Step>
+
+<Step>
+**What is a Kubernetes Pod?**  
+
+A **Pod** is the smallest unit in Kubernetes. It **groups one or more containers** that share the same network and storage.  
+</Step>
+
+<Step>
+**What is a Kubernetes Deployment?**  
+
+A **Deployment** manages Pod creation and updates.  
+Example YAML:  
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: app
+          image: nginx
+```
+
+- `replicas: 3` → Runs **3 instances**.  
+- `matchLabels` → Ensures the correct Pods are managed.  
+</Step>
+
+<Step>
+**What is a Kubernetes Service?**  
+
+A **Service** exposes a set of Pods over a network.  
+
+- **Types:**  
+  - **ClusterIP** (default)  
+  - **NodePort** (exposes on a fixed port)  
+  - **LoadBalancer** (uses cloud provider's load balancer)  
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

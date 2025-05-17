@@ -1,0 +1,165 @@
+---
+title: Advanced Level
+description: Expert-level networking and security questions and answers for senior professionals.
+root: networking-security
+---
+
+import { Steps } from 'fumadocs-ui/components/steps'
+
+# Advanced Level
+
+This section covers expert-level networking and security concepts commonly asked in interviews for senior professionals.
+
+<Steps>
+
+<Step>
+### What is mutual TLS (mTLS), and why is it used?
+
+Mutual TLS (mTLS) ensures **both client and server** authenticate each other before communication, enhancing security in microservices and API interactions.
+</Step>
+
+<Step>
+### What is the difference between L3, L4, and L7 firewalls?
+
+- **L3 Firewall (Network Layer)**: Filters traffic based on IP addresses.  
+- **L4 Firewall (Transport Layer)**: Filters based on ports and TCP/UDP protocols.  
+- **L7 Firewall (Application Layer)**: Filters based on application-specific data (e.g., HTTP, FTP).
+</Step>
+
+<Step>
+### How does AWS Security Groups differ from Network ACLs?
+
+- **Security Groups**: Act as virtual firewalls at the instance level, stateful.  
+- **Network ACLs**: Act at the subnet level, stateless.
+</Step>
+
+<Step>
+### What is a SIEM (Security Information and Event Management) system?
+
+SIEM aggregates security data from multiple sources to detect, analyze, and respond to threats.
+</Step>
+
+<Step>
+### What is a threat model in security?
+
+Threat modeling identifies potential threats and vulnerabilities in a system to proactively mitigate risks.
+</Step>
+
+<Step>
+### What is an ephemeral port, and how is it used?
+
+Ephemeral ports (e.g., **49152-65535**) are temporary ports used by client applications for outbound connections.
+</Step>
+
+<Step>
+### How does DNSSEC enhance DNS security?
+
+DNSSEC (DNS Security Extensions) prevents DNS spoofing by adding cryptographic signatures to DNS records.
+</Step>
+
+<Step>
+### What are the different types of VPNs?
+
+- **Remote Access VPN** (for individuals connecting to a network remotely).  
+- **Site-to-Site VPN** (connects entire networks).
+</Step>
+
+<Step>
+### How does a service mesh improve security in Kubernetes?
+
+A **service mesh** (e.g., Istio, Linkerd) provides **mTLS, authentication, and observability** for secure communication between microservices.
+</Step>
+
+<Step>
+### What are some common OWASP Top 10 security risks?
+
+1. Injection (e.g., SQL injection)  
+2. Broken Authentication  
+3. Sensitive Data Exposure  
+4. XML External Entities (XXE)  
+5. Broken Access Control  
+6. Security Misconfiguration  
+7. Cross-Site Scripting (XSS)  
+8. Insecure Deserialization  
+9. Using Components with Known Vulnerabilities  
+10. Insufficient Logging & Monitoring
+</Step>
+
+<Step>
+### How do WebSockets handle security concerns?
+
+WebSockets require **authentication, encryption (WSS), and proper origin checks** to prevent attacks.
+</Step>
+
+<Step>
+### What is an SSRF (Server-Side Request Forgery) attack?
+
+An SSRF attack tricks a server into making requests to internal services, leading to data leaks or system compromise.
+</Step>
+
+<Step>
+### How does an AWS WAF protect applications?
+
+AWS WAF filters web traffic based on **rules, rate limiting, and bot mitigation** to prevent common attacks like SQL injection and XSS.
+</Step>
+
+<Step>
+### How does Kubernetes RBAC (Role-Based Access Control) work?
+
+Kubernetes RBAC grants permissions based on **Roles, RoleBindings, ClusterRoles, and ClusterRoleBindings**, restricting access to resources.
+</Step>
+
+<Step>
+### What is a MAC address, and how does MAC filtering enhance security?
+
+A MAC address is a **unique identifier** for network interfaces. MAC filtering allows or denies network access based on these addresses.
+</Step>
+
+<Step>
+### How does DNS poisoning work, and how can it be prevented?
+
+DNS poisoning tricks users into visiting **malicious sites** by altering DNS records. Prevention includes **DNSSEC, monitoring, and secure DNS resolvers**.
+</Step>
+
+<Step>
+### What is a federated identity in security?
+
+Federated identity allows users to authenticate across multiple applications using a **single set of credentials** (e.g., Google or Microsoft sign-in).
+</Step>
+
+<Step>
+### How does Kubernetes Network Policy improve security?
+
+Kubernetes Network Policies define **rules for pod communication**, restricting traffic based on namespaces, labels, and IP ranges.
+</Step>
+
+<Step>
+### What is the principle of least privilege (PoLP)?
+
+PoLP ensures **users and applications only have the minimum access** needed to perform their tasks, reducing security risks.
+</Step>
+
+<Step>
+### How do HSTS (HTTP Strict Transport Security) and CSP (Content Security Policy) improve web security?
+
+- **HSTS**: Forces HTTPS connections to prevent downgrade attacks.  
+- **CSP**: Restricts allowed content sources to prevent XSS attacks.
+</Step>
+
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

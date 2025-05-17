@@ -1,0 +1,207 @@
+---
+title: Beginner Level
+description: Basic concepts and fundamentals of Continuous Integration and Continuous Deployment.
+root: ci-cd
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental concepts of CI/CD, including basic principles, tools, and common practices.
+
+<Steps>
+<Step>
+**What is CI/CD?**
+
+CI/CD stands for Continuous Integration and Continuous Delivery/Deployment:
+- **Continuous Integration**: Automatically integrating code changes into a shared repository
+- **Continuous Delivery**: Automating the delivery of applications to selected environments
+- **Continuous Deployment**: Automatically deploying all code changes to production
+</Step>
+
+<Step>
+**What are the key components of a CI/CD pipeline?**
+
+- Source Control (e.g., Git)
+- Build Tools
+- Test Automation
+- Deployment Tools
+- Monitoring Systems
+</Step>
+
+<Step>
+**What is Jenkins and what is it used for?**
+
+Jenkins is an open-source automation server used to build, test, and deploy software. It provides:
+- Pipeline automation
+- Plugin ecosystem
+- Build automation
+- Deployment tools
+</Step>
+
+<Step>
+**What is the difference between Continuous Delivery and Continuous Deployment?**
+
+- **Continuous Delivery**: Changes are automatically built, tested, and prepared for release but require manual approval for deployment
+- **Continuous Deployment**: Changes automatically go through the pipeline and into production without manual intervention
+</Step>
+
+<Step>
+**What is a build pipeline?**
+
+A build pipeline is a set of automated processes that:
+- Compiles code
+- Runs tests
+- Creates artifacts
+- Prepares for deployment
+</Step>
+
+<Step>
+**What is version control and why is it important in CI/CD?**
+
+Version control (e.g., Git) tracks changes to source code and enables:
+- Collaboration
+- Code history
+- Branch management
+- Conflict resolution
+</Step>
+
+<Step>
+**What are the basic stages in a CI/CD pipeline?**
+
+1. Source (Code checkout)
+2. Build
+3. Test
+4. Package
+5. Deploy
+</Step>
+
+<Step>
+**What is a Dockerfile and why is it important in CI/CD?**
+
+A Dockerfile is a script containing instructions to build a Docker image. It's important because it:
+- Ensures consistent environments
+- Enables containerization
+- Simplifies deployment
+</Step>
+
+<Step>
+**What is automated testing in CI/CD?**
+
+Automated testing includes:
+- Unit tests
+- Integration tests
+- Functional tests
+- Performance tests
+Running automatically when code changes are pushed.
+</Step>
+
+<Step>
+**What is a build artifact?**
+
+A build artifact is the output of a build process, such as:
+- Compiled code
+- Container images
+- Documentation
+- Package files
+</Step>
+
+<Step>
+**What is a webhook in CI/CD?**
+
+A webhook is an automated notification that:
+- Triggers pipeline events
+- Integrates different tools
+- Enables automated workflows
+</Step>
+
+<Step>
+**What is environment configuration in CI/CD?**
+
+Environment configuration includes:
+- Server settings
+- Database connections
+- API endpoints
+- Environment variables
+</Step>
+
+<Step>
+**What is a build trigger?**
+
+A build trigger is an event that starts a CI/CD pipeline, such as:
+- Code commits
+- Pull requests
+- Scheduled builds
+- Manual triggers
+</Step>
+
+<Step>
+**What are environment variables in CI/CD?**
+
+Environment variables store configuration data like:
+- API keys
+- Database credentials
+- Service endpoints
+- Build configurations
+</Step>
+
+<Step>
+**What is a deployment strategy?**
+
+Basic deployment strategies include:
+- Rolling updates
+- Blue-green deployment
+- Canary releases
+- Feature flags
+</Step>
+
+<Step>
+**What is source code management (SCM)?**
+
+SCM tools (like Git) provide:
+- Version control
+- Branch management
+- Collaboration features
+- Code history
+</Step>
+
+<Step>
+**What is a build agent/node?**
+
+A build agent/node is a machine that:
+- Executes pipeline tasks
+- Runs builds
+- Performs tests
+- Handles deployments
+</Step>
+
+<Step>
+**What is a pipeline as code?**
+
+Pipeline as code means:
+- Defining pipelines in code
+- Version controlling pipeline configurations
+- Treating pipeline config as part of the application
+</Step>
+
+<Step>
+**What is a build status?**
+
+Build status indicates pipeline state:
+- Success
+- Failure
+- In Progress
+- Cancelled
+</Step>
+
+<Step>
+**What are artifacts repositories?**
+
+Artifact repositories store build outputs like:
+- Binary files
+- Container images
+- Documentation
+- Dependencies 
+</Step>
+</Steps> 

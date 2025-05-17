@@ -1,0 +1,198 @@
+---
+title: Beginner Level
+description: Basic level automation and scripting interview questions covering fundamentals of Bash, Python, YAML, and Groovy.
+root: automation-scripting
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental concepts in automation and scripting, including basic Bash commands, Python scripting, YAML syntax, and introductory Groovy concepts.
+
+<Steps>
+<Step>
+**What is automation in DevOps?**
+
+Automation in DevOps refers to scripting repetitive tasks like provisioning, configuration, deployment, and monitoring to improve efficiency and reduce errors.  
+</Step>
+
+<Step>
+**What are the benefits of scripting in DevOps?**
+
+- Reduces manual effort  
+- Increases consistency and repeatability  
+- Improves efficiency and speed  
+- Reduces errors and enhances security  
+</Step>
+
+<Step>
+**What is Bash scripting?**
+
+Bash scripting is writing command-line instructions in a script file (`.sh`) to automate tasks in Unix/Linux environments.  
+</Step>
+
+<Step>
+**How do you write a basic Bash script?**
+
+```bash
+#!/bin/bash
+echo "Hello, DevOps!"
+```
+
+Save the file (`script.sh`), make it executable (`chmod +x script.sh`), and run it (`./script.sh`).  
+</Step>
+
+<Step>
+**What is the difference between Bash and Shell scripting?**
+
+Bash is a type of shell, but shell scripting can also be done in other shells like **sh, csh, and zsh**. Bash provides more advanced scripting features.  
+</Step>
+
+<Step>
+**What are variables in Bash?**
+
+Variables store values and are defined without a `$` sign but accessed using `$`.  
+
+```bash
+name="DevOps"
+echo "Hello, $name"
+```
+</Step>
+
+<Step>
+**What is Python scripting used for in DevOps?**
+
+- Infrastructure as Code (IaC)  
+- CI/CD automation  
+- Log analysis  
+- Cloud automation (AWS, Azure, GCP SDKs)  
+</Step>
+
+<Step>
+**How do you define a function in Python?**
+
+```python
+def greet():
+    print("Hello, DevOps!")
+greet()
+```
+</Step>
+
+<Step>
+**What is YAML, and where is it used?**
+
+YAML (Yet Another Markup Language) is a human-readable format used for **Kubernetes configurations, Ansible playbooks, CI/CD pipelines**, etc.  
+</Step>
+
+<Step>
+**What is a YAML file example?**
+
+```yaml
+version: '3'
+services:
+  web:
+    image: nginx
+    ports:
+      - "80:80"
+```
+</Step>
+
+<Step>
+**How do you write a simple Groovy script?**
+
+```groovy
+println "Hello, DevOps!"
+```
+
+Groovy is used in **Jenkins pipelines and automation tasks**.  
+</Step>
+
+<Step>
+**What is the shebang (`#!`) in a script?**
+
+The shebang (`#!/bin/bash` or `#!/usr/bin/python3`) specifies the interpreter for executing the script.  
+</Step>
+
+<Step>
+**What are loops in Bash?**
+
+Bash supports `for`, `while`, and `until` loops. Example:  
+
+```bash
+for i in {1..5}; do echo "Iteration $i"; done
+```
+</Step>
+
+<Step>
+**What are conditional statements in Bash?**
+
+`if-else` statements execute different code based on conditions.  
+
+```bash
+if [ $USER == "root" ]; then echo "Admin access"; else echo "User access"; fi
+```
+</Step>
+
+<Step>
+**How do you read input in Bash?**
+
+```bash
+echo "Enter name: "
+read name
+echo "Hello, $name"
+```
+</Step>
+
+<Step>
+**How do you create a Python virtual environment?**
+
+```bash
+python3 -m venv myenv
+source myenv/bin/activate
+```
+</Step>
+
+<Step>
+**How do you parse JSON in Python?**
+
+```python
+import json
+data = '{"name": "DevOps"}'
+parsed = json.loads(data)
+print(parsed["name"])
+```
+</Step>
+
+<Step>
+**What is the `awk` command in Bash?**
+
+`awk` is used for text processing. Example:  
+
+```bash
+awk '{print $1}' file.txt
+```
+
+Extracts the first column from `file.txt`.  
+</Step>
+
+<Step>
+**How do you comment in YAML?**
+
+Use `#` for comments.  
+
+```yaml
+# This is a comment
+name: DevOps
+```
+</Step>
+
+<Step>
+**How do you declare variables in Groovy?**
+
+```groovy
+def name = "DevOps"
+println name
+```
+</Step>
+</Steps> 

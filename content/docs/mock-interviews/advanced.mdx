@@ -1,0 +1,220 @@
+---
+title: Advanced Level
+description: Expert-level DevOps interview questions and answers for senior professionals.
+root: mock-interviews
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level DevOps concepts and questions commonly asked in interviews for senior professionals.
+
+<Steps>
+<Step>
+**How do you secure a Kubernetes cluster?**  
+
+1. **RBAC (Role-Based Access Control)**  
+2. **Network Policies**  
+3. **Secrets Management**  
+4. **Pod Security Policies**
+5. **Image Scanning**
+</Step>
+
+<Step>
+**How would you handle a production failure in a CI/CD pipeline?**  
+
+1. **Identify the failure** (logs, monitoring tools)  
+2. **Rollback the last stable version**  
+3. **Fix and test the issue**  
+4. **Redeploy the fixed version**  
+5. **Post-mortem analysis**  
+</Step>
+
+<Step>
+**What is GitOps, and how does it work?**  
+
+GitOps automates infrastructure and app deployment using Git as the **single source of truth**. Benefits include:
+
+- **Version Control** for infrastructure
+- **Automated Reconciliation**
+- **Audit Trail**
+- **Rollback Capability**
+</Step>
+
+<Step>
+**How do you monitor microservices?**  
+
+1. **Distributed Tracing** (Jaeger, Zipkin)  
+2. **Centralized Logging** (ELK, Loki)  
+3. **Metrics** (Prometheus, Grafana)  
+4. **Service Mesh Monitoring** (Istio)
+</Step>
+
+<Step>
+**How does service mesh improve microservices security?**  
+
+A service mesh (e.g., Istio) provides:  
+
+- **mTLS (Mutual TLS)**  
+- **Traffic control & observability**  
+- **Access policies**
+- **Service-to-service authentication**
+</Step>
+
+<Step>
+**What is Open Policy Agent (OPA)?**  
+
+OPA enforces security policies in cloud environments:
+- **Policy as Code**
+- **Kubernetes admission control**
+- **Microservices authorization**
+</Step>
+
+<Step>
+**How do you manage secrets in Kubernetes?**  
+
+1. **Kubernetes Secrets**  
+2. **Vault by HashiCorp**  
+3. **AWS Secrets Manager**  
+4. **External Secrets Operator**
+5. **Sealed Secrets**
+</Step>
+
+<Step>
+**How do you optimize Kubernetes performance?**  
+
+1. **Pod Auto-scaling** (HPA, VPA)  
+2. **Resource Limits & Requests**  
+3. **Efficient Networking**  
+4. **Node Affinity & Anti-affinity**
+5. **Cluster Autoscaling**
+</Step>
+
+<Step>
+**How do you ensure compliance in DevOps pipelines?**  
+
+1. **Automated Policy Enforcement** (OPA, Kyverno)  
+2. **Audit Logging**  
+3. **Access Control & Role-Based Permissions**  
+4. **Compliance as Code**
+5. **Regular Security Scanning**
+</Step>
+
+<Step>
+**What is Chaos Engineering, and why is it used?**  
+
+**Chaos Engineering** tests system resilience by:
+- Simulating failures
+- Testing recovery procedures
+- Identifying weaknesses
+- Building confidence in system behavior
+</Step>
+
+<Step>
+**How do you implement zero-downtime deployments?**  
+
+1. **Blue-Green Deployments**  
+2. **Canary Releases**  
+3. **Rolling Updates**  
+4. **Session Draining**
+5. **Traffic Management**
+</Step>
+
+<Step>
+**What are the best practices for managing multi-cloud infrastructure?**  
+
+1. **Use a common IaC tool** (Terraform)  
+2. **Standardized security policies**  
+3. **Cross-cloud monitoring**  
+4. **Cost optimization**
+5. **Service abstraction**
+</Step>
+
+<Step>
+**How do you secure container images?**  
+
+1. **Use minimal base images** (Alpine, Distroless)  
+2. **Scan images for vulnerabilities** (Trivy, Clair)  
+3. **Sign and verify images**
+4. **Use private registries**
+5. **Regular updates and patching**
+</Step>
+
+<Step>
+**How do you manage Kubernetes upgrades with zero downtime?**  
+
+1. **Rolling Updates**  
+2. **Node Drain & Replace**  
+3. **Backup & Disaster Recovery Plan**  
+4. **Canary Testing**
+5. **Version Skew Policy**
+</Step>
+
+<Step>
+**What is Policy as Code (PaC)?**  
+
+PaC enforces policies using **code-driven automation**:
+- **Infrastructure policies**
+- **Security policies**
+- **Compliance policies**
+- **Cost policies**
+</Step>
+
+<Step>
+**How do you debug failed Kubernetes deployments?**  
+
+1. **kubectl describe pod `pod-name`**  
+2. **kubectl logs `pod-name`**  
+3. **kubectl get events**  
+4. **Service mesh tracing**
+5. **Node problem detector**
+</Step>
+
+<Step>
+**How does eBPF enhance observability in Kubernetes?**  
+
+**eBPF** provides:
+- **Kernel-level tracing**
+- **Network monitoring**
+- **Security enforcement**
+- **Performance analysis**
+</Step>
+
+<Step>
+**How do you handle disaster recovery in Kubernetes?**  
+
+1. **Backup etcd**  
+2. **Cluster snapshots**  
+3. **Multi-region deployments**  
+4. **Regular DR testing**
+5. **Recovery automation**
+</Step>
+
+<Step>
+**What is progressive delivery, and how does it differ from traditional deployments?**  
+
+Progressive delivery uses:
+- **Feature flags**
+- **A/B testing**
+- **Dark launches**
+- **Gradual rollouts**
+- **Automated rollbacks**
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

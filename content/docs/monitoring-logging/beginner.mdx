@@ -1,0 +1,238 @@
+---
+title: Beginner Level
+description: Basic monitoring and logging questions and answers for beginners.
+root: monitoring-logging
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental monitoring and logging concepts commonly asked in entry-level interviews.
+
+## **🚀 Beginner-Level Monitoring & Logging Questions**  
+
+#### *(Prometheus, Grafana, ELK Stack)*  
+
+### **Prometheus Questions**  
+
+<Steps>
+<Step>
+**What is Prometheus, and why is it used?**  
+
+Prometheus is an **open-source monitoring and alerting** system used to collect **metrics** from applications and infrastructure. It is widely used because of its **pull-based model**, **powerful query language (PromQL)**, and **time-series database** capabilities.  
+
+Example Use Case:  
+
+- Monitoring **CPU, memory, and network** usage  
+- Collecting **application performance metrics**  
+- Alerting on high error rates or latency  
+</Step>
+
+<Step>
+**How does Prometheus collect data?**  
+
+Prometheus **pulls metrics** from target endpoints exposed via HTTP at `/metrics`. The targets can be defined in a static configuration or discovered dynamically (e.g., Kubernetes service discovery).  
+
+Example scrape configuration (`prometheus.yml`):  
+
+```yaml
+scrape_configs:
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+```
+</Step>
+
+<Step>
+**What is PromQL?**  
+
+PromQL (Prometheus Query Language) is used to **query and analyze** metrics stored in Prometheus. It enables users to create alerts, dashboards, and graphs.  
+
+Example Queries:  
+
+- **CPU usage:**  
+
+  ```
+  node_cpu_seconds_total{mode="user"} / sum(node_cpu_seconds_total) * 100
+  ```
+
+- **Request rate:**  
+
+  ```
+  rate(http_requests_total[5m])
+  ```
+</Step>
+
+<Step>
+**What are Prometheus exporters?**  
+
+Exporters are **agents** that collect and expose metrics from various applications and systems.  
+
+Common Exporters:  
+
+- **Node Exporter** (system metrics)  
+- **Blackbox Exporter** (network probes)  
+- **MySQL Exporter** (database metrics)  
+</Step>
+
+<Step>
+**How do you set up an alert in Prometheus?**  
+
+Alerts are configured in `alerting_rules.yml` and evaluated by the **Alertmanager**.  
+
+Example Rule:  
+
+```yaml
+groups:
+  - name: instance_down
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: "Instance {{ $labels.instance }} is down."
+```
+</Step>
+
+### **Grafana Questions**  
+
+<Step>
+**What is Grafana?**  
+
+Grafana is an **open-source analytics and visualization** tool used to create **interactive dashboards** for monitoring data from **Prometheus, ELK, and other sources**.  
+</Step>
+
+<Step>
+**How do you connect Grafana to Prometheus?**  
+
+1. **Login to Grafana** (`http://localhost:3000`).  
+2. Navigate to **"Configuration" → "Data Sources"**.  
+3. Select **Prometheus** as the data source.  
+4. Enter **Prometheus URL (`http://localhost:9090`)**.  
+5. Click **Save & Test**.  
+</Step>
+
+<Step>
+**What are Grafana Panels?**  
+
+Panels are **visual components** in Grafana used to display data in various formats:  
+
+- **Graph Panel:** Time-series data visualization  
+- **Single Stat Panel:** Displays a single numeric value  
+- **Table Panel:** Tabular data display  
+</Step>
+
+<Step>
+**How do you create alerts in Grafana?**  
+
+1. Select a **panel**.  
+2. Click **"Edit" → "Alert"**.  
+3. Define a condition using **PromQL queries**.  
+4. Set the evaluation interval (e.g., every **1m**).  
+5. Configure the alert notification (Slack, Email, etc.).  
+</Step>
+
+<Step>
+**How do you configure a Grafana dashboard using JSON?**  
+
+Export and import dashboards using JSON files.  
+
+Example JSON snippet:  
+
+```json
+{
+  "panels": [
+    {
+      "type": "graph",
+      "title": "CPU Usage",
+      "targets": [
+        { "expr": "node_cpu_seconds_total", "format": "time_series" }
+      ]
+    }
+  ]
+}
+```
+</Step>
+
+### **ELK Stack Questions**  
+
+<Step>
+**What is the ELK Stack?**  
+
+The ELK Stack consists of:  
+
+- **Elasticsearch** (search and analytics engine)  
+- **Logstash** (log processing pipeline)  
+- **Kibana** (visualization tool)  
+</Step>
+
+<Step>
+**What is the role of Elasticsearch in ELK?**  
+
+Elasticsearch is a **NoSQL, distributed search engine** used to store, search, and analyze log data.  
+</Step>
+
+<Step>
+**How does Logstash work?**  
+
+Logstash processes logs using a **pipeline**:  
+
+- **Input:** Reads logs (from files, databases, Kafka, etc.)  
+- **Filter:** Transforms logs (parse JSON, remove sensitive data)  
+- **Output:** Sends logs to Elasticsearch or other storage  
+
+Example Logstash Configuration:  
+
+```yaml
+input { file { path => "/var/log/syslog" } }
+filter { grok { match => { "message" => "%{SYSLOGTIMESTAMP:timestamp}" } } }
+output { elasticsearch { hosts => ["localhost:9200"] } }
+```
+</Step>
+
+<Step>
+**What is Kibana used for?**  
+
+Kibana is used to **visualize and explore log data** stored in Elasticsearch. It provides features like:  
+
+- **Dashboards:** Custom data visualizations  
+- **Discover:** Search raw logs  
+- **Alerts:** Set up log-based alerts  
+</Step>
+
+<Step>
+**How do you install the ELK stack?**  
+
+Install Elasticsearch, Logstash, and Kibana:  
+
+```sh
+# Install Elasticsearch
+sudo apt install elasticsearch
+
+# Install Logstash
+sudo apt install logstash
+
+# Install Kibana
+sudo apt install kibana
+```
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

@@ -1,0 +1,167 @@
+---
+title: Beginner Level
+description: Basic concepts and fundamentals of Infrastructure as Code for beginners.
+root: infrastructure-as-code
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Beginner Level
+
+This section covers fundamental concepts of Infrastructure as Code, including basic principles, tools, and essential practices.
+
+## **Terraform Questions**  
+
+<Steps>
+<Step>
+**What is Infrastructure as Code (IaC) and why is it important?**  
+
+Infrastructure as Code (IaC) is a **method of managing and provisioning infrastructure** using code instead of manual processes. It allows:  
+✅ **Automation** of infrastructure deployment  
+✅ **Consistency** by reducing human errors  
+✅ **Scalability** through repeatable scripts  
+</Step>
+
+<Step>
+**What is Terraform and how does it work?**  
+
+Terraform is an **open-source IaC tool** by HashiCorp that helps define and provision infrastructure using a declarative configuration language. It follows three steps:  
+
+1. **Write**: Define infrastructure in `.tf` files  
+2. **Plan**: Preview changes before applying  
+3. **Apply**: Deploy and manage resources  
+
+Example:
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "my_instance" {
+  ami           = "ami-12345678"
+  instance_type = "t2.micro"
+}
+```
+</Step>
+
+<Step>
+**What is the difference between Terraform and Ansible?**  
+
+| Feature | Terraform | Ansible |
+|---------|----------|---------|
+| **Type** | Declarative | Imperative |
+| **Purpose** | Infrastructure provisioning | Configuration management |
+| **State Management** | Uses state file | Stateless |
+| **Example Use** | Creating VMs, Networks | Installing software, configuring OS |
+</Step>
+
+<Step>
+**What are Terraform Providers?**  
+
+Providers are **plugins** that allow Terraform to manage resources on different platforms (AWS, Azure, GCP, Kubernetes, etc.).  
+
+Example:  
+
+```hcl
+provider "aws" {
+  region = "us-west-2"
+}
+```
+</Step>
+
+<Step>
+**What is a Terraform State File?**  
+
+Terraform maintains infrastructure details in a **state file (`terraform.tfstate`)**, which:  
+✅ Tracks existing resources  
+✅ Enables incremental changes  
+✅ Supports remote storage (e.g., S3, Azure Blob)  
+</Step>
+</Steps>
+
+## **Ansible Questions**  
+
+<Steps>
+<Step>
+**What is Ansible and how does it work?**  
+
+Ansible is an **open-source configuration management tool** that automates tasks like software installation, updates, and deployments. It works **agentless**, using SSH or WinRM.  
+</Step>
+
+<Step>
+**What are Ansible Playbooks?**  
+
+A playbook is a **YAML-based automation script** that defines tasks to be executed.  
+
+Example (`playbook.yml`):  
+
+```yaml
+- name: Install Nginx
+  hosts: web
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+```
+</Step>
+
+<Step>
+**What is an Ansible Inventory file?**  
+
+The inventory file **lists managed servers** and their details.  
+
+Example (`inventory.ini`):  
+
+```ini
+[web]
+server1 ansible_host=192.168.1.10
+server2 ansible_host=192.168.1.11
+```
+</Step>
+</Steps>
+
+## **CloudFormation Questions**  
+
+<Steps>
+<Step>
+**What is AWS CloudFormation?**  
+
+AWS CloudFormation is an **IaC service** that provisions AWS infrastructure using YAML/JSON templates.  
+
+Example:  
+
+```yaml
+Resources:
+  MyBucket:
+    Type: "AWS::S3::Bucket"
+```
+</Step>
+
+<Step>
+**How do you create a CloudFormation stack?**  
+
+Command:  
+
+```sh
+aws cloudformation create-stack --stack-name my-stack --template-body file://template.yml
+```
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

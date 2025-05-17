@@ -1,0 +1,246 @@
+---
+title: Intermediate Level
+description: Advanced concepts in Docker and Kubernetes including optimization, networking, and deployment strategies.
+root: containers
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers advanced concepts in Docker and Kubernetes, including optimization techniques, networking, and deployment strategies.
+
+## Docker Intermediate Questions
+
+<Steps>
+<Step>
+**What is the difference between Docker ADD and COPY?**  
+
+| Feature | ADD | COPY |
+|---------|----|------|
+| **Function** | Copies files & extracts compressed files | Copies files only |
+| **Supports URLs?** | Yes | No |
+| **Best Practice** | Use for archives (`.tar.gz`) | Use for simple file copies |
+
+Example:  
+
+```go
+COPY config.json /app/config.json
+ADD myapp.tar.gz /app/
+```
+</Step>
+
+<Step>
+**How do you optimize Docker images?**  
+
+- Use **smaller base images** (e.g., `alpine` instead of `ubuntu`).  
+- **Multi-stage builds** to reduce image size:  
+
+  ```go
+  FROM node:16 AS build
+  WORKDIR /app
+  COPY . .
+  RUN npm install && npm run build
+
+  FROM nginx:alpine
+  COPY --from=build /app/dist /usr/share/nginx/html
+  ```
+
+- Use `.dockerignore` to avoid unnecessary files.  
+</Step>
+
+<Step>
+**What is the difference between Docker ENTRYPOINT and CMD?**  
+
+- `ENTRYPOINT` is **not overridden by command-line arguments**, while `CMD` can be.  
+- Best practice: Use `ENTRYPOINT` for fixed commands.  
+
+Example:  
+
+```go
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["-p", "80"]
+```
+</Step>
+
+<Step>
+**How do you debug a running Docker container?**  
+
+- **Get container logs:** `docker logs my-container`  
+- **Attach to a running container:** `docker exec -it my-container /bin/sh`  
+- **Inspect container details:** `docker inspect my-container`  
+</Step>
+
+<Step>
+**What is a Docker Multi-Stage Build?**  
+
+A **multi-stage build** reduces image size by using multiple `FROM` statements.  
+
+```go
+FROM golang:1.17 AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o myapp
+
+FROM alpine
+COPY --from=builder /app/myapp /myapp
+ENTRYPOINT ["/myapp"]
+```
+
+The final image **only contains the built binary**.
+</Step>
+
+<Step>
+**How does Docker handle networking?**  
+
+- **Bridge network (default):** Containers communicate via virtual network.  
+- **Host network:** Container shares the host's networking stack.  
+- **Overlay network:** Used in **Docker Swarm** for multi-host networking.  
+
+Example:  
+
+```sh
+docker network create mynetwork
+docker run --network=mynetwork nginx
+```
+</Step>
+
+<Step>
+**What is the difference between Docker Swarm and Kubernetes?**  
+
+| Feature | Docker Swarm | Kubernetes |
+|---------|-------------|------------|
+| **Orchestration** | Lightweight, built into Docker | Advanced, feature-rich |
+| **Scaling** | Manual | Auto-scaling |
+| **Service Discovery** | Built-in | Needs external setup (DNS, Ingress) |
+</Step>
+
+<Step>
+**How do you remove unused Docker images and containers?**  
+
+```sh
+docker system prune -a
+```
+
+This removes **stopped containers, unused networks, and dangling images**.
+</Step>
+
+<Step>
+**What is Docker BuildKit?**  
+
+Docker **BuildKit** improves build speed and caching.  
+Enable it with:  
+
+```sh
+DOCKER_BUILDKIT=1 docker build .
+```
+
+Benefits:  
+✅ **Faster builds**  
+✅ **Parallel execution**  
+✅ **Improved caching**  
+</Step>
+
+<Step>
+**How do you limit container resource usage?**  
+
+Use `--memory` and `--cpus`:  
+
+```sh
+docker run --memory=512m --cpus=1 nginx
+```
+
+This limits memory to **512MB** and CPU usage to **1 core**.
+</Step>
+</Steps>
+
+## Kubernetes Intermediate Questions
+
+<Steps>
+<Step>
+**How does Kubernetes handle high availability?**  
+
+- Uses **multiple master nodes** to avoid single points of failure.  
+- Deployments use **replica sets** to keep applications running.  
+- **Load balancing & failover mechanisms** ensure availability.  
+</Step>
+
+<Step>
+**What is the role of kubelet in Kubernetes?**  
+
+Kubelet runs on each node and:  
+✅ **Communicates with the master node**  
+✅ **Ensures containers are running**  
+✅ **Monitors container health**  
+</Step>
+
+<Step>
+**How do you check logs of a running Pod in Kubernetes?**  
+
+```sh
+kubectl logs my-pod
+kubectl logs -f my-pod  # Stream logs in real-time
+```
+</Step>
+
+<Step>
+**What are Kubernetes Labels and Selectors?**  
+
+Labels **identify** resources, while selectors **filter resources**.  
+Example:  
+
+```yaml
+metadata:
+  labels:
+    app: my-app
+```
+
+To filter pods by label:  
+
+```sh
+kubectl get pods -l app=my-app
+```
+</Step>
+
+<Step>
+**What is a Kubernetes Ingress?**  
+
+An **Ingress** manages external access to services.  
+Example:  
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+spec:
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+```
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

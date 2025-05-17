@@ -1,0 +1,230 @@
+---
+title: Advanced Level
+description: Expert-level monitoring and logging questions and answers for senior professionals.
+root: monitoring-logging
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level monitoring and logging concepts commonly asked in interviews for senior professionals.
+
+## **🚀 Advanced-Level Monitoring & Logging Questions**  
+
+#### *(Prometheus, Grafana, ELK Stack)*  
+
+<Steps>
+<Step>
+**How do you scale Prometheus for a large environment?**  
+
+Prometheus is a **single-node** system, so for large environments:  
+
+- **Use multiple Prometheus instances** scraping different targets.  
+- **Federation:** Create a parent Prometheus that scrapes **aggregated** metrics from child Prometheus instances.  
+- **Remote storage:** Use **Thanos, Cortex, or Mimir** to store metrics in scalable object storage (S3, GCS).  
+- **Sharding:** Distribute scraping targets across Prometheus instances using load balancing tools like **Kube StatefulSets**.  
+</Step>
+
+<Step>
+**How does Prometheus handle stale or missing metrics?**  
+
+- **Stale markers:** Prometheus marks time-series data as **stale** if a target stops reporting metrics.  
+- **Absent function (`absent()`)**: Used in PromQL to detect missing metrics.  
+- **Dead Man's Switch**: A constant alert (e.g., `ALWAYS_ON`) ensures the alerting system is functional.  
+
+Example:  
+
+```
+absent(up{job="my_service"})
+```
+
+Triggers an alert if `up{job="my_service"}` is missing.  
+</Step>
+
+<Step>
+**What is Prometheus WAL (Write-Ahead Log) and its purpose?**  
+
+The **Write-Ahead Log (WAL)** in Prometheus:  
+
+- **Stores data on disk before committing it to TSDB (Time-Series Database).**  
+- Reduces data loss during crashes.  
+- WAL files are stored in **/data/wal/** and help recover metrics quickly after a restart.  
+</Step>
+
+<Step>
+**What are Histogram and Summary metrics in Prometheus?**  
+
+Both are used for measuring **latency and response time**:  
+
+- **Histogram:** Buckets data into **predefined ranges**, allowing percentiles to be calculated later.  
+- **Summary:** Precomputes percentiles but cannot be aggregated across instances.  
+
+Example (Histogram metric):  
+
+```
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+```
+
+This calculates the **95th percentile response time**.  
+</Step>
+
+<Step>
+**How do you secure Prometheus endpoints?**  
+
+- **Enable authentication & TLS** via a reverse proxy (Nginx, Traefik).  
+- **Use RBAC (Role-Based Access Control)** in Kubernetes for limiting access.  
+- **Set up network policies** to restrict Prometheus access.  
+
+Example: Using basic auth with Nginx:  
+
+```nginx
+server {
+  listen 9090;
+  location / {
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+  }
+}
+```
+</Step>
+
+<Step>
+**How do you monitor Prometheus itself using Grafana?**  
+
+- Enable the built-in Prometheus **self-metrics endpoint (`/metrics`)**.  
+- Use dashboards to monitor **scrape latency, TSDB memory usage, query duration**.  
+- Use the **Prometheus Federation API** to get meta-metrics.  
+</Step>
+
+<Step>
+**What are Grafana Annotations and how are they useful?**  
+
+Annotations mark **events (deployments, incidents, downtimes)** on Grafana graphs for better visualization.  
+Example: Mark a **Kubernetes deployment** event in Grafana.  
+</Step>
+
+<Step>
+**How do you configure Grafana for multi-tenancy?**  
+
+- **Organizations:** Create multiple teams with separate dashboards.  
+- **Data source permissions:** Restrict access at the **data-source level**.  
+- **Multi-instance deployment:** Run **separate Grafana instances** for different teams.  
+</Step>
+
+<Step>
+**What is Alerting in Grafana and how does it work?**  
+
+- **Grafana alerts** monitor query conditions.  
+- Alert states: **OK, Pending, Alerting, No Data**.  
+- **Notification channels:** Slack, PagerDuty, Email, Webhooks.  
+
+Example Grafana alert condition:  
+
+- `avg(http_requests_total) > 1000` → Sends an alert if requests exceed 1000.  
+</Step>
+
+<Step>
+**How does Loki compare with Elasticsearch for logging?**  
+
+| Feature  | Loki | Elasticsearch |  
+|----------|------|--------------|  
+| Storage  | Compressed logs | Full-text index |  
+| Querying | Label-based | Query DSL |  
+| Performance | Faster (optimized for Kubernetes) | Heavy resource usage |  
+
+**Loki is recommended for lightweight, Kubernetes-native logging**, while **Elasticsearch is better for complex log analysis**.  
+</Step>
+
+<Step>
+**What is the Hot-Warm-Cold architecture in Elasticsearch?**  
+
+This strategy optimizes storage cost:  
+
+- **Hot Nodes** → Store recent, frequently queried data.  
+- **Warm Nodes** → Store older logs with infrequent access.  
+- **Cold Nodes** → Store archived logs for long-term retention.  
+</Step>
+
+<Step>
+**How do you reduce indexing pressure in Elasticsearch?**  
+
+- **Use ILM (Index Lifecycle Management).**  
+- **Optimize shard count** (Avoid too many small shards).  
+- **Increase refresh intervals (`index.refresh_interval: 30s`).**  
+</Step>
+
+<Step>
+**How does Logstash manage backpressure?**  
+
+- **Persistent Queues** → Buffer data before sending to Elasticsearch.  
+- **Dead Letter Queue (DLQ)** → Stores failed events for reprocessing.  
+
+Example:  
+
+```yaml
+queue.type: persisted
+queue.max_bytes: 1gb
+```
+</Step>
+
+<Step>
+**What are Query Caching strategies in Elasticsearch?**  
+
+- **Request cache:** Stores query results.  
+- **Shard request cache:** Caches **aggregations and filters**.  
+- **Doc value cache:** Optimizes **sorting and aggregations**.  
+</Step>
+
+<Step>
+**How do you use Kibana for anomaly detection?**  
+
+- **Machine Learning Jobs** → Identify unusual trends in logs.  
+- **SIEM (Security Information and Event Management)** → Detect security threats.  
+
+Example anomaly detection job:  
+
+```json
+{
+  "analysis_config": {
+    "bucket_span": "15m",
+    "detectors": [{ "function": "mean", "field_name": "cpu_usage" }]
+  }
+}
+```
+</Step>
+
+<Step>
+**How do you secure Elasticsearch clusters?**  
+
+- **Enable TLS (`xpack.security.enabled: true`).**  
+- **Use API Key authentication.**  
+- **Implement firewall rules to restrict access.**  
+</Step>
+
+<Step>
+**How do you integrate Prometheus with Elasticsearch?**  
+
+Use **Metricbeat** with the Prometheus module to collect metrics and store them in Elasticsearch. This allows you to:
+
+- **Visualize Prometheus metrics** in Kibana
+- **Combine metrics with logs** for better correlation
+- **Use Elasticsearch's powerful search capabilities** on metric data
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

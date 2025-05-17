@@ -1,0 +1,194 @@
+---
+title: Intermediate Level
+description: Advanced concepts in Infrastructure as Code including state management, testing, and best practices.
+root: infrastructure-as-code
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers advanced concepts in Infrastructure as Code, including state management, testing strategies, and best practices.
+
+## **Terraform Questions**  
+
+<Steps>
+<Step>
+**What is the difference between Terraform `local` and `remote` state?**  
+
+Terraform state can be stored **locally** (on disk) or **remotely** (in S3, Consul, etc.).  
+
+| Storage | Pros | Cons |
+|---------|------|------|
+| **Local State** (`terraform.tfstate`) | Fast, simple | Not suitable for teams |
+| **Remote State** (S3, etc.) | Shared, secure | Slightly slower |
+
+Example remote state (S3 backend):  
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+```
+</Step>
+
+<Step>
+**How do you handle secrets in Terraform?**  
+
+Avoid hardcoding secrets in `.tf` files:  
+✅ Use **environment variables**  
+✅ Use **Terraform Vault Provider**  
+✅ Store secrets in **AWS Secrets Manager**  
+</Step>
+
+<Step>
+**What is Terraform Locking, and why is it important?**  
+
+Terraform uses **state locking** to prevent simultaneous updates by multiple users.  
+
+Example (DynamoDB locking):  
+
+```hcl
+backend "s3" {
+  bucket         = "my-terraform-bucket"
+  dynamodb_table = "terraform-lock"
+}
+```
+</Step>
+
+<Step>
+**What is Terraform Workspaces?**  
+
+Terraform **Workspaces** allow managing multiple environments within a single configuration.  
+
+```sh
+terraform workspace new dev
+terraform workspace select dev
+```
+</Step>
+
+<Step>
+**How do you create reusable Terraform modules?**  
+
+Modules help organize and reuse code.  
+
+Example (`modules/network/main.tf`):  
+
+```hcl
+variable "vpc_cidr" {}
+
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+}
+```
+</Step>
+</Steps>
+
+## **Ansible Questions**  
+
+<Steps>
+<Step>
+**How do you use Ansible variables?**  
+
+Variables can be defined in:  
+✅ Playbooks (`vars:`)  
+✅ Inventory (`host_vars`, `group_vars`)  
+✅ Command-line (`-e` flag)  
+
+Example:  
+
+```yaml
+- hosts: web
+  vars:
+    app_port: 8080
+  tasks:
+    - debug: msg="App runs on port {{ app_port }}"
+```
+</Step>
+
+<Step>
+**What are Ansible Facts?**  
+
+Facts are **system information** collected automatically.  
+
+Example:  
+
+```sh
+ansible all -m setup
+```
+</Step>
+
+<Step>
+**What is the purpose of Ansible Handlers?**  
+
+Handlers run **only when notified**.  
+
+Example:  
+
+```yaml
+- name: Install Nginx
+  apt:
+    name: nginx
+  notify: Restart Nginx
+
+handlers:
+  - name: Restart Nginx
+    service:
+      name: nginx
+      state: restarted
+```
+</Step>
+</Steps>
+
+## **CloudFormation Questions**
+
+<Steps>
+<Step>
+**What are the main components of AWS CloudFormation?**  
+
+| Component | Description |
+|-----------|------------|
+| **Templates** | Defines resources in YAML/JSON |
+| **Stacks** | Collection of AWS resources |
+| **StackSets** | Deploy stacks across multiple accounts |
+</Step>
+
+<Step>
+**How do you update a CloudFormation stack?**  
+
+Use:  
+
+```sh
+aws cloudformation update-stack --stack-name my-stack --template-body file://template.yml
+```
+</Step>
+
+<Step>
+**What is the difference between `DependsOn` and `CreationPolicy` in CloudFormation?**  
+
+| Feature | Purpose |
+|---------|---------|
+| `DependsOn` | Ensures a resource is created before another |
+| `CreationPolicy` | Waits for a signal before marking as successful |
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

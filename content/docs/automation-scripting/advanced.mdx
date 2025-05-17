@@ -1,0 +1,207 @@
+---
+title: Advanced Level
+description: Expert-level automation and scripting interview questions covering debugging, signal handling, remote execution, and advanced pipeline concepts.
+root: automation-scripting
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level concepts in automation and scripting, including advanced debugging techniques, signal handling, remote execution, and complex pipeline configurations.
+
+<Steps>
+<Step>
+**How do you debug a Bash script?**
+
+Use `set -x` for debugging:  
+
+```bash
+#!/bin/bash
+set -x
+echo "Debugging mode enabled"
+```
+</Step>
+
+<Step>
+**How do you trap signals in a Bash script?**
+
+```bash
+trap "echo 'Script interrupted'; exit" SIGINT SIGTERM
+```
+
+Catches `Ctrl+C` (SIGINT) and terminates gracefully.  
+</Step>
+
+<Step>
+**What is the difference between `$(command)` and backticks `` `command` `` in Bash?**
+
+Both execute commands, but `$(command)` is preferred as it's **nestable**.  
+</Step>
+
+<Step>
+**How do you handle multiline commands in a Bash script?**
+
+Use `\` for line continuation:  
+
+```bash
+echo "This is a \
+multiline command"
+```
+</Step>
+
+<Step>
+**How do you use conditionals inside a YAML file?**
+
+With Jinja2 templating in Ansible:  
+
+```yaml
+tasks:
+  - name: Install package
+    yum:
+      name: httpd
+    when: ansible_os_family == "RedHat"
+```
+</Step>
+
+<Step>
+**How do you encrypt secrets in YAML?**
+
+Use **Ansible Vault**:  
+
+```bash
+ansible-vault encrypt secrets.yaml
+```
+</Step>
+
+<Step>
+**How do you execute a Python script inside a Bash script?**
+
+```bash
+python3 <<EOF
+print("Hello from Python")
+EOF
+```
+</Step>
+
+<Step>
+**What is the difference between `continue` and `break` in Bash loops?**
+
+- `break` exits the loop entirely.  
+- `continue` skips the current iteration.  
+</Step>
+
+<Step>
+**How do you parse a JSON file in Bash?**
+
+Use `jq`:  
+
+```bash
+cat data.json | jq '.key'
+```
+</Step>
+
+<Step>
+**How do you use arrays in Groovy?**
+
+```groovy
+def arr = ["a", "b", "c"]
+println arr[0]
+```
+</Step>
+
+<Step>
+**What is a Jenkins shared library in Groovy?**
+
+A reusable **pipeline function** stored in Git.  
+</Step>
+
+<Step>
+**How do you set a timeout for a script in Bash?**
+
+```bash
+timeout 10s ./script.sh
+```
+</Step>
+
+<Step>
+**How do you execute a Bash function in a subshell?**
+
+```bash
+(my_function)
+```
+
+Runs in a new shell, not affecting the parent script.  
+</Step>
+
+<Step>
+**How do you use Python to send an HTTP request?**
+
+```python
+import requests
+response = requests.get("https://example.com")
+print(response.text)
+```
+</Step>
+
+<Step>
+**How do you handle authentication in a Python script?**
+
+```python
+import requests
+requests.get("https://example.com", auth=("user", "pass"))
+```
+</Step>
+
+<Step>
+**How do you find and replace text in YAML files?**
+
+Use `yq`:  
+
+```bash
+yq e '.name="NewValue"' -i config.yaml
+```
+</Step>
+
+<Step>
+**How do you define a multi-stage Jenkins pipeline in Groovy?**
+
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Build') { steps { echo "Building..." } }
+        stage('Test') { steps { echo "Testing..." } }
+    }
+}
+```
+</Step>
+
+<Step>
+**What is an inline script in a CI/CD pipeline?**
+
+Running a script **directly inside a pipeline** (e.g., GitHub Actions, Jenkins).  
+Example in GitHub Actions:  
+
+```yaml
+jobs:
+  build:
+    steps:
+      - run: echo "Inline script execution"
+```
+</Step>
+
+<Step>
+**How do you execute a script remotely via SSH in Bash?**
+
+```bash
+ssh user@server 'bash -s' < local_script.sh
+```
+</Step>
+
+<Step>
+**How do you ensure idempotency in an Ansible playbook?**
+
+Ansible modules ensure **idempotency** by only making changes when needed. 
+</Step>
+</Steps> 

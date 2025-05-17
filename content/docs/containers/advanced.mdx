@@ -1,0 +1,274 @@
+---
+title: Advanced Level
+description: Expert-level concepts in Docker and Kubernetes including security, architecture, and advanced deployment patterns.
+root: containers
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level concepts in Docker and Kubernetes, including security best practices, advanced architecture patterns, and complex deployment strategies.
+
+## Docker Advanced Questions
+
+<Steps>
+<Step>
+**What are Docker namespaces and cgroups? How do they contribute to containerization?**  
+
+- **Namespaces** isolate resources (PID, network, mount points, etc.) for each container.  
+- **Cgroups (Control Groups)** limit CPU, memory, and disk usage.  
+- Together, they **ensure process isolation and resource allocation**.  
+
+Example:  
+
+```sh
+cat /proc/self/cgroup
+```
+</Step>
+
+<Step>
+**What is the difference between Docker Volumes, Bind Mounts, and tmpfs?**  
+
+| Type | Persistent? | Use Case |
+|------|------------|----------|
+| **Volumes** | Yes | Best for data persistence |
+| **Bind Mounts** | Yes | Direct host file access |
+| **tmpfs** | No | In-memory storage for performance |
+
+Example (Volume):  
+
+```sh
+docker run -v myvolume:/data nginx
+```
+</Step>
+
+<Step>
+**What are Docker BuildKit advantages?**  
+
+- **Parallel execution** speeds up builds.  
+- **Efficient caching** reduces rebuild time.  
+- **Security improvements** via secret mounts.  
+
+Enable BuildKit:  
+
+```sh
+DOCKER_BUILDKIT=1 docker build .
+```
+</Step>
+
+<Step>
+**How do you secure a Docker container?**  
+
+- **Use minimal base images** (e.g., `alpine`).  
+- **Run as non-root user**.  
+- **Limit container capabilities** (`--cap-drop=ALL`).  
+- **Use read-only filesystems** (`--read-only`).  
+
+Example:  
+
+```sh
+docker run --user 1001 --read-only nginx
+```
+</Step>
+
+<Step>
+**How do multi-stage builds improve security in Docker?**  
+
+- Keeps **sensitive files out of the final image**.  
+- Reduces **attack surface** by discarding unnecessary dependencies.  
+
+Example:  
+
+```go
+FROM golang AS build
+COPY . .  
+RUN go build -o myapp
+
+FROM scratch
+COPY --from=build /myapp /myapp
+ENTRYPOINT ["/myapp"]
+```
+</Step>
+
+<Step>
+**What is Docker Content Trust (DCT)?**  
+
+DCT provides **digital signing and verification** of container images.  
+
+```sh
+export DOCKER_CONTENT_TRUST=1
+docker push myregistry/myapp:latest
+```
+</Step>
+
+<Step>
+**How do you implement Docker image scanning?**  
+
+Use tools like:  
+- **Trivy** for vulnerability scanning  
+- **Snyk** for dependency checking  
+- **Anchore** for policy compliance  
+
+Example:  
+
+```sh
+trivy image nginx:latest
+```
+</Step>
+
+<Step>
+**What is Docker layer caching and how do you optimize it?**  
+
+- Order Dockerfile instructions from **least to most frequently changing**.  
+- Group related commands in single `RUN` instructions.  
+- Use `.dockerignore` effectively.  
+
+Example:  
+
+```go
+COPY package*.json ./
+RUN npm install
+COPY . .
+```
+</Step>
+
+<Step>
+**How do you implement Docker networking security?**  
+
+- Use **user-defined networks** instead of linking.  
+- Implement **network segmentation**.  
+- Configure **network policies**.  
+
+Example:  
+
+```sh
+docker network create --driver overlay --opt encrypted mynetwork
+```
+</Step>
+
+<Step>
+**What are Docker secrets and how do you use them?**  
+
+Docker secrets securely store sensitive data.  
+
+```sh
+echo "mypassword" | docker secret create db_password -
+docker service create --secret db_password mysql
+```
+</Step>
+</Steps>
+
+## Kubernetes Advanced Questions
+
+<Steps>
+<Step>
+**What is the Kubernetes Control Plane architecture?**  
+
+Components include:  
+✅ **API Server** - REST API interface  
+✅ **etcd** - Distributed key-value store  
+✅ **Scheduler** - Pod placement  
+✅ **Controller Manager** - State management  
+</Step>
+
+<Step>
+**How do you implement custom controllers in Kubernetes?**  
+
+Custom controllers use the **Operator pattern**:  
+
+```go
+type MyController struct {
+    client kubernetes.Interface
+}
+
+func (c *MyController) Run(stopCh <-chan struct{}) {
+    // Controller logic
+}
+```
+</Step>
+
+<Step>
+**What are Kubernetes admission controllers?**  
+
+Admission controllers **intercept requests** to the Kubernetes API server:  
+- **ValidatingWebhookConfiguration**  
+- **MutatingWebhookConfiguration**  
+
+Example:  
+
+```yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: my-webhook
+webhooks:
+  - name: my-webhook.example.com
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+```
+</Step>
+
+<Step>
+**What is a Service Mesh and how does it work?**  
+
+A Service Mesh provides:  
+- **Traffic Management**  
+- **Security (mTLS)**  
+- **Observability**  
+
+Example using Istio:  
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: my-service
+spec:
+  hosts:
+  - my-service
+  http:
+  - route:
+    - destination:
+        host: my-service
+        subset: v1
+      weight: 90
+    - destination:
+        host: my-service
+        subset: v2
+      weight: 10
+```
+</Step>
+
+<Step>
+**How do you implement GitOps in Kubernetes?**  
+
+GitOps principles:  
+- **Git as single source of truth**  
+- **Declarative configurations**  
+- **Automated synchronization**  
+
+Tools:  
+- **ArgoCD**  
+- **Flux**  
+- **Jenkins X**  
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

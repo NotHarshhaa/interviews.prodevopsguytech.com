@@ -1,0 +1,231 @@
+---
+title: Intermediate Level
+description: Advanced monitoring and logging questions and answers for experienced professionals.
+root: monitoring-logging
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers advanced monitoring and logging concepts commonly asked in interviews for experienced professionals.
+
+## **🚀 Intermediate-Level Monitoring & Logging Questions**  
+
+#### *(Prometheus, Grafana, ELK Stack)*  
+
+### **Prometheus Questions**  
+
+<Steps>
+<Step>
+**What is the difference between Pull and Push monitoring models?**  
+
+- **Pull Model (Prometheus)** → The monitoring system **requests data** from targets at regular intervals.  
+- **Push Model (StatsD, InfluxDB)** → The target system **sends data** to a central monitoring system.  
+
+**Prometheus uses a pull model** because it provides better control over scraping intervals, avoids data duplication, and reduces unnecessary load on monitored systems. However, in some cases (e.g., short-lived jobs), Prometheus **Pushgateway** can be used to support push-based metrics.  
+</Step>
+
+<Step>
+**How does Prometheus handle high-cardinality data?**  
+
+Prometheus stores time-series data efficiently, but **high-cardinality metrics (many unique label combinations)** can cause excessive memory and storage usage. Best practices include:  
+
+- **Avoid unnecessary labels** (e.g., `user_id` or `request_id`).  
+- **Use histograms and summaries** instead of tracking individual events.  
+- **Enable retention policies and downsampling** for old data.  
+</Step>
+
+<Step>
+**What are Recording Rules in Prometheus?**  
+
+Recording Rules allow precomputing and storing frequently used queries as new time-series metrics. This improves query performance.  
+
+Example:  
+
+```yaml
+groups:
+  - name: response_time_rules
+    rules:
+      - record: instance:response_time:avg
+        expr: avg(rate(http_request_duration_seconds[5m]))
+```
+
+This stores the average request duration as `instance:response_time:avg`, making future queries faster.  
+</Step>
+
+<Step>
+**What is Thanos, and how does it complement Prometheus?**  
+
+Thanos extends Prometheus for **scalability, long-term storage, and high availability**. It:  
+
+- **Provides deduplication** across multiple Prometheus instances.  
+- **Enables object storage support** (e.g., S3, GCS).  
+- **Allows querying across multiple Prometheus servers** via a single query layer.  
+
+Thanos is useful in **multi-cluster environments** where Prometheus instances are spread across multiple regions or clouds.  
+</Step>
+
+<Step>
+**How do you handle Prometheus high availability (HA)?**  
+
+Prometheus is a single-node system by design, but HA can be achieved by:  
+
+- **Running multiple Prometheus replicas** (scraping the same targets).  
+- Using **Thanos or Cortex** for deduplication and query federation.  
+- **Storing time-series data externally** (e.g., in S3, Bigtable).  
+</Step>
+
+### **Grafana Questions**  
+
+<Step>
+**How do you enable authentication in Grafana?**  
+
+Grafana supports **multiple authentication methods**:  
+
+- **Basic authentication** (default).  
+- **OAuth providers** (Google, GitHub, Azure AD, etc.).  
+- **LDAP authentication** for enterprise use.  
+
+To enable OAuth authentication, modify `grafana.ini`:  
+
+```ini
+[auth.github]
+enabled = true
+client_id = YOUR_CLIENT_ID
+client_secret = YOUR_CLIENT_SECRET
+```
+</Step>
+
+<Step>
+**What are Templating Variables in Grafana?**  
+
+Templating allows users to create **dynamic dashboards** by using variables. Instead of hardcoding values, users can select values from dropdown menus.  
+
+Example:  
+
+```
+rate(http_requests_total{job="$service"}[5m])
+```
+
+Here, `$service` is a variable that can be selected from a dropdown list in Grafana.  
+</Step>
+
+<Step>
+**How do you set up Grafana provisioning?**  
+
+Grafana supports **automated provisioning** of dashboards and data sources using YAML configuration files.  
+
+Example `datasource.yaml`:  
+
+```yaml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus:9090
+    access: proxy
+```
+</Step>
+
+<Step>
+**What are Grafana Loki and Promtail?**  
+
+- **Loki** is Grafana's log aggregation system, similar to Elasticsearch but optimized for Kubernetes and microservices.  
+- **Promtail** is the log collection agent for **pushing logs to Loki**.  
+
+Promtail collects logs from `/var/log` and forwards them to Loki.  
+</Step>
+
+<Step>
+**How can you monitor Kubernetes with Grafana?**  
+
+Use **kube-prometheus-stack**, which includes:  
+
+- **Prometheus Operator** (for Kubernetes metrics).  
+- **Grafana dashboards** for cluster monitoring.  
+- **Node Exporter and Kube-State-Metrics** for detailed node/pod-level metrics.  
+</Step>
+
+### **ELK Stack Questions**  
+
+<Step>
+**What is an Elasticsearch Shard, and why is it important?**  
+
+An Elasticsearch **shard** is a **subdivision of an index**. Each index is split into shards to allow parallel processing and redundancy.  
+
+- **Primary Shards:** Store original data.  
+- **Replica Shards:** Duplicates of primary shards for fault tolerance.  
+
+Example:  
+
+```sh
+curl -X PUT "localhost:9200/logs?pretty" -H 'Content-Type: application/json' -d'
+{
+  "settings": { "number_of_shards": 3, "number_of_replicas": 2 }
+}'
+```
+
+This creates an index with **3 primary and 2 replica shards**.  
+</Step>
+
+<Step>
+**What is Index Lifecycle Management (ILM) in Elasticsearch?**  
+
+ILM automates **index retention policies**, ensuring efficient storage use. Stages include:  
+
+1. **Hot Phase:** Frequent reads/writes.  
+2. **Warm Phase:** Less frequent queries.  
+3. **Cold Phase:** Rarely accessed data.  
+4. **Delete Phase:** Data deletion.  
+
+ILM is useful for managing **log retention** in ELK stacks.  
+</Step>
+
+<Step>
+**How do you configure Logstash pipelines?**  
+
+Logstash uses a pipeline of **input → filter → output**.  
+
+Example `logstash.conf`:  
+
+```yaml
+input {
+  beats {
+    port => 5044
+  }
+}
+filter {
+  grok { match => { "message" => "%{TIMESTAMP_ISO8601:timestamp}" } }
+}
+output {
+  elasticsearch { hosts => ["localhost:9200"] }
+}
+```
+
+This pipeline processes logs from **Filebeat → Logstash → Elasticsearch**.  
+</Step>
+
+<Step>
+**What are Kibana Canvas and Lens?**  
+
+- **Canvas** → Used for creating custom, highly stylized reports and presentations.  
+- **Lens** → Drag-and-drop interface for creating advanced visualizations easily.  
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

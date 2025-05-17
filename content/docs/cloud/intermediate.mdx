@@ -1,0 +1,203 @@
+---
+title: Intermediate Level
+description: Advanced concepts in cloud computing including architecture, security, and optimization.
+root: cloud
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers advanced concepts in cloud computing, including architecture patterns, security practices, and optimization strategies.
+
+<Steps>
+<Step>
+**What is a cloud region?**  
+
+A cloud region is a geographic area where a cloud provider has multiple data centers. Each region consists of multiple **availability zones (AZs)**, ensuring redundancy and high availability.  
+
+- Example: AWS **us-east-1 (North Virginia)** has multiple AZs like **us-east-1a, us-east-1b, etc.**  
+- Cloud providers like **AWS, Azure, and GCP** allow users to select regions based on factors like **latency, compliance, and pricing.**  
+</Step>
+
+<Step>
+**How does AWS Lambda differ from EC2?**  
+
+| Feature | AWS Lambda | Amazon EC2 |
+|---------|------------|------------|
+| **Type** | Serverless function | Virtual machine |
+| **Scaling** | Auto-scales instantly | Requires manual scaling or auto-scaling setup |
+| **Billing** | Pay-per-execution | Pay for running instances |
+| **Use case** | Short-lived tasks | Long-running applications |
+| **Example** | Trigger a function when an S3 file is uploaded | Run a web server for hosting applications |
+</Step>
+
+<Step>
+**What are Reserved Instances in AWS?**  
+
+Reserved Instances (RIs) are a pricing model in AWS where users commit to a specific instance type for **1 or 3 years** in exchange for significant discounts (up to 75%) compared to On-Demand pricing.  
+
+- **Types of RIs:**
+  - **Standard RIs** – Best discounts, but limited flexibility.  
+  - **Convertible RIs** – Can switch to another instance type.  
+  - **Scheduled RIs** – Available at specific times (e.g., weekends).  
+</Step>
+
+<Step>
+**How do you secure data in cloud storage?**  
+
+To secure data in cloud storage:  
+
+- **Encryption:** Use AES-256 encryption for data at rest and TLS for data in transit.  
+- **Access Control:** Implement IAM policies and bucket policies to restrict access.  
+- **Versioning:** Enable object versioning to recover deleted/modiﬁed files.  
+- **Auditing:** Use AWS CloudTrail, Azure Monitor, or GCP Audit Logs to track access.  
+</Step>
+
+<Step>
+**What is the difference between Kubernetes and Docker Swarm?**  
+
+| Feature | Kubernetes | Docker Swarm |
+|---------|------------|--------------|
+| **Complexity** | Steeper learning curve | Easier to set up |
+| **Scaling** | Automated, fine-grained | Manual or auto-scaling |
+| **Networking** | Uses CNI (Customizable) | Simple overlay network |
+| **Load Balancing** | Built-in service discovery | DNS-based service discovery |
+| **Use case** | Enterprise-grade orchestration | Lightweight container orchestration |
+</Step>
+
+<Step>
+**What is a Stateful vs. Stateless application in the cloud?**  
+
+- **Stateless Application:** Doesn't retain session data. Each request is independent (e.g., REST APIs, serverless functions).  
+- **Stateful Application:** Retains user state across requests (e.g., databases, messaging queues).  
+- **Cloud Implication:** Stateless apps scale easily, while stateful apps require persistent storage (e.g., AWS EBS, Azure Managed Disks).  
+</Step>
+
+<Step>
+**What is auto-scaling, and how does it work?**  
+
+Auto-scaling automatically adjusts the number of cloud instances based on traffic load.  
+
+- **Types:**  
+  - **Horizontal scaling:** Adds/removes instances.  
+  - **Vertical scaling:** Increases/decreases resources on existing instances.  
+- **Example:** AWS Auto Scaling Group increases EC2 instances when CPU usage exceeds 70%.  
+</Step>
+
+<Step>
+**What is Terraform, and how does it help in cloud automation?**  
+
+Terraform is an **Infrastructure as Code (IaC)** tool used to define and provision cloud resources using declarative configurations.  
+
+- **Benefits:**  
+  - Enables version control for infrastructure  
+  - Supports multi-cloud deployments  
+  - Automates infrastructure provisioning  
+</Step>
+
+<Step>
+**How do you handle logging in a cloud environment?**  
+
+- **AWS:** Use CloudWatch Logs and CloudTrail  
+- **Azure:** Use Monitor and Log Analytics  
+- **GCP:** Use Stackdriver Logging  
+- Best practices: **Centralized logging, structured logs (JSON), retention policies**  
+</Step>
+
+<Step>
+**What is a Bastion Host, and why is it used?**  
+
+A **Bastion Host** is a publicly accessible server that provides secure SSH access to private cloud resources.  
+
+- Reduces **attack surface** by acting as an **entry point** to internal instances.  
+</Step>
+
+<Step>
+**What is a Service Level Agreement (SLA) in cloud computing?**  
+
+An SLA is a contract between a cloud provider and a customer that defines:  
+
+- **Uptime Guarantee** (e.g., AWS offers 99.99% uptime for EC2).  
+- **Response Time** (e.g., Support request resolution in 24 hours).  
+- **Penalties** if SLA is not met (e.g., refund or service credits).  
+</Step>
+
+<Step>
+**How do you optimize cloud costs?**  
+
+- **Use Reserved or Spot Instances** instead of On-Demand.  
+- **Enable Auto-scaling** to scale down during low traffic.  
+- **Monitor usage with AWS Cost Explorer/Azure Cost Management.**  
+- **Right-size resources** by selecting appropriate instance sizes.  
+</Step>
+
+<Step>
+**What is Kubernetes federation?**  
+
+Kubernetes Federation allows managing multiple Kubernetes clusters as a single unit for **high availability** and **multi-cloud support.**  
+</Step>
+
+<Step>
+**How does Chaos Engineering apply to cloud environments?**  
+
+Chaos Engineering **intentionally injects failures** to test system resilience.  
+
+- Example: Netflix **Simian Army** kills random instances to test system fault tolerance.  
+</Step>
+
+<Step>
+**What is a Kubernetes operator?**  
+
+A **Kubernetes Operator** automates complex tasks for stateful applications (e.g., managing databases in Kubernetes).  
+</Step>
+
+<Step>
+**How do you implement multi-region deployments?**  
+
+- **Data Replication:** Sync databases across regions.  
+- **Traffic Routing:** Use DNS-based routing (e.g., AWS Route 53).  
+- **Failover Mechanism:** Auto-switch to another region in case of failure.  
+</Step>
+
+<Step>
+**What is a Cloud Access Security Broker (CASB)?**  
+
+A CASB is a security layer between cloud users and providers, enforcing **compliance, threat protection, and data security.**  
+</Step>
+
+<Step>
+**How do you ensure compliance in cloud environments?**  
+
+- **Use Compliance Frameworks:** HIPAA, SOC 2, GDPR.  
+- **Enable Logging & Auditing:** AWS CloudTrail, Azure Security Center.  
+</Step>
+
+<Step>
+**What is zero-trust security in cloud environments?**  
+
+Zero-trust security assumes **no implicit trust** and enforces strict identity verification for every request.  
+</Step>
+
+<Step>
+**How does serverless architecture improve scalability?**  
+
+Serverless auto-scales **instantly** based on demand, eliminating pre-provisioning of resources.  
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

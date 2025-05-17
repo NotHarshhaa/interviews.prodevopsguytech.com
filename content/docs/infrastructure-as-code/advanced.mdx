@@ -1,0 +1,243 @@
+---
+title: Advanced Level
+description: Expert-level concepts in Infrastructure as Code including CI/CD integration, security, and enterprise practices.
+root: infrastructure-as-code
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level concepts in Infrastructure as Code, including CI/CD integration, security best practices, and enterprise-scale implementations.
+
+## **Terraform Questions**  
+
+<Steps>
+<Step>
+**How do you implement CI/CD pipelines with Terraform?**  
+
+Terraform can be integrated into CI/CD pipelines using **GitHub Actions, GitLab CI, or Jenkins**.  
+✅ **Linting & Validation:** `terraform fmt`, `terraform validate`  
+✅ **Planning:** `terraform plan -out=tfplan`  
+✅ **Apply Changes:** `terraform apply tfplan`  
+
+Example GitHub Actions workflow:  
+
+```yaml
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+      - name: Terraform Apply
+        run: terraform apply tfplan
+```
+</Step>
+
+<Step>
+**What is a Terraform Sentinel Policy?**  
+
+Sentinel is a **policy-as-code framework** that enforces compliance.  
+
+Example policy (`enforce_cost.sentinel`):  
+
+```hcl
+import "tfplan"
+
+main = rule { tfplan.cost_estimate.total_monthly_cost < 500 }
+```
+</Step>
+
+<Step>
+**How do you handle infrastructure drift in Terraform?**  
+
+Infrastructure drift occurs when real-world infrastructure deviates from its declared state. Solutions include:  
+
+✅ Regular `terraform plan` runs  
+✅ Automated drift detection  
+✅ Immutable infrastructure patterns  
+</Step>
+
+<Step>
+**How do you manage multi-region deployments in Terraform?**  
+
+Use provider aliases and workspaces:  
+
+```hcl
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "us-west-2"
+  region = "us-west-2"
+}
+```
+</Step>
+
+<Step>
+**What are Terraform's enterprise features?**  
+
+Enterprise features include:  
+✅ **Private Module Registry**  
+✅ **Policy as Code (Sentinel)**  
+✅ **Team-based access controls**  
+✅ **Audit logging**  
+</Step>
+</Steps>
+
+## **Ansible Questions**  
+
+<Steps>
+<Step>
+**How do you implement role-based access control in Ansible Tower?**  
+
+RBAC in Ansible Tower includes:  
+✅ **Organization management**  
+✅ **Team-based permissions**  
+✅ **Credential management**  
+</Step>
+
+<Step>
+**How do you handle secrets in Ansible at scale?**  
+
+Best practices include:  
+✅ Using **Ansible Vault**  
+✅ Integration with **HashiCorp Vault**  
+✅ **AWS Secrets Manager** integration  
+
+Example:  
+
+```yaml
+- name: Get secret
+  community.aws.aws_secret:
+    name: my_secret
+    region: us-east-1
+  register: secret
+```
+</Step>
+
+<Step>
+**How do you implement custom Ansible modules?**  
+
+Create Python-based modules:  
+
+```python
+#!/usr/bin/python
+from ansible.module_utils.basic import AnsibleModule
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            name=dict(required=True),
+            state=dict(default='present')
+        )
+    )
+    # Module logic here
+    module.exit_json(changed=True)
+
+if __name__ == '__main__':
+    main()
+```
+</Step>
+</Steps>
+
+## **CloudFormation Questions**
+
+<Steps>
+<Step>
+**How do you implement cross-stack references in CloudFormation?**  
+
+Use `Fn::ImportValue` and `Export`:  
+
+```yaml
+Outputs:
+  VpcId:
+    Value: !Ref MyVPC
+    Export:
+      Name: MyVpcId
+
+Resources:
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !ImportValue MyVpcId
+```
+</Step>
+
+<Step>
+**How do you handle rollbacks in CloudFormation?**  
+
+Strategies include:  
+✅ **Automatic rollback on failure**  
+✅ **Custom rollback triggers**  
+✅ **Stack update policies**  
+</Step>
+
+<Step>
+**How do you implement custom resources in CloudFormation?**  
+
+Use Lambda-backed custom resources:  
+
+```yaml
+Resources:
+  CustomResource:
+    Type: Custom::MyResource
+    Properties:
+      ServiceToken: !GetAtt MyLambda.Arn
+      CustomProperty: value
+```
+</Step>
+
+<Step>
+**How do you implement multi-account deployments using CloudFormation?**  
+
+Use **AWS Organizations** and **StackSets**:  
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  StackSet:
+    Type: AWS::CloudFormation::StackSet
+    Properties:
+      PermissionModel: SERVICE_MANAGED
+      AutoDeployment:
+        Enabled: true
+        RetainStacksOnAccountRemoval: false
+```
+</Step>
+
+<Step>
+**How do you implement infrastructure testing?**  
+
+Best practices include:  
+✅ **Unit testing** with tools like Terratest  
+✅ **Integration testing** with real resources  
+✅ **Security testing** with tools like tfsec  
+✅ **Compliance testing** with custom policies  
+</Step>
+</Steps>
+
+## 📢 Contribute & Stay Updated
+
+💡 **Want to contribute?**  
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+
+📌 **How to Contribute?**
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
+- Fix errors, add missing topics, or suggest improvements.  
+- Submit a pull request with your updates.  
+
+## 🌍 Community & Support  
+
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 

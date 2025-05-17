@@ -1,0 +1,144 @@
+---
+title: Intermediate Level
+description: Mid-level best practices and real-world scenarios covering advanced deployment strategies, security, and system architecture.
+root: best-practices
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Intermediate Level
+
+This section covers more advanced concepts in DevOps best practices, including configuration management, high availability, security, and microservices architecture.
+
+<Steps>
+<Step>
+**How do you handle configuration management in DevOps?**  
+
+Using tools like Ansible, Puppet, and Chef to automate configurations.  
+</Step>
+
+<Step>
+**How do you ensure high availability in a cloud-based architecture?**  
+
+Using load balancing, auto-scaling, multi-region deployments, and failover mechanisms.  
+</Step>
+
+<Step>
+**What is the difference between monolithic and microservices architectures?**  
+
+- **Monolithic**: A single large application.  
+- **Microservices**: Independent services communicating over APIs.  
+</Step>
+
+<Step>
+**How do you monitor microservices effectively?**  
+
+Using distributed tracing (Jaeger), centralized logging (ELK), and service mesh (Istio).  
+</Step>
+
+<Step>
+**How do you secure a CI/CD pipeline?**  
+
+- Use least privilege access.  
+- Store secrets securely.  
+- Scan dependencies for vulnerabilities.  
+- Implement code signing.  
+</Step>
+
+<Step>
+**What are some common DevOps anti-patterns?**  
+
+- Siloed teams  
+- Manual deployments  
+- Lack of monitoring  
+- Ignoring security  
+</Step>
+
+<Step>
+**How do you implement DevSecOps?**  
+
+Integrate security into every stage of development using tools like SonarQube, Snyk, and Trivy.  
+</Step>
+
+<Step>
+**What is a Service Level Agreement (SLA)?**  
+
+An SLA defines the expected level of service, including uptime and response times.  
+</Step>
+
+<Step>
+**How do you ensure compliance in DevOps?**  
+
+By automating security checks, auditing, and following regulatory frameworks like GDPR and SOC 2.  
+</Step>
+
+<Step>
+**What is a chaos engineering experiment?**  
+
+Intentionally injecting failures into a system to test its resilience (e.g., Netflix's Chaos Monkey).  
+</Step>
+
+<Step>
+**How do you reduce deployment downtime?**  
+
+Using rolling updates, blue-green deployments, and zero-downtime migrations.  
+</Step>
+
+<Step>
+**How do you handle database migrations in CI/CD?**  
+
+Using tools like Flyway, Liquibase, or Django migrations in an automated pipeline.  
+</Step>
+
+<Step>
+**What is an API gateway, and why is it used?**  
+
+An API gateway manages API requests, security, and load balancing in microservices.  
+</Step>
+
+<Step>
+**How do you implement infrastructure testing?**  
+
+Using tools like **Terratest** (for Terraform), **InSpec**, and **Pester**.  
+</Step>
+
+<Step>
+**How do you manage multi-cloud deployments?**  
+
+Using **Terraform**, **Kubernetes**, and **cloud-agnostic tools** like HashiCorp Vault and Istio.  
+</Step>
+
+<Step>
+**What is the difference between SLO and SLI?**  
+
+- **SLO (Service Level Objective)**: A target level of reliability (e.g., 99.9% uptime).  
+- **SLI (Service Level Indicator)**: A measurable metric (e.g., response time < 200ms).  
+</Step>
+
+<Step>
+**How do you manage dependencies in DevOps?**  
+
+Using dependency managers like **pip, npm, Maven**, and **scanning tools like Snyk and OWASP Dependency-Check**.  
+</Step>
+
+<Step>
+**How do you handle rollback in a Kubernetes environment?**  
+
+Using `kubectl rollout undo deployment <deployment_name>`.  
+</Step>
+
+<Step>
+**What are the best practices for writing Dockerfiles?**  
+
+- Use lightweight base images.  
+- Minimize layers.  
+- Avoid hardcoding secrets.  
+- Use multi-stage builds.  
+</Step>
+
+<Step>
+**What is FinOps in cloud computing?**  
+
+A practice for optimizing cloud costs and budgeting efficiently. 
+</Step>
+</Steps> 

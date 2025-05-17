@@ -1,0 +1,24 @@
+{
+  "pages": [
+    "[BookOpen][Docs](/docs/)",
+    "[LayoutTemplate][Showcase](/#showcase)",
+
+    "---Overview---",
+    "index",
+
+    "---Getting Started---",
+    "getting-started/index",
+
+    "---DevOps Interview Questions---",
+    "automation-scripting",
+    "best-practices",
+    "ci-cd",
+    "cloud",
+    "containers",
+    "core-concepts",
+    "infrastructure-as-code",
+    "mock-interviews",
+    "monitoring-logging",
+    "networking-security"
+  ]
+}

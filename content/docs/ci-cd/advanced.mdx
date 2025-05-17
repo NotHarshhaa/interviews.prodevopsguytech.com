@@ -1,0 +1,249 @@
+---
+title: Advanced Level
+description: A collection of advanced CI/CD questions and answers.
+root: ci-cd
+---
+
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# Advanced Level
+
+This section covers expert-level CI/CD practices and implementation strategies.
+
+<Steps>
+<Step>
+**What are self-hosted runners in CI/CD?**  
+
+Self-hosted runners are custom machines for executing CI/CD jobs instead of cloud-hosted ones.  
+
+- Example: GitHub Actions supports **Linux, Windows, macOS** runners.  
+</Step>
+
+<Step>
+**How does caching improve CI/CD performance?**  
+
+Caching stores **dependencies** and **artifacts** to speed up builds.  
+
+- Example: Caching npm dependencies in GitHub Actions:  
+
+  ```yaml
+  steps:
+    - uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+  ```  
+</Step>
+
+<Step>
+**What is parallel execution in CI/CD?**  
+
+Parallel execution runs multiple tasks **simultaneously** to speed up pipelines.  
+
+- Example: Running multiple tests at once in Jenkins.  
+</Step>
+
+<Step>
+**What is dynamic vs. static analysis in CI/CD security?**  
+
+- **Static Analysis:** Scans code **before execution** (e.g., SonarQube).  
+- **Dynamic Analysis:** Scans code **during runtime** (e.g., OWASP ZAP).  
+</Step>
+
+<Step>
+**What is a feature flag, and how does it work in CI/CD?**  
+
+A feature flag enables/disables features without deploying new code.  
+
+- Example: Toggle dark mode using a flag instead of redeploying.  
+</Step>
+
+<Step>
+**How do you handle secrets in CI/CD pipelines?**  
+
+- Use **environment variables** securely.  
+- Store secrets in **AWS Secrets Manager, HashiCorp Vault**.  
+- Example:  
+
+  ```yaml
+  secrets:
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  ```  
+</Step>
+
+<Step>
+**What is observability in CI/CD?**  
+
+Observability means **monitoring logs, metrics, and traces** to debug CI/CD failures.  
+</Step>
+
+<Step>
+**What is immutable infrastructure?**  
+
+Immutable infrastructure means **servers are never updated** but replaced instead.  
+</Step>
+
+<Step>
+**What are the key metrics for CI/CD performance?**  
+
+- **Lead Time:** Time from commit to deployment.  
+- **Mean Time to Recovery (MTTR):** Time to recover from failures.  
+</Step>
+
+<Step>
+**How do you ensure zero-downtime deployments?**  
+
+- **Use rolling updates, blue-green, and canary deployments.**  
+- **Deploy with Kubernetes and load balancers.**  
+</Step>
+
+<Step>
+**What is a release train in CI/CD?**  
+
+A **release train** is a deployment strategy where software releases are scheduled at **fixed intervals**, rather than waiting for all features to be ready.  
+
+- Common in **Agile** environments.  
+- Ensures **predictability** and **reduces deployment risks**.  
+- Example: **Google Chrome** releases every 4 weeks regardless of pending features.  
+</Step>
+
+<Step>
+**How do you handle database migrations in a CI/CD pipeline?**  
+
+Database migrations ensure **schema changes** are applied safely in an automated pipeline.  
+
+- Use tools like **Liquibase, Flyway, Django Migrations**.  
+- Steps in CI/CD:  
+  1. **Check migrations** before deployment (`liquibase validate`).  
+  2. **Apply migrations** during deployment (`flyway migrate`).  
+  3. **Rollback if failure** (`flyway undo`).  
+- Example in a pipeline (Flyway):  
+
+  ```yaml
+  steps:
+    - name: Apply database migrations
+      run: flyway migrate -url=jdbc:mysql://db -user=root -password=secret
+  ```  
+</Step>
+
+<Step>
+**What is trunk-based development, and how does it impact CI/CD?**  
+
+Trunk-based development means developers **commit directly to the main branch** (trunk) instead of using long-lived feature branches.  
+
+- **Pros:**  
+  - **Faster CI/CD cycles** with fewer merge conflicts.  
+  - Reduces integration complexity.  
+- **Cons:**  
+  - Requires **strict automated testing** to prevent breaking changes.  
+- Example workflow:  
+  - Commit to `main` → Automated Tests → Deploy to Staging → Deploy to Production.  
+</Step>
+
+<Step>
+**How do you implement blue-green deployments in Kubernetes?**  
+
+A **blue-green deployment** runs **two versions** of an application simultaneously, allowing **instant rollback** if issues occur.  
+
+- Steps:  
+  1. Deploy **new version (green)** while **old version (blue) stays live**.  
+  2. Switch traffic to green using a **load balancer or Ingress**.  
+  3. Rollback if issues arise by redirecting traffic back to blue.  
+- Example Kubernetes YAML:  
+
+  ```yaml
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: blue-green
+  spec:
+    rules:
+      - http:
+          paths:
+            - path: "/"
+              backend:
+                service:
+                  name: green-service
+                  port:
+                    number: 80
+  ```  
+</Step>
+
+<Step>
+**What is a service mesh, and how does it help CI/CD?**  
+
+A **service mesh** is a dedicated infrastructure layer for handling **service-to-service communication** in microservices.  
+
+- Examples: **Istio, Linkerd, Consul**.  
+- Benefits in CI/CD:  
+  - **Canary deployments**: Route traffic gradually.  
+  - **A/B Testing**: Split traffic between versions.  
+  - **Security**: Implements zero-trust policies (e.g., **mTLS**).  
+</Step>
+
+<Step>
+**What is progressive delivery in CI/CD?**  
+
+Progressive delivery is an **evolution of CI/CD** that deploys features gradually, rather than all at once.  
+
+- **Includes:**  
+  - **Feature Flags:** Enable/disable features dynamically.  
+  - **Canary Releases:** Test with a small user group first.  
+  - **A/B Testing:** Deploy different versions for analytics.  
+</Step>
+
+<Step>
+**How do you handle long-running tests in CI/CD pipelines?**  
+
+Long-running tests slow down deployments. Strategies to optimize:  
+
+- **Parallel Test Execution:** Run tests across multiple machines.  
+- **Test Selection:** Run only impacted tests using **test impact analysis**.  
+- **Mocking Dependencies:** Reduce external calls using **Mockito, WireMock**.  
+- **Shift-Left Testing:** Run tests **early in the pipeline** to detect failures faster.  
+</Step>
+
+<Step>
+**What is Chaos Engineering, and how does it fit into CI/CD?**  
+
+Chaos Engineering involves **intentionally injecting failures** to test system resilience.  
+
+- **Example tools:**  
+  - **Gremlin, LitmusChaos** (Kubernetes-based).  
+  - **AWS Fault Injection Simulator (FIS)**.  
+- **In CI/CD Pipelines:**  
+  - Add a **chaos test stage** before production deployment.  
+  - Example:  
+
+    ```yaml
+    steps:
+      - name: Run Chaos Test
+        run: gremlin attack --target kubernetes --cpu 90%
+    ```  
+</Step>
+
+<Step>
+**How do you implement immutable deployments in CI/CD?**  
+
+Immutable deployments mean **never modifying running instances**—instead, deploying a new version entirely.  
+
+- Best for **containers, serverless, and cloud-native applications**.  
+- Tools:  
+  - **Docker images** (`image: my-app:v2`).  
+  - **Infrastructure as Code (Terraform, CloudFormation)** to replace instances.  
+- **Example:**  
+  - **Bad approach:** `ssh into a server & update the app`.  
+  - **Good approach:** `Deploy a new container & replace old one`.  
+</Step>
+
+<Step>
+**What are the best practices for securing CI/CD pipelines?**  
+
+To secure CI/CD, follow **these best practices**:  
+✅ **Use Secret Management:** Store secrets in **Vault, AWS Secrets Manager, or Kubernetes Secrets**.  
+✅ **Enable Role-Based Access Control (RBAC):** Restrict who can trigger deployments.  
+✅ **Enforce Code Signing:** Sign artifacts to ensure they are not tampered with.  
+✅ **Run Security Scans:** Use **SAST, DAST, and dependency scanning** tools.  
+✅ **Monitor CI/CD Pipelines:** Detect suspicious activity using **SIEM tools** like Splunk or Datadog.  
+</Step>
+</Steps>
