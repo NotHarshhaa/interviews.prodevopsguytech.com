@@ -48,6 +48,7 @@ export function HomeLayout(props: HomeLayoutProps) {
     nav,
     links,
     githubUrl,
+    themeSwitch,
     ...rest
   } = props;
 
@@ -60,7 +61,7 @@ export function HomeLayout(props: HomeLayoutProps) {
         {...rest}
         className={cn('flex flex-1 flex-col', rest.className)}
       >
-        {replaceOrDefault(nav, <Header finalLinks={finalLinks} {...props} />, {
+        {replaceOrDefault(nav, <Header finalLinks={finalLinks} themeSwitch={themeSwitch} {...props} />, {
           items: finalLinks,
         })}
         {props.children}
