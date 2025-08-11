@@ -90,7 +90,7 @@ function Header({
     <Navbar>
       <Link
         href={nav.url ?? '/'}
-        className="inline-flex items-center gap-2.5 font-semibold group"
+        className="inline-flex items-center gap-2.5 font-semibold group hover:scale-105 transition-transform duration-200"
       >
         {nav.title}
       </Link>
@@ -106,7 +106,7 @@ function Header({
       <div className="flex flex-row items-center justify-end gap-1.5 max-lg:flex-1">
         {enableSearch ? (
           <>
-            <SearchToggle className="" hideIfDisabled />
+            <SearchToggle className="hover:bg-cyan-500/10 transition-all duration-200" hideIfDisabled />
             {/* <SearchToggle className="lg:hidden" hideIfDisabled /> */}
             {/* <LargeSearchToggle
               className="w-full max-w-[240px] max-lg:hidden"
@@ -115,7 +115,7 @@ function Header({
           </>
         ) : null}
         {i18n ? (
-          <LanguageToggle className="max-lg:hidden">
+          <LanguageToggle className="max-lg:hidden hover:bg-cyan-500/10 transition-all duration-200">
             <Languages className="size-5" />
           </LanguageToggle>
         ) : null}
@@ -123,13 +123,13 @@ function Header({
       <ul className="flex flex-row items-center">
         {replaceOrDefault(
           themeSwitch,
-          <ThemeToggle className="max-lg:hidden mx-2" mode={themeSwitch?.mode} />,
+          <ThemeToggle className="max-lg:hidden mx-2 hover:bg-cyan-500/10 transition-all duration-200" mode={themeSwitch?.mode} />,
         )}
         {navItems.filter(isSecondary).map((item, i) => (
           <NavbarLinkItem
             key={i}
             item={item}
-            className="border rounded-full -mr-2 max-lg:hidden"
+            className="border border-dashed border-cyan-500/20 rounded-full -mr-2 max-lg:hidden bg-gradient-to-r from-cyan-500/10 to-cyan-400/5 hover:from-cyan-500/20 hover:to-cyan-400/10 transition-all duration-200"
           />
         ))}
         <Menu className="lg:hidden">
@@ -190,7 +190,7 @@ function NavbarLinkItem({
         <NavbarMenuLink key={j} href={child.url} {...rest}>
           {banner ??
             (child.icon ? (
-              <div className="w-fit rounded-md border bg-fd-muted p-1 [&_svg]:size-4">
+              <div className="w-fit rounded-md border border-dashed border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 p-1 [&_svg]:size-4">
                 {child.icon}
               </div>
             ) : null)}

@@ -23,17 +23,16 @@ const socials = [
 
 function Socials() {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-4">
       {socials.map((social) => (
-        <a href={social.href} key={social.name} className="h-8 w-8 relative group grid place-items-center hover:text-fd-foreground">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="absolute -top-0.25 -right-0.25 z-10 duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] opacity-20 group-hover:opacity-100"><path d="M21 8V5a2 2 0 0 0-2-2h-3" /></svg>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute -bottom-0.25 -left-0.25 duration-300 group-hover:translate-y-0.5 group-hover:-translate-x-0.5 z-10 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] opacity-20 group-hover:opacity-100"><path d="M3 16v3a2 2 0 0 0 2 2h3" /></svg>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute -bottom-0.25 -right-0.25 z-10 duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] opacity-20 group-hover:opacity-100"><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></svg>
-          {/* duration-300 group-hover:-translate-8 group-hover:scale-200 */}
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute -top-0.25 -left-0.25 z-10 duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] opacity-20 group-hover:opacity-100"><path d="M8 3H5a2 2 0 0 0-2 2v3" /></svg>
-          {/* duration-300 group-hover:translate-8 group-hover:scale-200 */}
-          <div className="bg-grid-lines absolute inset-0 ease-out duration-300 group-hover:opacity-50 opacity-0 ![background-position:-15px_-15px]" />
-          <social.icon className="w-4 h-4 fill-current transform-3d perspective-distant backface-hidden group-hover:rotate-x-180 group-hover:rotate-z-180 group-hover:-rotate-y-180 duration-1000" />
+        <a 
+          href={social.href} 
+          key={social.name} 
+          className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 hover:from-cyan-500/20 hover:to-cyan-400/10 transition-all duration-300 hover:scale-110"
+        >
+          <div className="absolute inset-0 rounded-xl bg-grid-dots opacity-30 dark:opacity-20 group-hover:opacity-40" />
+          <div className="absolute inset-0 rounded-xl border border-dashed border-fd-border/60 group-hover:border-cyan-500/30 transition-colors duration-300" />
+          <social.icon className="w-5 h-5 fill-current text-fd-muted-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors duration-300" />
         </a>
       ))}
     </div>
@@ -44,64 +43,121 @@ export default function FooterSection() {
   return (
     <>
       <footer id="footer" className="relative w-full max-w-fd-container mx-auto text-fd-muted-foreground">
-        <div className="-z-10 h-24 w-[33rem] bg-cyan-500/50 rounded-[100%] max-w-screen absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-3xl"/>
-        <SectionLink className="-mb-[calc(1.25rem+1px)] z-30" href="#footer" name="border-t p-12 grid grid-cols-2 sm:flex justify-around" border />
-        <div className="border-t bg-fd-background/50 backdrop-blur-lg w-full max-w-fd-container mx-auto p-12 grid grid-cols-2 sm:flex justify-between">
-          
-          <div className="flex-col gap-3 hidden sm:flex my-auto">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/favicon.ico"
-                alt="logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-                priority
-              />
-              <span className="font-medium text-xl whitespace-nowrap">
-                DevOps Interview Hub
-              </span>
-            </div>
-            <Socials />
-            <div className="text-xs">
-              <div className="inline-block -scale-x-100 mr-1">©</div>
-              Copyright {new Date().getFullYear()}
-            </div>
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[20rem]">
+            <div className="-z-10 bg-gradient-to-b from-cyan-500/20 via-cyan-400/10 to-transparent rounded-full w-full h-full blur-3xl opacity-30 dark:opacity-20" />
+            <div className="absolute inset-0 bg-grid-dots opacity-30 dark:opacity-20" />
           </div>
+        </div>
 
-          <div className="flex flex-col gap-3 text-xs lg:text-sm">
-            <b className="text-fd-foreground font-semibold">Learning Hub</b>
-            <Link className="hover:decoration-fd-primary hover:underline-offset-2 hover:text-fd-foreground decoration-transparent underline duration-300" href="https://t.me/prodevopsguy"> Free DevOps/Cloud Learning Community</Link>
-            <Link className="hover:decoration-fd-primary hover:underline-offset-2 hover:text-fd-foreground decoration-transparent underline duration-300" href="https://t.me/devopsclassroom">The DevOps Classroom</Link>
-            {/* <a>Blog</a> */}
-            {/* <a>Playground</a> */}
-          </div>
+        <div className="relative border-t border-dashed border-fd-border/60 bg-fd-background/50 backdrop-blur-lg">
+          <div className="w-full max-w-fd-container mx-auto p-4 sm:p-6">
+            {/* Main Footer Content */}
+            <div className="grid grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8">
+              {/* Brand Section - Desktop */}
+              <div className="hidden lg:flex flex-col gap-4 lg:col-span-4">
+                <div className="flex items-center gap-2 group">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 transition-all duration-300 group-hover:from-cyan-500/20 group-hover:to-cyan-400/10">
+                    <Image
+                      src="/favicon.ico"
+                      alt="logo"
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 transition-transform duration-300 group-hover:scale-110"
+                      priority
+                    />
+                  </div>
+                  <span className="font-semibold text-lg text-fd-foreground whitespace-nowrap">
+                    DevOps Interview Hub
+                  </span>
+                </div>
+                <p className="text-xs text-fd-muted-foreground/80 leading-relaxed">
+                  Your comprehensive resource for DevOps interview preparation, featuring curated questions, detailed answers, and practical insights.
+                </p>
+                <Socials />
+                <div className="text-xs text-fd-muted-foreground/70 flex items-center gap-2">
+                  <div className="inline-block -scale-x-100">©</div>
+                  <span>Copyright {new Date().getFullYear()} • All rights reserved</span>
+                </div>
+              </div>
 
-          <div className="flex flex-col gap-3 text-xs lg:text-sm">
-            <b className="text-fd-foreground font-semibold">DevOps Resources</b>
-            <a href="https://repos.prodevopsguytech.com" target="_blank" rel="noopener noreferrer" className="group flex gap-1 hover:decoration-fd-primary hover:underline-offset-2 hover:text-fd-foreground decoration-transparent underline duration-300">Important DevOps/Cloud Repos <ExternalLink className="h-4 w-4 group-hover:opacity-100 group-hover:translate-0 -translate-x-2 translate-y-2 scale-50 group-hover:scale-100 opacity-0 duration-300"/></a>
-            <a href="https://docs.prodevopsguytech.com" target="_blank" rel="noopener noreferrer" className="group flex gap-1 hover:decoration-fd-primary hover:underline-offset-2 hover:text-fd-foreground decoration-transparent underline duration-300">DevOps/Cloud Resources Portal <ExternalLink className="h-4 w-4 group-hover:opacity-100 group-hover:translate-0 -translate-x-2 translate-y-2 scale-50 group-hover:scale-100 opacity-0 duration-300"/></a>
-            <a href="https://jobs.prodevopsguytech.com" target="_blank" rel="noopener noreferrer" className="group flex gap-1 hover:decoration-fd-primary hover:underline-offset-2 hover:text-fd-foreground decoration-transparent underline duration-300">DevOps/Cloud Jobs Portal <ExternalLink className="h-4 w-4 group-hover:opacity-100 group-hover:translate-0 -translate-x-2 translate-y-2 scale-50 group-hover:scale-100 opacity-0 duration-300"/></a>
-          </div>
-          
-          <div className="flex-col items-start gap-3 flex sm:hidden">
-            <Socials />
-            <div className="flex items-center gap-2">
-              <Image
-                src="/favicon.ico"
-                alt="logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-                priority
-              />
-              <span className="font-medium text-xl whitespace-nowrap">
-                DevOps Interview Hub
-              </span>
-            </div>
-            <div className="text-xs">
-              <div className="inline-block -scale-x-100 mr-1">©</div>
-              Copyright {new Date().getFullYear()}
+              {/* Learning Hub Section */}
+              <div className="flex flex-col gap-3 lg:col-span-4">
+                <h3 className="text-base font-semibold text-fd-foreground flex items-center gap-2">
+                  Learning Hub
+                  <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent"></div>
+                </h3>
+                <div className="flex flex-col gap-2">
+                  <Link 
+                    href="https://t.me/prodevopsguy" 
+                    className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
+                  >
+                    Free DevOps/Cloud Learning Community
+                    <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                  </Link>
+                  <Link 
+                    href="https://t.me/devopsclassroom" 
+                    className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
+                  >
+                    The DevOps Classroom
+                    <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Resources Section */}
+              <div className="flex flex-col gap-3 lg:col-span-4">
+                <h3 className="text-base font-semibold text-fd-foreground flex items-center gap-2">
+                  DevOps Resources
+                  <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent"></div>
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { href: "https://repos.prodevopsguytech.com", text: "Important DevOps/Cloud Repos" },
+                    { href: "https://docs.prodevopsguytech.com", text: "DevOps/Cloud Resources Portal" },
+                    { href: "https://jobs.prodevopsguytech.com", text: "DevOps/Cloud Jobs Portal" }
+                  ].map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
+                    >
+                      {link.text}
+                      <ExternalLink className="h-3.5 w-3.5 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand Section - Mobile */}
+              <div className="lg:hidden flex flex-col gap-4 col-span-2">
+                <div className="flex items-center gap-2 group">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-cyan-500/10 to-cyan-400/5">
+                    <Image
+                      src="/favicon.ico"
+                      alt="logo"
+                      width={24}
+                      height={24}
+                      className="h-6 w-6"
+                      priority
+                    />
+                  </div>
+                  <span className="font-semibold text-base text-fd-foreground whitespace-nowrap">
+                    DevOps Interview Hub
+                  </span>
+                </div>
+                <p className="text-xs text-fd-muted-foreground/80 leading-relaxed">
+                  Your comprehensive resource for DevOps interview preparation.
+                </p>
+                <Socials />
+                <div className="text-xs text-fd-muted-foreground/70 flex items-center gap-2">
+                  <div className="inline-block -scale-x-100">©</div>
+                  <span>Copyright {new Date().getFullYear()}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

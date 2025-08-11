@@ -23,49 +23,48 @@ export default function HeroSectionVisual() {
   const transitions = [
     {
       name: "titleSize",
-      styles: ["text-4xl", "font-black"],
-      // todo: "font-black", "text-center", "ios:text-left", "ios:font-black"
+      styles: ["text-4xl", "font-black", "tracking-tight"],
       setStyles: setTitleStyles,
       refs: [title],
     },
     {
       name: "application",
-      styles: [" text-fd-primary"],
+      styles: ["text-fd-primary", "font-bold"],
       setStyles: setApplicationStyles,
       refs: [Application],
-      delay: 300,
+      delay: 400,
     },
     {
       name: "icons",
-      styles: ["h-8", "w-8", "text-fd-primary"],
+      styles: ["h-8", "w-8", "text-fd-primary", "transform", "scale-110"],
       setStyles: setIconStyles,
       refs: [icon1, icon2, icon3],
-      delay: 2500,
+      delay: 2000,
     },
     {
       name: "featureTitles",
-      styles: ["text-lg", "font-bold", "-mt-1.5"],
+      styles: ["text-lg", "font-bold", "-mt-1", "text-fd-foreground"],
       setStyles: setFeatureTitleStyles,
       refs: [featureTitle1, featureTitle2, featureTitle3],
-      delay: 4000,
+      delay: 3000,
     },
   ]
 
   const FEATURES = [
     {
-      title: <h2 ref={featureTitle1} className="duration-300">DevOps Interview Questions</h2>,
-      description: 'A collection of DevOps interview questions and answers',
-      icon: <CircleUser ref={icon1} className="duration-300" />,
+      title: <h2 ref={featureTitle1} className="duration-500 transition-all">DevOps Interview Questions</h2>,
+      description: 'Master core DevOps concepts, tools, and best practices',
+      icon: <CircleUser ref={icon1} className="duration-500 transition-all" />,
     },
     {
-      title: <h2 ref={featureTitle2} className="duration-300">AWS Interview Questions</h2>,
-      description: 'A collection of AWS interview questions and answers',
-      icon:  <MessageCircleMore ref={icon2} className="duration-300" />,
+      title: <h2 ref={featureTitle2} className="duration-500 transition-all">Cloud Platform Questions</h2>,
+      description: 'Deep dive into AWS, Azure, and GCP services',
+      icon:  <MessageCircleMore ref={icon2} className="duration-500 transition-all" />,
     },
     {
-      title: <h2 ref={featureTitle3} className="duration-300">Azure Interview Questions</h2>,
-      description: 'A collection of Azure interview questions and answers',
-      icon: <ChartSpline ref={icon3} className="duration-300" />,
+      title: <h2 ref={featureTitle3} className="duration-500 transition-all">Infrastructure & CI/CD</h2>,
+      description: 'Learn automation, pipelines, and deployment strategies',
+      icon: <ChartSpline ref={icon3} className="duration-500 transition-all" />,
     },
   ];
 
@@ -76,7 +75,7 @@ export default function HeroSectionVisual() {
       const stylesArray = [...transition.styles.join(' ').split('')];
       stylesArray.forEach((letter, i) => {
         setTimeout(() => {
-          transition.setStyles((prev) => [...prev, <span key={`${transition.name}-${i}`} className="text-fd-primary animate-fade-to-gray">{letter}</span>]);
+          transition.setStyles((prev) => [...prev, <span key={`${transition.name}-${index}-${i}-${letter}`} className="text-fd-primary animate-fade-to-gray">{letter}</span>]);
         },
           i * 100
           + (transitions[index - 1] ? transitions[index - 1].styles.join(' ').length * 100 : 0)
@@ -108,20 +107,20 @@ export default function HeroSectionVisual() {
   }, []);
 
   return (
-    <div className="h-full w-full max-w-screen max-h-screen sm:max-h-[min(50vh,600px)] flex-1 flex justify-center border-t border-dashed">
-      <div className="flex relative w-fit justify-center max-w-[calc(var(--spacing-fd-container)+0rem)]">
-        {/* <div className="border p-1 rounded-full flex gap-1 absolute -top-4 -translate-y-full right-0 bg-fd-card">
-          <div className="border p-1 rounded-full bg-fd-accent">
-          <svg role="img" viewBox="0 0 24 24" className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg"><title>Apple</title><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"></path></svg>
+    <div className="h-full w-full max-w-screen max-h-screen sm:max-h-[min(60vh,700px)] flex-1 flex justify-center border-t border-dashed">
+      <div className="flex relative w-fit justify-center max-w-[calc(var(--spacing-fd-container)+2rem)]">
+        <div className="absolute top-0 right-4 z-20 flex gap-2 -translate-y-1/2 max-sm:hidden">
+          <div className="flex items-center gap-2 rounded-full border bg-fd-background/80 backdrop-blur px-3 py-1.5 text-xs text-fd-muted-foreground">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Live Preview
           </div>
-          <div className="border p-1 rounded-full bg-fd-accent">
-          <svg role="img" viewBox="0 0 24 24" className="h-5 w-5 fill-emerald-400" xmlns="http://www.w3.org/2000/svg"><title>Android</title><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"></path></svg>
-          </div>
-        </div> */}
-        <div className="z-10 pointer-events-none absolute w-full h-full inset-0 bg-gradient-to-b from-fd-background/0 to-fd-background from-[calc(100%-15rem)]"/>
-        <div className="flex lg:flex-row flex-col items-center relative overflow-hidden bg-fd-background/20 p-2 pb-0 min-w-fd-container">
-          <div className="absolute top-0 right-0 -z-10 translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-fd-primary/20 blur-3xl max-md:hidden" />
-          <div className="absolute top-0 right-0 -z-10 h-full w-[32rem] bg-grid-lines-lg -skew-20 -translate-y-1/2 translate-x-1/2 max-md:hidden"/>
+        </div>
+        
+        <div className="z-10 pointer-events-none absolute w-full h-full inset-0 bg-gradient-to-b from-fd-background/0 via-fd-background/50 to-fd-background from-[calc(100%-20rem)]"/>
+        
+        <div className="flex lg:flex-row flex-col items-center relative overflow-hidden rounded-lg bg-fd-background/20 p-2 sm:p-4 pb-0 min-w-fd-container backdrop-blur-sm border border-dashed">
+          <div className="absolute top-0 right-0 -z-10 translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] rounded-full bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-transparent blur-3xl animate-pulse-slow max-md:hidden" />
+          <div className="absolute top-0 right-0 -z-10 h-full w-[35rem] bg-grid-lines-lg opacity-30 dark:opacity-20 -skew-20 -translate-y-1/2 translate-x-1/2 max-md:hidden animate-float"/>
           {/* import { Icon } from '@roninoss/icons';
           import { Link } from 'expo-router';
           import { Platform, View, type ViewStyle } from 'react-native';
@@ -132,12 +131,17 @@ export default function HeroSectionVisual() {
           import { useColorScheme } from '~/lib/useColorScheme';
           
           const ROOT_STYLE: ViewStyle = { flex: 1 }; */}
-          <pre className="font-mono sm:mb-0 w-full max-w-[calc(100vw-1rem)] min-h-96 relative text-start max-h-full p-4 lg:px-11 lg:py-4 overflow-hidden text-xs bg-fd-background/40 text-fd-foreground/50 backdrop-blur rounded-xl border [mask-image:linear-gradient(to_bottom,red_calc(100%-15rem),transparent)] sm:[mask-image:none]">
-            <div className="absolute h-full border-r border-dashed left-8 top-0 max-lg:hidden"/>
+          <pre className="font-mono sm:mb-0 w-full max-w-[calc(100vw-1rem)] min-h-96 relative text-start max-h-full p-4 lg:px-11 lg:py-6 overflow-hidden text-xs bg-fd-background/40 text-fd-foreground/50 backdrop-blur-sm rounded-xl border shadow-sm [mask-image:linear-gradient(to_bottom,red_calc(100%-15rem),transparent)] sm:[mask-image:none] transition-colors hover:bg-fd-background/60">
+            <div className="absolute top-2 left-3 flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/30" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/30" />
+              <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/30" />
+            </div>
+            <div className="absolute h-full border-r border-dashed left-[3.25rem] top-0 max-lg:hidden opacity-40"/>
             {/* line numbers */}
-            <div className="absolute left-1.5 top-4 h-full flex flex-col gap-[0.25px] text-right max-lg:hidden">
+            <div className="absolute left-6 top-11 h-full flex flex-col gap-[0.25px] text-right max-lg:hidden">
               {Array.from({ length: 40 }, (_, i) => (
-                <div key={i} className={`${[7, 10, 20, 25].includes(i+1) ? 'text-fd-primary' : 'text-fd-muted-foreground'} text-xs`}>{i + 1}</div>
+                <div key={i} className={`${[7, 10, 20, 25].includes(i+1) ? 'text-fd-primary' : 'text-fd-muted-foreground/50'} text-xs pr-4 transition-colors hover:text-fd-muted-foreground/80`}>{i + 1}</div>
               ))}
             </div>
 
@@ -217,22 +221,33 @@ const FEATURES = [
   `}
         </pre>
         {/* <div className="absolute h-full border-r border-dashed right-[42px] top-0"/> */}
-        <div className="h-full relative min-h-96 overflow-clip sm:absolute sm:-right-20 sm:mt-2 -mt-32 sm:translate-y-1/4 sm:-translate-x-1/3 lg:translate-x-0 lg:translate-y-0 md:right-0 w-96 min-w-96 rounded-t-[4rem] lg:ml-2 border-8 border-black lg:relative bg-gradient-to-b from-fd-accent/20 backdrop-blur to-white dark:to-fd-card p-7 pt-24 text-start !border-b-0">
+        <div className="h-full relative min-h-[28rem] sm:min-h-96 overflow-clip sm:absolute sm:-right-20 sm:mt-2 -mt-24 sm:-mt-32 sm:translate-y-1/4 sm:-translate-x-1/3 lg:translate-x-0 lg:translate-y-0 md:right-0 w-[90vw] max-w-[22rem] sm:w-96 sm:min-w-96 rounded-t-[3rem] sm:rounded-t-[2.5rem] lg:ml-2 border-[6px] border-black/90 dark:border-neutral-800 lg:relative bg-gradient-to-b from-fd-accent/10 via-white/95 to-white dark:from-fd-accent/5 dark:via-fd-card dark:to-fd-card p-6 sm:p-7 pt-20 sm:pt-24 text-start !border-b-0 shadow-2xl shadow-black/10 dark:shadow-black/30">
             
-          <div className="w-24 h-8 rounded-full bg-black absolute top-4 left-1/2 -translate-x-1/2" />
-            <h1 ref={title} className="duration-500 mb-20">
+          {/* Phone Notch */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div className="w-[9rem] h-6 bg-black dark:bg-neutral-800 rounded-b-2xl flex items-end justify-center pb-0.5">
+              <div className="w-16 h-[3px] rounded-full bg-neutral-600/50 dark:bg-neutral-500/50" />
+            </div>
+          </div>
+
+          {/* Background Gradient */}
+          <div className="absolute top-0 right-0 -z-10 translate-x-1/3 -translate-y-1/3 w-64 h-64 rounded-full bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-transparent blur-2xl animate-pulse-slow" />
+            
+            <h1 ref={title} className="duration-500 mb-12 sm:mb-16 text-2xl sm:text-3xl">
               Welcome to the<br/>
               <span ref={Application} className="duration-300 transition-colors">DevOps Interview Hub</span>
             </h1>
-            <div className="flex flex-col gap-8 h-full">
+
+            {/* Features List */}
+            <div className="flex flex-col gap-5 h-full">
               {FEATURES.map((feature, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="w-10">
+                <div key={i} className="flex gap-4 p-2.5 rounded-xl transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5 hover:scale-[1.02] active:scale-[0.98]">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 shadow-sm">
                     {feature.icon}
                   </div>
                   <div className="flex w-full flex-col">
                     {feature.title}
-                    <p className="text-sm text-fd-muted-foreground">
+                    <p className="text-[13px] sm:text-sm text-fd-muted-foreground/80">
                       {feature.description}
                     </p>
                   </div>

@@ -8,13 +8,13 @@ interface TopicCardProps {
 
 function TopicCard({ icon, title, description }: TopicCardProps) {
   return (
-    <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-cyan-500/5 transition-colors">
-      <div className="mt-1 rounded-full p-2 bg-cyan-500/10 text-cyan-500">
+    <div className="group flex items-start gap-4 p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-cyan-500/5 hover:to-cyan-400/5 hover:scale-[1.02]">
+      <div className="mt-1 rounded-xl p-2.5 bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 text-cyan-600 dark:text-cyan-400 transition-all duration-300 group-hover:scale-110 group-hover:from-cyan-500/20 group-hover:to-cyan-400/10">
         {icon}
       </div>
-      <div>
-        <h3 className="text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-fd-muted-foreground text-sm">{description}</p>
+      <div className="space-y-1.5">
+        <h3 className="text-base font-semibold text-fd-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors duration-300">{title}</h3>
+        <p className="text-fd-muted-foreground/70 text-sm leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -55,19 +55,41 @@ export default function TopicsSection() {
   ];
 
   return (
-    <section className="py-16 relative">
-      <div className="mx-auto max-w-4xl">
+    <section className="py-12 sm:py-16 relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem]">
+          <div className="-z-10 bg-gradient-to-b from-cyan-500/10 via-cyan-400/5 to-transparent rounded-full w-full h-full blur-3xl opacity-30 dark:opacity-20" />
+          <div className="absolute inset-0 bg-grid-dots opacity-30 dark:opacity-20" />
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl relative">
+        {/* Section Title */}
+        <div className="text-center mb-12 px-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-cyan-600 to-cyan-800 dark:from-cyan-400 dark:to-cyan-600 bg-clip-text text-transparent mb-4">
+            Popular Interview Topics
+          </h2>
+          <p className="text-fd-muted-foreground/80 text-lg max-w-2xl mx-auto">
+            Master these essential DevOps topics to excel in your interviews
+          </p>
+        </div>
+
         {/* Mobile Device Frame */}
-        <div className="relative mx-auto w-full max-w-[380px] rounded-[3rem] border-8 border-gray-900 bg-gray-900 dark:border-gray-700">
-          <div className="absolute inset-x-0 top-0 z-10 h-[2rem] w-full bg-gray-900 dark:bg-gray-700">
-            <div className="absolute left-1/2 top-1.5 h-2 w-16 -translate-x-1/2 rounded-full bg-gray-800 dark:bg-gray-600" />
+        <div className="relative mx-auto w-full max-w-[380px] rounded-[2.5rem] border-[6px] border-black/90 dark:border-neutral-800 bg-gradient-to-b from-fd-accent/10 via-white/95 to-white dark:from-fd-accent/5 dark:via-fd-card dark:to-fd-card shadow-2xl shadow-black/10 dark:shadow-black/30">
+          {/* Notch */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+            <div className="w-[9rem] h-6 bg-black dark:bg-neutral-800 rounded-b-2xl flex items-end justify-center pb-0.5">
+              <div className="w-16 h-[3px] rounded-full bg-neutral-600/50 dark:bg-neutral-500/50" />
+            </div>
           </div>
           
           {/* Content */}
-          <div className="relative bg-white dark:bg-gray-900 h-[600px] overflow-hidden rounded-[2.5rem] shadow-xl">
-            <div className="px-6 py-8">
-              <h2 className="text-2xl font-bold mb-6">Popular Interview Topics</h2>
-              <div className="space-y-2">
+          <div className="relative bg-white dark:bg-gray-900 h-[600px] overflow-hidden rounded-[2rem] shadow-inner">
+            {/* Background Gradient */}
+            <div className="absolute top-0 right-0 -z-10 translate-x-1/3 -translate-y-1/3 w-64 h-64 rounded-full bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-transparent blur-2xl animate-pulse-slow" />
+            
+            <div className="px-5 py-8">
+              <div className="space-y-1">
                 {topics.map((topic, index) => (
                   <TopicCard key={index} {...topic} />
                 ))}
