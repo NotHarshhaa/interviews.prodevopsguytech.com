@@ -12,224 +12,252 @@ This section covers expert-level cloud computing concepts, including complex arc
 
 <Steps>
 <Step>
-**What is an egress charge in cloud pricing?**  
+**What are egress charges, and how do you manage data-transfer costs?**
 
-Egress charges are fees for **data transfer out of the cloud provider's network.**  
+Egress is the fee for data leaving a cloud provider's network — ingress is free, egress is where the bill lives (often ~$0.09/GB at AWS scale). The cost map to know:
+
+- **Internet egress** — the expensive one; user-facing downloads and APIs can dwarf compute costs
+- **Cross-AZ traffic** — ~$0.01/GB *each way*; chatty microservices spread across AZs pay twice per hop — a real cost of naive multi-AZ deployments
+- **Cross-region replication** — continuous data sync bills egress forever
+- **Inter-provider transfer** — the most expensive tier (multi-cloud data flows are a budget hazard)
+
+Mitigations, in order of impact: CDN offload (cached responses never egress), compression before transfer, keeping chatty services in the same AZ (trading a little resilience for cost), egress-only NAT and private endpoints for S3/DynamoDB (API calls stay on the provider network), and committed transfer/CDN pricing tiers at volume. Data-transfer awareness is what separates a cost-aware architect from a default-config engineer.
 </Step>
 
 <Step>
-**How do you prevent DDoS attacks in the cloud?**  
+**How do you protect against DDoS attacks in the cloud?**
 
-- Use **AWS Shield, Azure DDoS Protection, Cloudflare WAF.**  
-- Implement **Rate Limiting** on API endpoints.  
+Defense in depth, from the edge inward:
+
+- **Absorb at the edge** — managed L3/L4 protection (AWS Shield Standard is free and always on; Shield Advanced for cost-protection guarantees; Azure DDoS Protection; Cloudflare/Akamai in front) — volumetric attacks must be absorbed by someone else's network, not yours
+- **Filter at L7** — WAF rules (AWS WAF, Azure Front Door) for HTTP floods, bot management, and rate limiting per IP/session/API key
+- **Rate limiting in your stack** — API gateway throttling and application-level quotas so abuse hits a ceiling, not your database
+- **Origin hardening** — accept traffic only from the CDN/WAF (security groups referencing the edge, not the internet), so attackers can't bypass the edge and hit your origin directly
+- **Plan the economics** — auto-scaling responds to the flood but also multiplies your bill: scaling thresholds, Shield's cost-protection, and a practiced incident runbook matter as much as the filters
+
+The design principle: your origin should be unreachable except through layers designed to be attacked.
 </Step>
 
 <Step>
-**What are the best practices for cloud security?**  
+**What are the foundational cloud security best practices?**
 
-- **Least Privilege Access** (IAM policies).  
-- **Encrypt Data at Rest & Transit** (KMS, SSL/TLS).  
-- **Enable Multi-Factor Authentication (MFA).**  
+The non-negotiables, organized by layer:
+
+- **Identity** — least-privilege IAM, roles over static keys, MFA on everything human, federation via SSO; kill root-account daily use (root gets break-glass MFA and nothing else)
+- **Data** — encryption at rest (KMS-managed keys) and in transit (TLS 1.2+), public-access blocks on storage by default
+- **Network** — private subnets for data tiers, least-privilege security groups, no 0.0.0.0/0 inbound except edge load balancers
+- **Logging** — CloudTrail/Audit logs enabled org-wide, centralized, immutable retention
+- **Posture management** — continuous scanning (CSPM: Security Hub, Defender for Cloud) against CIS benchmarks, with findings routed to owners
+- **Automation guardrails** — SCPs/Organization Policy making the worst mistakes impossible org-wide
+
+The framing that elevates the answer: these are enforced *by automation* (IaC defaults, policy-as-code), not by wiki documents — an unenforced best practice is a wish.
 </Step>
 
 <Step>
-**What are the risks of vendor lock-in, and how do you mitigate them?**  
+**What are the risks of vendor lock-in, and how do you mitigate them?**
 
-Vendor lock-in occurs when a company becomes dependent on a single cloud provider, making migration difficult due to high costs or compatibility issues.  
-**Mitigation strategies:**  
+Lock-in is dependency on one provider's proprietary interfaces such that leaving is prohibitively expensive or slow. Assess it in layers:
 
-- Use **multi-cloud** strategies to distribute workloads.  
-- Adopt **open-source** and **portable** tools (e.g., Kubernetes, Terraform).  
-- Design applications with **cloud-agnostic architectures** using containerization and microservices.  
+- **Low risk** — portable runtimes: VMs, containers, standard Kubernetes, open-source databases (Postgres/MySQL)
+- **Medium** — IaC-level coupling (CloudFormation vs Terraform), managed Kubernetes extensions
+- **High** — proprietary managed services deeply integrated into your architecture (DynamoDB, Lambda with event-source mappings, Cosmos DB, AppSync)
+
+Mitigations, honestly weighed:
+
+- **Portable substrates** — containers/K8s, Terraform, open-source data stores where the trade-off is acceptable
+- **Abstraction at the seams** — repository/event-bus interfaces in code, so the managed service behind them is swappable
+- **Exit-cost analysis as an architecture input** — know what each managed service costs you in portability *before* adopting it
+
+The counterweight that shows maturity: chasing full portability means forfeiting each cloud's best services and paying in engineering time. The pragmatic pattern is portable cores with *deliberate, documented* use of proprietary services where their value is decisive — not accidental lock-in, chosen lock-in.
 </Step>
 
 <Step>
-**What is Kubernetes pod affinity and anti-affinity?**  
+**What are pod affinity and anti-affinity, and when do you use them?**
 
-Pod affinity and anti-affinity define rules for **where Kubernetes pods should be scheduled** based on labels.  
+Affinity rules tell the Kubernetes scheduler where pods may/must land relative to other pods — expressed against topology domains (node, AZ, hostname):
 
-- **Pod Affinity:** Ensures pods are scheduled together (e.g., for performance reasons).  
-- **Pod Anti-Affinity:** Ensures pods are placed on different nodes (e.g., for high availability).  
-- **Example YAML:**  
+```yaml
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # hard rule
+      - labelSelector:
+          matchExpressions:
+            - {key: app, operator: In, values: [backend]}
+        topologyKey: kubernetes.io/hostname
+```
 
-  ```yaml
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchExpressions:
-              - key: app
-                operator: In
-                values:
-                  - backend
-          topologyKey: "kubernetes.io/hostname"
-  ```
+- **Anti-affinity (the common one)** — spread replicas of the same service across nodes or AZs so one failure can't take out every replica; `preferred` rules spread when possible, `required` rules enforce (and leave pods Pending when they can't be satisfied)
+- **Affinity** — co-locate pods that benefit from sharing a node (latency-sensitive pairings, cache-locality)
+- **The modern alternative worth naming** — **topologySpreadConstraints** do the same job with cleaner semantics (even-distribution by zone), and are generally preferred for HA spreading since K8s 1.19
+
+The operations insight: hard (`required`) rules make scheduling brittle in small clusters — a node failure can leave replicas unschedulable. Prefer `preferred` anti-affinity or topology spread constraints, and always pair with a PodDisruptionBudget.
 </Step>
 
 <Step>
-**How do you prevent DDoS attacks in cloud environments?**  
+**What is confidential computing?**
 
-To prevent **DDoS (Distributed Denial of Service) attacks**, use:  
+Confidential computing protects data **while it is being processed** — the third leg of the encryption triad (at rest, in transit, *in use*), using hardware Trusted Execution Environments (TEEs):
 
-- **Web Application Firewalls (WAF):** AWS WAF, Azure WAF.  
-- **DDoS Protection Services:** AWS Shield, Azure DDoS Protection, Cloudflare.  
-- **Rate Limiting & Traffic Throttling:** Block excessive requests from suspicious IPs.  
-- **Network ACLs & Security Groups:** Restrict unnecessary traffic at the firewall level.  
+- **How it works** — CPU features (AMD SEV-SNP, Intel SGX/TDX) encrypt memory and isolate workloads from the host OS, hypervisor, and even cloud operators — attestation lets the workload cryptographically verify the environment before handling secrets
+- **Cloud offerings** — AWS Nitro Enclaves, Azure Confidential VMs/Confidential Containers (SEV-SNP), GCP Confidential VMs/Space, Intel TDX-based instances
+- **Use cases** — multi-party data collaboration (neither party can inspect the other's data), regulated industries processing sensitive records, key-management services, privacy-preserving analytics
+
+The honest framing: TEEs add performance overhead and operational complexity — they solve the "can the cloud operator or host admin see my data?" threat, which matters for the most regulated workloads and is overkill elsewhere. Knowing *which threat model it addresses* is the interview differentiator.
 </Step>
 
 <Step>
-**What is confidential computing in the cloud?**  
+**What is policy-as-code in cloud security, and where does it run?**
 
-Confidential computing encrypts data **even while it is being processed** to enhance security.  
+Policy-as-code turns security/compliance rules into executable, versioned policies enforced automatically:
 
-- Uses **Trusted Execution Environments (TEEs)** to protect data.  
-- Examples:  
-  - **AWS Nitro Enclaves**  
-  - **Azure Confidential Computing**  
-  - **Google Cloud Confidential VMs**  
+- **At provisioning time (shift-left)** — OPA/Conftest or Checkov gate Terraform plans and IaC in PRs: "no unencrypted S3", "no 0.0.0.0/0 ingress", "mandatory cost-allocation tags"
+- **At admission time** — Kubernetes Gatekeeper/Kyverno reject non-compliant workloads at the API server; Sigstore/cosign policies admit only signed images
+- **Continuously (detect+remediate)** — AWS Config rules, Azure Policy, GCP Organization Policy evaluate live resources, flag or auto-remediate drift; Service Control Policies/ASPs make whole categories of violation impossible org-wide
+- **The lifecycle** — policies are code: versioned in Git, tested, rolled out in "warn" mode before "enforce", with exceptions documented and expiring
+
+The maturity ladder to present: wiki document → manual review → CI gate → admission control → org-wide prevention. Each step moves the failure earlier and makes the compliant path the only path.
 </Step>
 
 <Step>
-**What is a policy-as-code approach in cloud security?**  
+**How do you implement cloud governance?**
 
-Policy-as-Code (PaC) automates security and compliance checks using **code-based policies**.  
+Governance is the control plane for an org's cloud estate — guardrails plus enablement, applied through automation:
 
-- Tools:  
-  - **AWS Config, Azure Policy**  
-  - **OPA (Open Policy Agent)**  
-  - **HashiCorp Sentinel**  
-- Example: Enforce that all S3 buckets must be encrypted.  
-</Step>
+- **Account/subscription structure** — a landing zone: separate accounts per environment/team (blast-radius isolation), centralized logging/security/tooling accounts, org-wide Service Control Policies as hard guardrails
+- **Identity governance** — centralized SSO federation, permission boundaries, JIT elevation instead of standing admin, regular access reviews
+- **Standards as code** — tagging policy (mandatory keys), naming conventions, approved instance/region lists — enforced by policy engines, not conventions
+- **Financial guardrails** — budgets with alerts, anomaly detection, mandatory cost-allocation tags, quota management
+- **The developer-experience counterweight** — golden-path modules and templates that make the governed path the *fast* path; governance that only says "no" gets bypassed
 
-<Step>
-**How do you implement cloud governance?**  
-
-Cloud governance ensures compliance, security, and cost control.  
-
-- **Identity & Access Control:** Enforce least-privilege access.  
-- **Budget & Cost Management:** Use AWS Budgets, Azure Cost Management.  
-- **Automated Compliance Checks:** Use AWS Config, Azure Policy.  
-</Step>
-
-<Step>
-**What are the best practices for cloud security?**  
-
-- **Identity & Access Management (IAM):** Enforce **least privilege** access.  
-- **Data Encryption:** Encrypt at rest (AES-256) and in transit (TLS).  
-- **Multi-Factor Authentication (MFA):** Require MFA for user accounts.  
-- **Network Security:** Implement firewalls, VPNs, and private subnets.  
-- **Logging & Monitoring:** Enable **AWS CloudTrail, Azure Monitor, Google Cloud Logging** for real-time threat detection.  
+The measure of success to state: teams can provision what they need in minutes *within* the guardrails — and every guardrail violation surfaces automatically rather than at audit time.
 </Step>
 
 <Step>
 **How do you design for high availability in the cloud?**
 
-High availability design principles include:
+HA design works backward from a failure-matrix — decide what failure you survive, then cost the design:
 
-- **Multi-AZ Deployments:** Deploy across multiple availability zones
-- **Auto-Scaling:** Automatically adjust capacity based on demand
-- **Load Balancing:** Distribute traffic across multiple instances
-- **Failover Systems:** Implement automatic failover mechanisms
-- **Data Replication:** Maintain synchronized copies of data
+- **Instance failure** — multiple replicas behind a load balancer with health checks (n+1 minimum capacity)
+- **AZ failure** — distribute across AZs (load balancers do it natively); replicated data layer with automated failover; this tier is cheap and should be default
+- **Regional failure** — multi-region (active-passive warm standby or active-active), DNS/global-LB failover, async data replication — expensive, driven by RTO/RPO requirements
+- **Dependency failures** — graceful degradation: timeouts, retries with backoff, circuit breakers, feature-level fallbacks — partial failure must not cascade
+- **Human failure** — IaC-only changes, reviewed deployments, one-click rollback; the most common outage cause is change
+
+The math worth mentioning: each "nine" costs disproportionately more (99.9% → ~8.7h/year; 99.99% → ~52min/year) — get the required nines from the business, then design the cheapest architecture that meets them, and rehearse failover (untested HA is a theory).
 </Step>
 
 <Step>
 **What is cloud-native architecture?**
 
-Cloud-native architecture principles include:
+Cloud-native means building applications to *exploit* cloud properties — elastic, distributed, API-driven — rather than lifting-and-shifting mainframe assumptions. The pillars (per the CNCF definition):
 
-- **Microservices:** Breaking applications into small, independent services
-- **Containers:** Using containerization for consistency
-- **DevOps:** Implementing automated CI/CD pipelines
-- **Scalability:** Building for automatic scaling
-- **Resilience:** Designing for failure and recovery
+- **Microservices** — independently deployable services with bounded contexts
+- **Containers + orchestration** — immutable packaging, Kubernetes-managed scheduling and healing
+- **Declarative APIs & GitOps** — desired state in Git, controllers reconcile reality
+- **Managed backing services** — databases, queues, identity from the platform, not hand-built
+- **Observability & resilience by design** — metrics/logs/traces standard, timeouts/retries/bulkheads assumed
+
+The observable consequences: rapid scaling (stateless tiers + managed data), continuous delivery (small, safe changes), and resilience (failures are expected and absorbed). The contrast to state: a lifted VM running a monolith with local file storage sits *in* the cloud but isn't cloud-native — the 12-Factor App principles are the checklist for the difference.
 </Step>
 
 <Step>
 **How do you implement disaster recovery in the cloud?**
 
-Disaster recovery strategies include:
+DR is chosen from a cost/recovery spectrum, driven by two numbers the business must give you:
 
-- **Backup and Restore:** Regular data backups and testing
-- **Pilot Light:** Minimal version of app running in cloud
-- **Warm Standby:** Scaled-down version of full environment
-- **Multi-Site:** Full production environment in multiple regions
-- **Recovery Time Objective (RTO) and Recovery Point Objective (RPO)** planning
+- **RTO (Recovery Time Objective)** — maximum tolerable *downtime* after disaster strikes
+- **RPO (Recovery Point Objective)** — maximum tolerable *data loss* measured in time (15-minute RPO = you can lose 15 minutes of writes)
+
+The four canonical strategies, cheapest to fastest:
+
+1. **Backup & restore** — snapshots/backups restored on demand; hours-to-days RTO, RPO = backup frequency. Cheapest; fine for non-critical tiers
+2. **Pilot light** — core data replicated live, minimal services standing; infrastructure templates spin the rest up on demand; tens-of-minutes RTO
+3. **Warm standby** — a scaled-down full environment always running in region B; scale up on failover; minutes RTO
+4. **Multi-site active/active** — both regions serve traffic; near-zero RTO, highest cost and complexity (conflict handling)
+
+Non-negotiables regardless of tier: IaC for the recovery environment (it must be rebuildable from code), runbooks, and **scheduled failover tests** — an untested DR plan is a document, not a capability. Backup costs and retention (and restore *speed*, which is often the forgotten constraint) belong in the design.
 </Step>
 
 <Step>
-**What is FinOps in cloud computing?**
+**What is FinOps at an advanced level?**
 
-FinOps (Cloud Financial Operations) involves:
+FinOps is the operating model that makes cloud spend an engineering-managed quantity — inform, optimize, operate, continuously:
 
-- **Cost Optimization:** Identifying and eliminating waste
-- **Resource Allocation:** Matching resources to business needs
-- **Chargeback Models:** Implementing internal billing systems
-- **Budget Management:** Setting and monitoring cloud budgets
-- **Cost Forecasting:** Predicting future cloud expenses
+- **Allocation** — 100% tag coverage enforced by policy; cost allocated per team/service/feature (container-level allocation via Kubecost/OpenCost for shared clusters) — "unit economics" (cost per customer/transaction/request) is the advanced target, because it ties spend to product decisions
+- **Optimization loops** — rightsizing from utilization data, commitment laddering (Savings Plans/RI portfolios matched to measured baselines), Spot orchestration for fault-tolerant work, storage lifecycle automation
+- **Operate** — budgets and anomaly alerts routed to the owning team, cost reviews in planning cycles, chargeback/showback models, FinOps reviews for new architecture decisions (the egress and per-invocation math happens *before* adoption, not after the bill)
+- **Engineering integration** — cost dashboards next to latency dashboards; cost regressions treated like performance regressions in review
+
+The maturity marker: engineering leads can answer "what does this feature cost per user, and why?" — that's when cloud spend becomes a product decision instead of a finance surprise.
 </Step>
 
 <Step>
-**How do you implement service mesh in cloud environments?**
+**How do you implement a service mesh in cloud environments?**
 
-Service mesh implementation includes:
+A mesh gives every service uniform traffic management, mTLS identity, and telemetry via injected sidecars (or, increasingly, eBPF/ambient modes):
 
-- **Proxy Deployment:** Sidecar pattern with Envoy/Linkerd
-- **Traffic Management:** Routing and load balancing
-- **Security:** mTLS and access policies
-- **Observability:** Metrics, logging, and tracing
-- **Tools:** Istio, Consul, Linkerd
+- **Deployment models** — Istio (full-featured, heavy), Linkerd (lightweight, simpler), Consul (multi-cloud/datacenter strength); sidecar injection via namespace labels, or Istio ambient/Linkerd's lighter data plane
+- **What it gives CI/CD** — traffic shifting for canaries (90/10 splits), automatic retry/timeout/outlier-ejection policies, per-service golden-signal metrics without instrumenting code, and mTLS identity between every pair of services
+- **Rollout discipline** — start in permissive/observability mode (mTLS with `PERMISSIVE`), verify everything still talks, then flip to `STRICT`; roll control-plane and sidecar upgrades incrementally per namespace
+- **The cost/benefit line** — meshes pay off at hundreds of services or hard zero-trust requirements; below that, Kubernetes NetworkPolicies + ingress-level tooling deliver much of the value without the operational weight
+
+The expert note: sidecar-less/ambient meshes are reducing the resource tax that made teams defer mesh adoption — worth mentioning as where the space is heading.
 </Step>
 
 <Step>
-**What are advanced container orchestration patterns?**
+**What are the multi-container pod patterns in Kubernetes?**
 
-Advanced patterns include:
+Pods are a shared localhost/network namespace — which enables composition patterns:
 
-- **Init Containers:** Setup and validation
-- **Sidecar Patterns:** Auxiliary services
-- **Ambassador Pattern:** Proxy to external services
-- **Adapter Pattern:** Standardizing output
-- **Multi-Container Pod Design:** Shared resources and communication
+- **Sidecar** — a helper container augmenting the main one: log shippers (Fluent Bit), auth proxies, Envoy; shares volumes and localhost
+- **Ambassador** — an outbound proxy handling connections to external dependencies (a local Redis/twemproxy proxy the app talks to on localhost) — hides complexity from the app
+- **Adapter** — standardizes the main container's output for a consumer (translating metrics formats for a collector)
+- **Init containers** — run to completion *before* the main container starts: schema migrations, config templating, dependency readiness checks (wait-for-db), permission setup on volumes
+
+Design rules that show experience: sidecars share the pod's lifecycle and resource budget (a runaway sidecar starves the app — set per-container requests/limits); init containers give you ordering guarantees for start-up dependencies; and since K8s 1.28+ native **sidecar containers** (init containers with `restartPolicy: Always`) solve the old "sidecar outlives the app during termination" problem — worth naming as the modern fix.
 </Step>
 
 <Step>
-**How do you implement GitOps in cloud environments?**
+**How do you implement GitOps for cloud infrastructure and applications?**
 
-GitOps implementation includes:
+GitOps: Git holds the declared desired state; controllers continuously reconcile live systems against it — pull-based, audited, self-healing.
 
-- **Infrastructure as Code:** Using Git as single source of truth
-- **Automated Synchronization:** Continuous reconciliation
-- **Pull-Based Deployment:** Cluster-initiated updates
-- **Tools:** ArgoCD, Flux, Jenkins X
-- **Version Control:** Managing infrastructure changes
+- **Two layers to implement** — *applications*: Argo CD/Flux watches manifest repos and syncs clusters (image-tag bumps are commits); *infrastructure*: Terraform plans/apply via Atlantis or Terraform Cloud PR automation, Crossplane for cloud resources as K8s CRDs
+- **Repo topology** — separate config repos from code repos; app-of-apps patterns to manage hundreds of deployments; per-environment directories/branches with promotion as PRs
+- **The reconciliation loop's value** — drift (manual kubectl/console changes) is detected and reverted automatically; rollback is `git revert`; every change has author, review, and timestamp
+- **Secrets in GitOps** — plain Git won't do: SOPS+KMS, Sealed Secrets, or External Secrets Operator pulling from Vault — a gap interviewers expect you to have thought about
+- **Migration pattern** — start with one cluster/namespace in Argo, run parallel with existing CD, expand per team; keep CI for build/test (GitOps owns the *deploy* side)
+
+The summary line: GitOps makes the cluster provably match the repo — the end state where "what's running" is always answerable from Git.
 </Step>
 
 <Step>
-**What is cloud infrastructure automation?**
+**What does cloud infrastructure automation look like at an advanced level?**
 
-Infrastructure automation involves:
+Beyond "we use Terraform" — automation is a full lifecycle with safety mechanisms:
 
-- **Infrastructure as Code (IaC):** Using tools like Terraform, CloudFormation
-- **Configuration Management:** Ansible, Chef, Puppet
-- **CI/CD Integration:** Automated deployment pipelines
-- **Testing:** Infrastructure testing frameworks
-- **Version Control:** Managing infrastructure code
+- **Provisioning** — Terraform/CloudFormation/Pulumi with remote locked state, modular reusable components, and per-environment workspaces; PR-gated plans (Atlantis/TFC) with policy-as-code checks (OPA/Sentinel/Checkov) on the plan output
+- **Configuration & packaging** — immutable images built by CI (Packer/Docker) rather than post-provision mutation; Ansible/cloud-init only for the edges that must mutate
+- **Drift & compliance** — scheduled plan/detect jobs flag manual changes; Config/Policy engines enforce standards; exceptions expire
+- **Testing** — static (lint/policy), plan review, integration tests (Terratest) deploying to ephemeral accounts, and smoke tests post-apply
+- **Operations** — self-service provisioning via golden modules (a team requests "a standard web stack", not raw Terraform), auto-remediation for known failure modes, and cost/quota guardrails in the pipeline
+
+The maturity test to state: a new environment (full stack, network to app to observability) can be stood up from zero by one pipeline run — reproducibly — and destroyed just as cleanly.
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)

@@ -12,192 +12,308 @@ This section covers advanced concepts in cloud computing, including architecture
 
 <Steps>
 <Step>
-**What is a cloud region?**  
+**What is a cloud region, and how do you choose one?**
 
-A cloud region is a geographic area where a cloud provider has multiple data centers. Each region consists of multiple **availability zones (AZs)**, ensuring redundancy and high availability.  
+A region is an independent geographic deployment area — a cluster of availability zones with its own power, cooling, and networking, isolated from other regions' failures.
 
-- Example: AWS **us-east-1 (North Virginia)** has multiple AZs like **us-east-1a, us-east-1b, etc.**  
-- Cloud providers like **AWS, Azure, and GCP** allow users to select regions based on factors like **latency, compliance, and pricing.**  
+Choosing one balances four factors:
+
+- **Latency** — deploy near your users
+- **Data residency/compliance** — GDPR, data-localization laws, and sector rules may dictate where data may live
+- **Service availability** — the newest services (and instance types) don't launch in every region simultaneously
+- **Price** — the same resources vary meaningfully between regions
+
+The architecture note to add: applications should be region-independent by design (no hardcoded regional endpoints), so a second region is a deployment decision rather than a rewrite.
 </Step>
 
 <Step>
-**How does AWS Lambda differ from EC2?**  
+**How does AWS Lambda differ from EC2?**
 
-| Feature | AWS Lambda | Amazon EC2 |
+| Aspect | AWS Lambda | Amazon EC2 |
 |---------|------------|------------|
-| **Type** | Serverless function | Virtual machine |
-| **Scaling** | Auto-scales instantly | Requires manual scaling or auto-scaling setup |
-| **Billing** | Pay-per-execution | Pay for running instances |
-| **Use case** | Short-lived tasks | Long-running applications |
-| **Example** | Trigger a function when an S3 file is uploaded | Run a web server for hosting applications |
+| **Unit of compute** | Function (event-driven) | Virtual machine |
+| **Scaling** | Automatic, per-request, near-instant | Manual or auto-scaling group policies |
+| **Billing** | Per invocation + GB-second | Per second while the instance runs |
+| **Duration** | Max 15 minutes per invocation | Unlimited |
+| **Idle cost** | Zero | Full price, even at 2 a.m. |
+| **Cold starts** | Yes (hundreds of ms, worse for JVM) | No — warm VM |
+| **State** | None — stateless by design | Full control, persistent disks |
+
+Decision heuristic to state: Lambda for spiky, glue-style, sub-15-minute, event-driven work; EC2 (or containers) for steady, long-running, latency-critical, or specialized-runtime workloads. The middle ground — containers on Fargate — is increasingly the default answer.
 </Step>
 
 <Step>
-**What are Reserved Instances in AWS?**  
+**What are Reserved Instances and Savings Plans?**
 
-Reserved Instances (RIs) are a pricing model in AWS where users commit to a specific instance type for **1 or 3 years** in exchange for significant discounts (up to 75%) compared to On-Demand pricing.  
+Commitment-based discounts: promise steady usage for 1 or 3 years and pay substantially less than On-Demand (often 40–70% off, more for longer terms and upfront payment).
 
-- **Types of RIs:**
-  - **Standard RIs** – Best discounts, but limited flexibility.  
-  - **Convertible RIs** – Can switch to another instance type.  
-  - **Scheduled RIs** – Available at specific times (e.g., weekends).  
+- **Reserved Instances** — commit to a specific instance family/size in a region; *Standard* gives the deepest discount, *Convertible* allows exchanging for different instance types mid-term
+- **Savings Plans** — AWS's newer, more flexible model: commit to a **dollar amount per hour** of compute and get the discount on any instance type/region (and Lambda/Fargate usage)
+
+Strategy interviewers like: baseline steady load on commitments (measured from usage history), spiky/unpredictable work on Spot (60–90% off, interruptible), unpredictable remainder on On-Demand. Azure (Reservations + Savings Plans) and GCP (Committed Use Discounts) have equivalents — the concept transfers.
 </Step>
 
 <Step>
-**How do you secure data in cloud storage?**  
+**How do you secure data in cloud storage?**
 
-To secure data in cloud storage:  
+Defense in depth, per layer:
 
-- **Encryption:** Use AES-256 encryption for data at rest and TLS for data in transit.  
-- **Access Control:** Implement IAM policies and bucket policies to restrict access.  
-- **Versioning:** Enable object versioning to recover deleted/modiﬁed files.  
-- **Auditing:** Use AWS CloudTrail, Azure Monitor, or GCP Audit Logs to track access.  
+- **Encryption in transit** — TLS endpoints only; block plain-HTTP access
+- **Encryption at rest** — AES-256 with managed keys (SSE-S3/Azure-managed) or customer-managed keys in a KMS (for audit control and revocation power); consider envelope encryption for sensitive data
+- **Access control** — bucket policies + IAM: **block public access by default** (the single most impactful control — public-bucket leaks are the classic breach), least-privilege policies, presigned URLs for temporary access
+- **Versioning & protection** — object versioning + MFA-delete for critical buckets; replication for cross-region resilience
+- **Auditing** — access logs and data-event trails (CloudTrail data events, Azure Monitor) so you can answer "who read this file?"
+
+The summary line: public-access-block and encryption-on-by-default are table stakes; KMS-key control is what gives you real authority over the data.
 </Step>
 
 <Step>
-**What is the difference between Kubernetes and Docker Swarm?**  
+**Kubernetes vs Docker Swarm — and what should you actually choose?**
 
-| Feature | Kubernetes | Docker Swarm |
+| Aspect | Kubernetes | Docker Swarm |
 |---------|------------|--------------|
-| **Complexity** | Steeper learning curve | Easier to set up |
-| **Scaling** | Automated, fine-grained | Manual or auto-scaling |
-| **Networking** | Uses CNI (Customizable) | Simple overlay network |
-| **Load Balancing** | Built-in service discovery | DNS-based service discovery |
-| **Use case** | Enterprise-grade orchestration | Lightweight container orchestration |
+| **Complexity** | Steeper curve, huge ecosystem | Very simple to start |
+| **Scaling** | HPA/VPA, cluster autoscaling, fine-grained | Basic service scaling |
+| **Ecosystem** | Operators, Helm, service meshes, Istio | Minimal |
+| **High availability** | Control-plane HA patterns mature | Simpler quorum model |
+| **Industry adoption** | The de facto standard | Effectively legacy |
+
+The honest answer to give: Swarm is pleasant for learning and fine for tiny self-managed clusters, but it's been effectively unmaintained since Docker's 2020 changes and is rarely chosen for new work — **managed Kubernetes (EKS/AKS/GKE) is today's default**, with Nomad as the lightweight alternative when K8s feels heavy. Knowing *why* K8s won (extensible API, operator pattern, ecosystem) matters more than reciting the table.
 </Step>
 
 <Step>
-**What is a Stateful vs. Stateless application in the cloud?**  
+**What is the difference between stateful and stateless applications in the cloud?**
 
-- **Stateless Application:** Doesn't retain session data. Each request is independent (e.g., REST APIs, serverless functions).  
-- **Stateful Application:** Retains user state across requests (e.g., databases, messaging queues).  
-- **Cloud Implication:** Stateless apps scale easily, while stateful apps require persistent storage (e.g., AWS EBS, Azure Managed Disks).  
+- **Stateless** — each request is self-contained; no data survives on the instance (REST APIs, serverless functions, stateless web front-ends). **Scale consequence:** add or kill instances freely — scaling is trivial and deploys are instant
+- **Stateful** — keeps data attached to the instance (databases, message queues with persistence, anything with local session/cache state). **Scale consequence:** needs persistent volumes, ordering guarantees, and careful failover (who owns the state when an instance dies?)
+
+The design rule: push state *out* of the application tier — sessions to Redis, files to object storage, data to a managed database — so the application tier stays stateless and elastic. Statefulness doesn't disappear; it gets concentrated into purpose-built services that know how to handle it.
 </Step>
 
 <Step>
-**What is auto-scaling, and how does it work?**  
+**What is auto-scaling, and what are the patterns and pitfalls?**
 
-Auto-scaling automatically adjusts the number of cloud instances based on traffic load.  
+Auto-scaling adjusts capacity automatically based on demand. The patterns:
 
-- **Types:**  
-  - **Horizontal scaling:** Adds/removes instances.  
-  - **Vertical scaling:** Increases/decreases resources on existing instances.  
-- **Example:** AWS Auto Scaling Group increases EC2 instances when CPU usage exceeds 70%.  
+- **Metric-based** — scale on CPU/memory or, better, a *user-facing* signal: request count per instance, queue depth, ALB requests-per-target
+- **Scheduled** — for predictable peaks (9 a.m. weekday traffic, nightly batch)
+- **Predictive** — ML-forecasted scaling (AWS predictive scaling) for slowly-moving trends
+
+The pitfalls interviewers want you to recognize:
+
+- **Thrashing** — scaling events too close together cause oscillation; fix with stabilization windows and sensible step sizes
+- **Scale-in danger** — terminating an instance mid-request or mid-job; fix with deregistration draining and scale-in protection
+- **Wrong metric** — CPU is a proxy; a memory-leaky or IO-bound app won't correlate; scale on the metric that actually predicts saturation
+- **Downstream amplification** — 10x instances hammering one un-scaled database just moves the outage
 </Step>
 
 <Step>
-**What is Terraform, and how does it help in cloud automation?**  
+**What is Terraform, and how does it work in practice?**
 
-Terraform is an **Infrastructure as Code (IaC)** tool used to define and provision cloud resources using declarative configurations.  
+Terraform is the multi-cloud Infrastructure-as-Code tool: declarative HCL files describe desired resources; providers translate them into API calls for 3,000+ services across AWS/Azure/GCP/everything else.
 
-- **Benefits:**  
-  - Enables version control for infrastructure  
-  - Supports multi-cloud deployments  
-  - Automates infrastructure provisioning  
+The workflow — which is the real interview content:
+
+```bash
+terraform init     # download providers, configure remote state
+terraform plan     # diff desired vs actual: create/update/destroy list
+terraform apply    # execute the plan (reviewed in a PR first)
+```
+
+- **State** — Terraform tracks real resources in a state file; it must live remotely (S3+locking, Terraform Cloud) so teams don't clobber each other, and it's sensitive (contains secrets/IDs)
+- **Idempotency & drift** — re-running a plan shows drift from manual console changes
+- **Modules** — reusable, versioned infrastructure components; the standard for orgs
+- **The CI/CD pattern** — plan on PR (posted as a comment), apply on merge, with policy-as-code (Sentinel/OPA) gating the plan
 </Step>
 
 <Step>
-**How do you handle logging in a cloud environment?**  
+**How do you handle logging in a cloud environment?**
 
-- **AWS:** Use CloudWatch Logs and CloudTrail  
-- **Azure:** Use Monitor and Log Analytics  
-- **GCP:** Use Stackdriver Logging  
-- Best practices: **Centralized logging, structured logs (JSON), retention policies**  
+Per-cloud native stacks, then the practices that make logs usable:
+
+- **AWS** — CloudWatch Logs (application/infrastructure) + **CloudTrail** (API/control-plane audit — who did what)
+- **Azure** — Azure Monitor + Log Analytics workspaces
+- **GCP** — **Cloud Logging** (formerly Stackdriver) + Cloud Audit Logs
+
+Best practices that separate a good answer:
+
+- **Centralize** — one searchable store; agents/collectors (Fluent Bit, OTel collector) ship everything there
+- **Structure logs** — JSON key-value with severity, service, trace ID — parseable beats greppable
+- **Correlate** — trace IDs flow through the stack so cross-service debugging works
+- **Retention & cost** — tier retention (hot 30 days, cold archive to object storage); logs are a real bill line
+- **Separate audit from debug** — compliance logs (CloudTrail) have different retention/immutability requirements than application logs
 </Step>
 
 <Step>
-**What is a Bastion Host, and why is it used?**  
+**What is a bastion host, and what has replaced it?**
 
-A **Bastion Host** is a publicly accessible server that provides secure SSH access to private cloud resources.  
+A bastion host is a hardened, internet-facing jump box — the single doorway into a private network, so private instances never need public IPs:
 
-- Reduces **attack surface** by acting as an **entry point** to internal instances.  
+```
+you → bastion (public subnet, SSH) → private instances
+```
+
+The modernization story is the interview value — SSH bastions are increasingly replaced by **identity-aware, audited access**:
+
+- **AWS SSM Session Manager** — shell access to instances via IAM permissions, no inbound ports, no SSH keys on instances, sessions logged to CloudWatch
+- **Azure Bastion** — browser-based RDP/SSH over the portal, no public IPs on targets
+- **GCP IAP tunneling** — identity-aware proxy tunnels TCP without public exposure
+- **Teleport/Boundary** — dedicated access planes with session recording and short-lived certificates
+
+The principles that survive every implementation: one audited entry point, no standing credentials on targets, MFA, and full session logging.
 </Step>
 
 <Step>
-**What is a Service Level Agreement (SLA) in cloud computing?**  
+**What is an SLA in cloud computing, and how should you read one?**
 
-An SLA is a contract between a cloud provider and a customer that defines:  
+An SLA is the provider's contractual reliability promise — the three parts to know:
 
-- **Uptime Guarantee** (e.g., AWS offers 99.99% uptime for EC2).  
-- **Response Time** (e.g., Support request resolution in 24 hours).  
-- **Penalties** if SLA is not met (e.g., refund or service credits).  
+- **Uptime commitment** — typically 99.9%+ for single services, higher for multi-AZ configurations; read the *measurement* (minutes unavailable per month, per region, which endpoints count)
+- **Exclusions** — scheduled maintenance, beta services, and often "the control plane" vs data-plane distinctions (an EKS SLA may not cover the API server you need to fix things)
+- **Remedies** — **service credits**, not cash; and they usually require *you* to claim them
+
+Two insights that elevate the answer: an SLA for 10 services used together is much weaker than each individual SLA (multiply the nines — four 99.9% services yield ~99.6% combined), and your own architecture (multi-AZ, graceful degradation) determines your real availability far more than the provider's SLA does.
 </Step>
 
 <Step>
-**How do you optimize cloud costs?**  
+**How do you optimize cloud costs?**
 
-- **Use Reserved or Spot Instances** instead of On-Demand.  
-- **Enable Auto-scaling** to scale down during low traffic.  
-- **Monitor usage with AWS Cost Explorer/Azure Cost Management.**  
-- **Right-size resources** by selecting appropriate instance sizes.  
+Cost work follows a loop: **measure → eliminate waste → commit → design cheaper**:
+
+- **Visibility** — mandatory tagging (team/service/environment), cost dashboards, anomaly alerts; untagged spend is unowned spend
+- **Kill waste** — unattached EBS volumes, idle load balancers, forgotten dev environments running 24/7, oversized instances (rightsizing from utilization data)
+- **Elasticity** — autoscaling both directions, scheduled scale-down of non-prod
+- **Pricing model** — commitments (RIs/Savings Plans) for steady baseline, Spot for interruptible work, On-Demand for the spiky rest
+- **Architecture levers** — serverless for bursty traffic, object-storage lifecycle policies, CDN offload, managed services instead of self-managed equivalents
+
+The cultural point: publish cost per team/service (showback), make it a dashboards-beside-latency concern — engineers optimize what they can see.
 </Step>
 
 <Step>
-**What is Kubernetes federation?**  
+**What is Kubernetes Federation, and what do people actually use for multi-cluster?**
 
-Kubernetes Federation allows managing multiple Kubernetes clusters as a single unit for **high availability** and **multi-cloud support.**  
+The honest framing: the original Kubernetes Federation (KubeFed) never reached broad adoption and its development has effectively stalled — "Federation" as a buzzword outlived the project.
+
+What teams actually do for multi-cluster today:
+
+- **GitOps per cluster** — Argo CD/Flux manage application deployment across clusters from one repo, with clusters grouped by app-of-apps
+- **Karmada / OCM (Open Cluster Management)** — purpose-built multi-cluster scheduling descendants of the federation idea
+- **Service mesh multi-cluster** (Istio multi-cluster, multi-primary) — for traffic-level federation
+- **Cluster API** — declarative provisioning/lifecycle of the clusters themselves
+
+The interview insight: most "multi-cluster" problems are really deployment-distribution problems (solved by GitOps) or traffic problems (solved by global load balancing/mesh) — choose the tool for the actual problem, not the word "federation".
 </Step>
 
 <Step>
-**How does Chaos Engineering apply to cloud environments?**  
+**How does chaos engineering apply to cloud environments?**
 
-Chaos Engineering **intentionally injects failures** to test system resilience.  
+Cloud platforms make failure injection safe and routine — you deliberately break things to prove resilience mechanisms work:
 
-- Example: Netflix **Simian Army** kills random instances to test system fault tolerance.  
+- **Instance failure** — terminate instances/pods (Netflix Chaos Monkey's original move); autoscaling and health checks must absorb it
+- **AZ outage simulation** — take an entire AZ's capacity out; failover and cross-AZ load balancing must hold
+- **Dependency failures** — inject latency/errors into a database or API call (network fault injection); timeouts, retries, and circuit breakers must degrade gracefully
+- **Tooling** — AWS Fault Injection Service, Azure Chaos Studio, GCP's agent-based faults, Litmus/Gremlin for K8s
+
+The discipline that makes it engineering rather than sabotage: define steady-state metrics first, hypothesize the system survives, bound the blast radius (start with one instance, staging first), run with an abort switch, and turn every failed experiment into a filed, fixed weakness.
 </Step>
 
 <Step>
-**What is a Kubernetes operator?**  
+**What is a Kubernetes Operator, and why does it matter for stateful apps?**
 
-A **Kubernetes Operator** automates complex tasks for stateful applications (e.g., managing databases in Kubernetes).  
+An Operator is a Kubernetes controller that encodes **operational human knowledge** for a specific application as code — it watches the cluster and continuously reconciles reality toward the desired state.
+
+Why stateful apps need it: a Deployment handles stateless pods trivially, but databases need *opinions* — primary/replica topology, ordered failover, backups, version upgrades with data migration, and recovery procedures. An Operator packages those opinions:
+
+- **Examples** — Postgres Operator, Prometheus Operator, Strimzi (Kafka), cloud operators (RDS, Azure SQL via ACK/ASO)
+- **What it automates** — provisioning, failover, scaling, backups, upgrades — the runbook, executed by a controller 24/7
+- **The pattern** — custom resource (CRD) + control loop: you declare "database: replicas=3, version=15", the Operator works out the how
+
+The summary line: Operators are how the ops knowledge of running stateful software stops living in runbooks and starts living in code.
 </Step>
 
 <Step>
-**How do you implement multi-region deployments?**  
+**How do you implement multi-region deployments?**
 
-- **Data Replication:** Sync databases across regions.  
-- **Traffic Routing:** Use DNS-based routing (e.g., AWS Route 53).  
-- **Failover Mechanism:** Auto-switch to another region in case of failure.  
+Multi-region is a latency/compliance decision or a disaster-recovery strategy — and the data layer is where the real work is:
+
+- **Traffic routing** — DNS-based global routing (Route 53 latency/failover policies, global load balancers) with health-checked failover
+- **Compute** — full stacks deployed per region from the same IaC/pipelines (regions must be environment-independent)
+- **Data** — the hard part: asynchronous cross-region replication (eventual consistency, replication lag), or sync replication for active-active (latency cost, conflict handling); global databases (DynamoDB Global Tables, Cosmos DB, Spanner) exist precisely for this
+- **Patterns** — **active-passive** (warm standby, simpler, failover is an event) vs **active-active** (both regions serve traffic; conflicts are the cost)
+
+The honest framing: start with active-passive + regular failover drills unless latency or scale genuinely demands active-active — and remember failover you've never tested is a hypothesis.
 </Step>
 
 <Step>
-**What is a Cloud Access Security Broker (CASB)?**  
+**What is a Cloud Access Security Broker (CASB)?**
 
-A CASB is a security layer between cloud users and providers, enforcing **compliance, threat protection, and data security.**  
+A CASB is a policy enforcement point that sits between users and cloud services — giving security teams visibility and control over SaaS and cloud usage:
+
+- **Visibility** — discovers shadow IT (unsanctioned SaaS in use) and shows who is using what, from where, on which devices
+- **Compliance enforcement** — blocks access to unsanctioned services, enforces data-handling rules (e.g., block downloads of regulated data to unmanaged devices)
+- **Threat protection** — detects anomalous behavior (impossible-travel logins, mass downloads) and malware in uploads
+- **Modes** — inline proxy (real-time enforcement) vs API-based (audit and remediate within the SaaS app)
+
+Placement in the stack: CASB governs *human access to cloud services* (SaaS-focused), while CSPM tools govern *misconfiguration of your cloud infrastructure* — interviewers increasingly want you to name both and their difference.
 </Step>
 
 <Step>
-**How do you ensure compliance in cloud environments?**  
+**How do you ensure compliance in cloud environments?**
 
-- **Use Compliance Frameworks:** HIPAA, SOC 2, GDPR.  
-- **Enable Logging & Auditing:** AWS CloudTrail, Azure Security Center.  
+Continuous, automated compliance — the manual-audit model doesn't scale:
+
+- **Know your framework** — map requirements to controls (GDPR data handling, PCI-DSS segmentation, HIPAA safeguards, SOC 2 evidence)
+- **Preventive controls as code** — AWS Config rules / Azure Policy / GCP Organization Policy reject non-compliant resources at creation; OPA/Checkov gate IaC in PRs
+- **Landing-zone guardrails** — account/subscription structure, Service Control Policies that make violations impossible (e.g., no public buckets org-wide), centralized logging mandated
+- **Detective layer** — CSPM tools (Security Hub, Defender for Cloud) continuously score posture against benchmarks (CIS)
+- **Evidence automation** — every change, approval, and access lives in Git/CloudTrail/logs; audit reports become queries
+
+The summary line: compliance failures in the cloud are almost always misconfigurations — so the controls that matter are automated guardrails, not documents.
 </Step>
 
 <Step>
-**What is zero-trust security in cloud environments?**  
+**What is zero-trust security in a cloud environment?**
 
-Zero-trust security assumes **no implicit trust** and enforces strict identity verification for every request.  
+Zero-trust removes implicit trust based on network location: **every request is authenticated, authorized, and encrypted** — inside the VPC included. "Never trust, always verify."
+
+The cloud-native implementation:
+
+- **Identity is the perimeter** — strong authN everywhere: IAM roles for workloads, OIDC federation for humans, MFA, short-lived credentials
+- **Micro-segmentation** — default-deny security groups/NetworkPolicies; services talk only to explicitly allowed peers
+- **mTLS everywhere** — service-to-service encryption with workload identity (service mesh gives you this for free)
+- **No standing access** — just-in-time elevation (SSM Session Manager, PAM) instead of always-on SSH keys
+- **Continuous verification** — device posture, behavioral anomalies, and per-request authorization decisions
+
+The migration story interviewers like: it's incremental — start with identity (kill static keys), then segmentation, then in-cluster mTLS. Perimeter firewalls still exist; they're just no longer trusted to be the only control.
 </Step>
 
 <Step>
-**How does serverless architecture improve scalability?**  
+**How does serverless architecture improve scalability — and what are its limits?**
 
-Serverless auto-scales **instantly** based on demand, eliminating pre-provisioning of resources.  
+Serverless scales because the provider owns the capacity pool: functions scale per-request from zero to thousands of concurrent executions with no provisioning, no idle cost, and no capacity planning for spiky traffic.
+
+The limits, which are the real interview content:
+
+- **Cold starts** — a first invocation (or first after idle) pays initialization latency; worst for JVM/.NET, mitigated with provisioned concurrency or lighter runtimes
+- **Concurrency ceilings** — account-level limits throttle bursts; one chatty function can starve others (reserve concurrency per function)
+- **Duration and payload caps** — 15-minute max (Lambda), request/response size limits; long jobs belong on containers
+- **Cost inversion at scale** — per-invocation pricing beats VMs for spiky traffic but loses to containers on steady, high-volume loads — model the curve, don't assume
+- **State and coupling** — stateless by force; heavy reliance on managed services means their limits and costs become your limits
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)
