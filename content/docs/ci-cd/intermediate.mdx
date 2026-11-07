@@ -8,220 +8,322 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 # Intermediate Level
 
-This section covers advanced concepts in CI/CD, including pipeline optimization, deployment strategies, and integration with various tools and services.
+This section covers more advanced concepts in CI/CD, including pipeline optimization, deployment strategies, and integration with various tools and services.
 
 <Steps>
 <Step>
 **How do you implement security scanning in a CI/CD pipeline?**
 
-Security scanning implementation includes:
-- SAST (Static Application Security Testing)
-- DAST (Dynamic Application Security Testing)
-- Dependency scanning
-- Container security scanning
+Layer the scans where they catch the most, earliest:
+
+```
+PR opened → SAST + dependency scan → build → image scan → deploy staging → DAST
+```
+
+- **SAST** (SonarQube, Semgrep) — static analysis of source on every PR
+- **SCA** (Snyk, Dependabot) — dependency vulnerabilities, with severity-gated builds
+- **Image scanning** (Trivy, Grype) — after build, before push
+- **IaC scanning** (Checkov, tfsec) — Terraform/Kubernetes misconfigs in the PR
+- **DAST** (OWASP ZAP) — dynamic testing against a running staging deployment
+
+The operational keys: severity thresholds (critical fails the build, low files a ticket), results reported *in the PR* where developers act on them, and baseline/suppress workflows so teams aren't drowned by historical noise.
 </Step>
 
 <Step>
 **What are Jenkins pipelines and how do they work?**
 
-Jenkins pipelines are defined using Jenkinsfile and provide:
-- Declarative or scripted syntax
-- Stage-based workflow definition
-- Pipeline as code
-- Reusable components
+A Jenkins pipeline is a workflow defined as code in a `Jenkinsfile` (Groovy DSL), checked into the repo:
+
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Build') { steps { sh 'mvn package' } }
+        stage('Test')  { steps { sh 'mvn test' } }
+        stage('Deploy') {
+            when { branch 'main' }
+            steps { sh './deploy.sh' }
+        }
+    }
+    post { failure { slackSend "Build failed: ${env.BUILD_URL}" } }
+}
+```
+
+Two syntaxes: **declarative** (structured, opinionated — the default choice) and **scripted** (raw Groovy, more flexible, harder to maintain). Mechanics worth naming: Jenkins discovers the `Jenkinsfile` on webhook trigger, executes stages on agents, records step results for the Blue Ocean/stage view, and supports shared libraries for reusable logic across repos.
 </Step>
 
 <Step>
-**How do you handle database migrations in CI/CD?**
+**How do you handle database migrations in a CI/CD pipeline?**
 
-Database migration strategies include:
-- Version control for schema changes
-- Automated migration scripts
-- Rollback mechanisms
-- Zero-downtime migrations
+Pipeline mechanics — migrations run as a **gated step before the new application starts**:
+
+```yaml
+- run: flyway validate   # fail fast on inconsistent schema history
+- run: flyway migrate    # apply pending migrations
+- run: ./deploy-app.sh   # app compatible with the new schema
+```
+
+- Tools: **Flyway, Liquibase** (SQL/framework-agnostic), framework-native (Django, Rails, Alembic)
+- Order matters: migrate **before** deploying the code that needs the new schema — and design migrations to be backward-compatible (expand/contract) so the *old* code still works during the transition
+- Note on rollback: schema rollbacks are the hard part — `flyway undo` is a paid feature, so the reliable answer is designing additive, reversible migrations rather than relying on a tool's undo
+- Never let two pipelines run migrations concurrently (locking/advisory locks, or a dedicated migration job)
 </Step>
 
 <Step>
 **What is GitOps and how does it relate to CI/CD?**
 
-GitOps principles include:
-- Git as single source of truth
-- Declarative infrastructure
-- Automated synchronization
-- Version-controlled operations
+GitOps splits the CD side into a **pull-based** model: CI builds and pushes images, but deployment happens when an in-cluster controller (Argo CD, Flux) notices that Git's declared state differs from the cluster and reconciles it:
+
+```
+CI:  commit → build → push image → bump image tag in config repo
+CD:  Argo CD detects drift → syncs cluster to match Git
+```
+
+What it changes about classic CD: the cluster **pulls** instead of being pushed to (no external CI credentials on your cluster), every deployment is a reviewed commit, drift from manual `kubectl` changes is detected and corrected, and rollback is `git revert`. The separation of repos matters: application repo (code + CI) versus config/manifest repo (the desired state the operator watches).
 </Step>
 
 <Step>
 **How do you implement blue-green deployments?**
 
-Blue-green deployment process:
-1. Maintain two identical environments
-2. Route traffic between versions
-3. Test new version
-4. Switch traffic if successful
-5. Keep old version as backup
+Run two identical production stacks; switch traffic atomically:
+
+1. **Blue** is live (v1.4); deploy **green** (v1.5) alongside
+2. Smoke-test green behind the scenes (internal endpoint, synthetic checks)
+3. Flip the load balancer/Ingress/DNS to green
+4. Keep blue warm for instant rollback; retire it once confident
+
+```yaml
+# Kubernetes: flip the public Service's selector from blue to green
+selector:
+  version: green   # one change switches all traffic
+```
+
+The implementation details that matter: health-gate the switch, drain in-flight requests (connection draining), and decide the **database strategy up front** — schema migrations must be backward-compatible, because the old version keeps running during and after the switch.
 </Step>
 
 <Step>
 **What are the best practices for CI/CD pipeline security?**
 
-Security best practices include:
-- Secrets management
-- Least privilege access
-- Artifact signing
-- Vulnerability scanning
-- Compliance checks
+- **Short-lived credentials** — federate CI to cloud IAM via OIDC instead of storing static cloud keys
+- **Least privilege per job** — each pipeline runs with only the permissions that specific job needs
+- **Protect the pipeline itself** — branch protection, required reviews, no untrusted PR code executing on privileged runners (use ephemeral/isolated runners for untrusted code)
+- **Pin everything** — actions and base images by digest, dependencies by lockfile
+- **Scan and sign** — SCA/SAST/image scans as gates; sign artifacts (cosign) and verify at deploy time
+- **Secrets hygiene** — vault-injected, masked in logs, scoped, rotated; a leaked pipeline secret is a production breach
+
+The mindset to state: the pipeline is production infrastructure with credentials to prod — secure it like it, not like a build script.
 </Step>
 
 <Step>
 **How do you handle configuration management in CI/CD?**
 
-Configuration management approaches:
-- Environment-specific configs
-- Configuration as code
-- Secret management
-- Feature flags
+The principle: **one immutable artifact, environment-specific configuration applied at deploy time**:
+
+- **Config as code** — environment settings live in versioned files (`config/staging.yaml`, `config/prod.yaml`), reviewed and auditable
+- **Injection at runtime** — env vars, mounted config files, or a config service (Spring Cloud Config, etcd); never baked into the image
+- **Secrets stay separate** — injected from a vault/secret store at deploy, never in Git
+- **Schema/config validation** — validate configuration at startup (fail fast) rather than discovering a typo in production
+- **Feature flags** for behavioral configuration that changes independently of deploys
+
+The anti-pattern to name: baking environment values into the artifact at build time — it means rebuilding per environment and breaks the "promote the same artifact" guarantee.
 </Step>
 
 <Step>
-**What is container orchestration in CI/CD?**
+**What is container orchestration's role in CI/CD?**
 
-Container orchestration involves:
-- Managing container lifecycle
-- Scaling applications
-- Service discovery
-- Load balancing
-- Rolling updates
+Orchestration (Kubernetes, ECS, Nomad) is what executes deployments reliably — the CD tool hands over a new image, and the platform runs the strategy:
+
+- **Declarative rollouts** — the controller converges the cluster to the declared version, respecting `maxSurge`/`maxUnavailable`
+- **Health management** — readiness probes gate traffic to new pods; liveness probes restart broken ones; a bad rollout aborts itself automatically
+- **Scaling and self-healing** — failed nodes/instances are replaced without human action
+- **Traffic primitives** — Services/Ingress/mesh enable blue-green and canary patterns
+
+The division of labor worth articulating: CI/CD *decides* what version should run; the orchestrator *makes it true* and keeps it true — that separation is why Kubernetes deployments are safer than script-driven ones.
 </Step>
 
 <Step>
 **How do you implement automated testing in CI/CD?**
 
-Automated testing implementation:
-- Test pyramids
-- Parallel test execution
-- Test environment management
-- Test result reporting
-- Coverage analysis
+Structure the suite around the test pyramid and make the pipeline enforce it:
+
+```
+PR:        unit + integration tests + lint/scan      (minutes)
+merge:     full regression suite + contract tests    (parallelized)
+pre-prod:  E2E smoke + performance sanity            (staging)
+prod:      synthetic checks + canary analysis        (continuous)
+```
+
+- **Parallelization and sharding** keep PR feedback fast; split suites across runners
+- **Flaky test management** is the hard part: quarantine flaky tests the same day, track a flake rate metric, and never let "just rerun it" become culture
+- **Test data** — seeded, reproducible datasets or ephemeral per-run databases (Testcontainers) instead of shared mutable staging data
+- **Coverage as a signal, not a target** — gate on meaningful coverage trends rather than an arbitrary 100%
 </Step>
 
 <Step>
 **What is infrastructure as code (IaC) in CI/CD?**
 
-IaC implementation includes:
-- Template-based provisioning
-- Version-controlled infrastructure
-- Automated deployment
-- Environment consistency
+IaC brings infrastructure under the same pipeline discipline as application code:
+
+```
+PR: terraform plan → review the plan diff + policy checks
+merge: terraform apply (automated, planned output reviewed)
+```
+
+- **Plan as the review artifact** — the PR shows exactly what will be created/changed/destroyed; policy-as-code (OPA/Sentinel) gates the plan
+- **State safety** — remote, locked state (S3 + DynamoDB, Terraform Cloud) to prevent concurrent applies corrupting state
+- **Drift detection** — scheduled plans catch manual console changes
+- **Immutable delivery** — prefer replacing resources (new AMI/image) over in-place mutation
+
+The unifying idea: infrastructure changes get review, testing, and rollback just like code — because infrastructure *is* code now.
 </Step>
 
 <Step>
 **How do you handle dependencies in CI/CD?**
 
-Dependency management includes:
-- Version locking
-- Dependency scanning
-- Cache management
-- Artifact repositories
-- Vulnerability checking
+Deterministic builds are the goal — the same commit must always produce the same artifact:
+
+- **Lockfiles committed** — `package-lock.json`, `poetry.lock`, `go.sum`; install with the locked-mode command (`npm ci`, not `npm install`)
+- **Pin base images and tool versions** — by tag, ideally by digest
+- **Cache aggressively but correctly** — dependency directories keyed by the lockfile's hash, so a changed lockfile invalidates the cache
+- **Private registry/proxy** (Artifactory, Nexus) — reproducibility, upstream-outage immunity, and a choke point for rejecting malicious packages
+- **Continuous scanning** — SCA on every build; automated update PRs (Renovate/Dependabot) keep updates small and routine instead of annual crises
 </Step>
 
 <Step>
-**What are CI/CD metrics and how do you track them?**
+**What are CI/CD metrics, and which ones actually matter?**
 
-Key metrics include:
-- Deployment frequency
-- Lead time
-- Change failure rate
-- Mean time to recovery
-- Pipeline velocity
+Two families — measure both:
+
+**DORA metrics** (team delivery performance — from the *Accelerate* research):
+
+- **Deployment frequency** — how often you ship to production
+- **Lead time for changes** — commit → running in production
+- **Change failure rate** — % of deployments causing incidents/rollbacks
+- **MTTR / failed-deploy recovery time** — how fast you recover
+
+**Pipeline health metrics** (engineering the pipeline itself):
+
+- Pipeline duration and **queue time** (waiting for runners), success rate, **flaky test rate**, time-to-feedback per stage
+
+The insight to add: DORA metrics are a conversation starter, not a target to game — deploy frequency rising while change-failure rate also rises means the safety nets, not the developers, need work.
 </Step>
 
 <Step>
 **How do you implement canary deployments?**
 
-Canary deployment process:
-1. Deploy to subset of users
-2. Monitor performance
-3. Gather feedback
-4. Gradual rollout
-5. Rollback capability
+Release to a small traffic slice, gate the expansion on metrics, automate the rollback:
+
+```
+v1.4 serves 100% → v1.5 gets 5% → compare error rate, latency, saturation
+  → healthy: 5% → 25% → 50% → 100%
+  → regression: automatic rollback to v1.4
+```
+
+Implementation options, simplest to most automated:
+
+- **Ingress/load balancer weights** — manual percentage shifts
+- **Service mesh** (Istio/Envoy) — precise traffic splitting plus rich per-version metrics
+- **Progressive-delivery controllers** — **Argo Rollouts** / **Flagger** run the whole loop: shift, analyze the metric queries, promote or roll back on their own
+
+The essential part is the **analysis** — a canary without metric gates is just a slow way to break production for 5% of users.
 </Step>
 
 <Step>
-**What is trunk-based development in CI/CD?**
+**What is trunk-based development and how does it affect CI/CD?**
 
-Trunk-based development involves:
-- Short-lived feature branches
-- Frequent integration
-- Feature flags
-- Automated testing
-- Continuous deployment
+All developers merge small changes into `main` (the trunk) **at least daily**; work in progress hides behind feature flags instead of long-lived branches:
+
+- **Branches live hours, not weeks** — merge conflicts and "integration hell" largely disappear
+- **CI stays meaningful** — every merge is small and reviewable; the main branch is always releasable
+- **Feature flags** carry the unfinished-work burden that branches used to
+- Pairs naturally with continuous deployment: main is green → it can ship
+
+Contrast with GitHub-flow-style feature branches (fine, but branches should still be short-lived) and the anti-pattern to name: **release branches maintained for months** with giant, risky merges. Trunk-based is how the high-deployment-frequency organizations from the DORA research actually work.
 </Step>
 
 <Step>
 **How do you handle rollbacks in CI/CD?**
 
-Rollback strategies include:
-- Automated rollback triggers
-- Version control for artifacts
-- Database rollback plans
-- Feature flags
-- Blue-green switching
+Design rollback per layer, and rehearse it:
+
+- **Application** — redeploy the previous versioned artifact (never rebuild); Kubernetes: `kubectl rollout undo` or the previous GitOps revision
+- **Traffic-level** — blue-green switch back, or shift canary weights to the healthy version
+- **Feature-level** — feature flags disable the misbehaving capability with zero redeploy; usually the *first* and fastest remedy
+- **Database** — the constraint that shapes everything: schema migrations must be backward-compatible (expand/contract), because rolling back code against an advanced schema must still work
+- **Automation** — health-based triggers (error-rate spikes, failed canary analysis) should roll back faster than a human can page
+
+The discipline to state: every deployment must ship with a tested rollback path — an untested rollback plan is a hypothesis, not a plan.
 </Step>
 
 <Step>
 **What is continuous testing in CI/CD?**
 
-Continuous testing involves:
-- Automated test suites
-- Test environment management
-- Performance testing
-- Security testing
-- Integration testing
+Continuous testing means verification is embedded at every stage rather than concentrated at the end:
+
+```
+commit → unit → merge → integration/contract → staging → E2E + perf → prod → synthetic + canary analysis
+```
+
+- **Shift-left** — the cheapest bug to fix is the one caught at commit time
+- **Contract testing** (Pact) — verify service integrations without needing every service deployed together
+- **Performance testing** — k6/JMeter runs against staging on significant changes, not just before a big launch
+- **Production testing** — synthetic monitoring and canary analysis continue *after* release; testing doesn't end at the deploy step
+
+The cultural marker: quality is a property of the pipeline, not a phase owned by a separate QA team at the end.
 </Step>
 
 <Step>
 **How do you manage secrets in CI/CD pipelines?**
 
-Secrets management includes:
-- Vault integration
-- Environment variables
-- Encryption
-- Access control
-- Rotation policies
+- **Central storage** — Vault, AWS Secrets Manager, or the CI platform's encrypted secrets; never in pipeline files or Git
+- **Inject at runtime, scope narrowly** — each job gets only the secrets it needs, only for its duration
+- **Prefer short-lived credentials** — OIDC federation (GitHub Actions → AWS IAM role) removes long-lived keys entirely; dynamic database credentials expire on their own
+- **Mask and audit** — secrets masked in logs; access to secrets logged and reviewed
+- **Rotate** — rotation policies plus instant revocation paths; and remember the Git rule: a secret that touched history is compromised — rotate it, deleting the file changes nothing
+
+The test of maturity: could you revoke every CI credential in an hour without downtime? With static keys everywhere, the answer is usually no — which is the argument for federation and dynamic secrets.
 </Step>
 
 <Step>
 **What is pipeline optimization in CI/CD?**
 
-Pipeline optimization techniques:
-- Parallel execution
-- Caching strategies
-- Resource optimization
-- Build time reduction
-- Efficient testing
+Attack the biggest cost first: **pipeline duration is developer throughput** — every minute on every commit adds up across the team:
+
+- **Measure before optimizing** — stage timings reveal the real bottleneck (usually tests or dependency install, not compilation)
+- **Cache correctly** — dependency layers keyed by lockfile hash, Docker layer caching, remote build caches (Gradle/Bazel)
+- **Parallelize and shard** — run independent stages concurrently; split test suites across runners
+- **Skip intelligently** — path filters (docs changes don't trigger full builds), affected-module builds in monorepos
+- **Right-size runners** — bigger machines for build-heavy stages; more, smaller machines for parallel tests
+- **Fix the flaky tests** — reruns are hidden pipeline duration and eroded trust
+
+The target state: PR feedback in under ~10 minutes, so developers stay in context instead of context-switching while waiting.
 </Step>
 
 <Step>
 **How do you implement compliance in CI/CD?**
 
-Compliance implementation includes:
-- Audit trails
-- Policy enforcement
-- Security scanning
-- Approval workflows
-- Documentation
+Make the pipeline produce compliance evidence as a side effect of shipping:
+
+- **Policy gates as code** — OPA/Sentinel/Checkov rules reject non-compliant infrastructure and configs in the PR
+- **Approval workflows** — environment-protection rules (required reviewers for production deploys), enforced by the platform, recorded automatically
+- **Immutable audit trail** — who changed what, who approved, what ran, which artifact went where — all queryable from Git + CI history
+- **Artifact traceability** — signed artifacts + SBOM prove exactly what shipped and what's inside it
+- **Access reviews** — pipeline credentials and permissions audited on a schedule
+
+The framing that lands in interviews: auditors ask you to *prove* controls — a pipeline that enforces them generates the proof automatically, turning audit season into a report query.
 </Step>
 
 <Step>
 **What is release management in CI/CD?**
 
-Release management involves:
-- Version control
-- Release planning
-- Change management
-- Environment promotion
-- Release automation 
+Release management is the orchestration around the pipeline: what ships, when, to whom, and how you know:
+
+- **Versioning** — semantic versioning with automated version bumps and tags from the pipeline; every artifact traceable to a commit
+- **Environment promotion** — the same artifact moving dev → staging → prod with gates (automated tests + required approvals) at each hop
+- **Release notes/changelogs** — generated from commits/PRs (conventional commits) so changes are communicable
+- **Strategies** — release trains (fixed cadence), continuous deployment (release on green), or hybrid; feature flags decouple the release decision from the deploy
+- **Rollback and communication plans** — the unglamorous half: known-good fallback, status page, stakeholder notification
+
+The mature statement: in strong CI/CD cultures, "release management" shrinks to managing *risk and communication* — the mechanics are already automated.
 </Step>
-</Steps> 
+</Steps>
