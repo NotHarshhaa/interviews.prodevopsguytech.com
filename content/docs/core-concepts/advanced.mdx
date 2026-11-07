@@ -8,202 +8,291 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 # Advanced Level
 
-This section covers expert-level concepts in DevOps, including advanced architecture patterns, security practices, and enterprise-scale implementations.
+This section covers expert-level DevOps concepts, including advanced architecture patterns, security practices, and enterprise-scale implementations.
 
 <Steps>
 <Step>
-**What is the Twelve-Factor App methodology?**  
+**What is the Twelve-Factor App methodology?**
 
-The Twelve-Factor App is a set of best practices for building modern, scalable cloud applications. The 12 principles focus on aspects like codebase, dependencies, configuration, logging, and disposability.  
+Twelve practices for building cloud-native applications that stay portable, scalable, and operable (from Heroku engineers, 2011). The factors interviewers probe most:
+
+- **Codebase** (I) — one repo, many deploys; every deployable has exactly one codebase
+- **Config** (III) — configuration in environment variables, never hardcoded per environment
+- **Backing services** (IV) — databases/queues are attached resources, swapped via URL with no code change
+- **Build, release, run** (V) — strict separation; the release is an immutable artifact + config
+- **Statelessness** (VI) — no local session state; anything that must persist goes to a backing service
+- **Logs** (XI) — write to stdout; the platform aggregates
+- **Disposability** (IX) — fast startup, graceful shutdown, built to be killed
+
+The remaining factors cover dependencies (II), port binding (VII), concurrency (VIII), dev/prod parity (X), and admin processes (XII). The practical application: 12-Factor is the checklist that makes containerized, horizontally-scaling, zero-downtime applications possible — violations surface exactly where deployments hurt.
 </Step>
 
 <Step>
-**How do you implement zero-trust security in DevOps?**  
+**How do you implement zero-trust security in DevOps?**
 
-Zero-trust security enforces strict identity verification and least-privilege access across the entire system. It includes:  
+Zero-trust removes implicit trust based on network location: every request is authenticated, authorized, and encrypted — including inside your perimeter. Implementation across the estate:
 
-- Multi-factor authentication (MFA)  
-- Role-Based Access Control (RBAC)  
-- Encryption of data in transit and at rest  
-- Continuous monitoring and logging  
+- **Identity as the perimeter** — SSO + MFA for humans, workload identity (IAM roles, SPIFFE) for services, OIDC federation for CI — no static credentials anywhere
+- **Least privilege, enforced** — RBAC everywhere (cloud IAM, Kubernetes RBAC, app-level), just-in-time elevation instead of standing admin access
+- **Encryption as default** — TLS for everything in transit, mTLS between services, KMS-managed keys at rest
+- **Segmentation** — default-deny network policies, micro-segmentation, per-service authorization
+- **Continuous verification** — device posture checks, behavioral anomaly detection, per-request authz decisions, full audit trails
+
+The migration story to present: it's incremental — kill static keys first, then default-deny networking, then in-cluster mTLS. Perimeter firewalls still exist; they're simply no longer trusted to be the only control.
 </Step>
 
 <Step>
-**What are sidecars in Kubernetes?**  
+**What are sidecar patterns in Kubernetes, and where do they fail?**
 
-A sidecar is a helper container that runs alongside a main application container within the same pod. Sidecars enhance functionality without modifying the primary application (e.g., logging, monitoring, service mesh).  
+A sidecar is a helper container sharing a pod with the main application — same network namespace (localhost), shared volumes, same lifecycle:
+
+- **Common uses** — log shipping (Fluent Bit tailing shared volumes), Envoy/proxy for mesh identity, auth proxies, config reloaders
+- **The value** — augment any application without touching its code; the sidecar is language-agnostic and independently versioned
+- **Where they fail** — resource starvation is shared (a leaky sidecar OOMs the pod alongside the app — set per-container limits); startup/shutdown ordering races; and the classic problem that the sidecar can outlive or die before the main container
+- **The modern fix** — **native sidecar containers** (K8s 1.28+: init containers with `restartPolicy: Always`) give sidecars proper lifecycle ordering — worth naming as the current best practice
 </Step>
 
 <Step>
-**How does Kubernetes handle self-healing?**  
+**How does Kubernetes self-healing actually work — and what are its limits?**
 
-Kubernetes ensures self-healing by:  
+The mechanism is reconciliation: controllers continuously compare desired state to actual and correct reality:
 
-- Restarting failed containers  
-- Rescheduling pods on healthy nodes  
-- Automatically scaling replicas  
-- Rolling back deployments if necessary  
+- **Crashed container** → kubelet restarts it per `restartPolicy` (Always by default, with backoff)
+- **Dead node** → node lease expires → its pods are marked gone → scheduler recreates them elsewhere
+- **Unhealthy-but-running** → only if *probes* catch it: failing liveness → restart; failing readiness → removed from Service endpoints
+- **Wrong replica count** → ReplicaSet recreates to match `replicas`
+- **Bad rollout** → fails its own readiness gates and aborts automatically
+
+The limits that show depth: Kubernetes heals what you *define* — a broken-but-alive app with passing probes never gets healed; stateful components need their own failover (Operators); and self-healing at the cluster layer assumes the control plane is healthy. Probes are the difference between real and imaginary self-healing.
 </Step>
 
 <Step>
-**What is progressive delivery?**  
+**What is progressive delivery?**
 
-Progressive delivery is an advanced deployment strategy that introduces new changes incrementally to users, using techniques like:  
+Progressive delivery extends CI/CD: releases move through **graduated, metric-verified exposure** instead of a binary deploy:
 
-- **Canary releases** (small group testing)  
-- **Feature flags** (turning features on/off dynamically)  
-- **A/B testing** (comparing multiple versions in production)  
+```
+deploy dark (flag off) → internal users → 1% canary → 10% → 50% → 100% → flag cleanup
+```
+
+- **The three instruments** — feature flags (release control, instant kill switch), canary analysis (technical health gates on error/latency metrics), and A/B testing (product-outcome decisions)
+- **The automation** — Argo Rollouts/Flagger shift traffic, query Prometheus for the canary's deltas, and promote or roll back automatically
+- **The organizational split** — the pipeline decides *whether* to proceed (technical signal); product decides *when* to widen exposure (business signal)
+
+The summary to deliver: progressive delivery turns every release into a controlled experiment with a bounded blast radius — the operational end-state that high-frequency deployers converge on.
 </Step>
 
 <Step>
-**What is a service mesh, and why is it important?**  
+**Why does a service mesh matter at scale — and what does it cost?**
 
-A service mesh (e.g., Istio, Linkerd) is a dedicated infrastructure layer that manages service-to-service communication in microservices architectures. It provides:  
+At hundreds of services, cross-cutting concerns (identity, retries, traffic policy) re-implemented in every codebase drift apart and break. A mesh centralizes them in the platform:
 
-- Traffic control (load balancing, retries)  
-- Security (mutual TLS authentication)  
-- Observability (tracing, metrics, logging)  
+- **What you gain** — automatic mTLS with workload identity (zero-trust without code changes), retries/timeouts/circuit breaking as config, precise traffic splitting for canaries, per-hop metrics that make canary analysis possible
+- **What it costs** — a control plane to operate, sidecar resource tax (or ambient mode), a new debugging layer, and upgrade toil — real operational weight
+- **The decision framing** — hard requirement for mTLS/zero-trust or sophisticated canary strategy → mesh earns it; small estate → NetworkPolicies + ingress-level tooling deliver most of the value without the weight
+
+Tools to name: Istio (comprehensive), Linkerd (lightweight), Consul (multi-cloud strength) — plus the trend toward sidecar-less/ambient data planes reducing the resource tax.
 </Step>
 
 <Step>
-**What is GitOps, and how does it improve DevOps workflows?**  
+**How does GitOps change the security and operations posture of delivery?**
 
-GitOps uses Git repositories as the single source of truth for declarative infrastructure and applications. Benefits include:  
+Beyond delivery speed, GitOps restructures *how change reaches production*:
 
-- **Version-controlled deployments**  
-- **Automated reconciliation of state**  
-- **Increased security via RBAC**  
+- **Pull-based deployment** — an in-cluster operator (Argo CD, Flux) pulls from Git; CI holds **no credentials to production** — the most-scoped attack surface you can design
+- **Drift as a security control** — any manual change (including an attacker's `kubectl apply`) is detected and reverted automatically; the cluster provably matches the reviewed repo
+- **Immutable audit trail** — every change has author, review, and timestamp in Git; compliance evidence is a query, not a project
+- **Rollback as revert** — known-good states are always one commit away; incidents resolve by restoring reviewed state, not by improvising
+
+The caveats that show depth: secrets need special handling (SOPS/Sealed Secrets/External Secrets — plaintext in Git is the classic GitOps failure), and reconciliation must be *verified* (a silently broken sync is worse than no GitOps).
 </Step>
 
 <Step>
-**What is Blue/Green vs. Rolling deployment?**  
+**Blue-green vs rolling deployment — how do you choose?**
 
-- **Blue/Green Deployment**: Two identical environments (Blue and Green). Traffic is switched instantly.  
-- **Rolling Deployment**: Gradual update of application instances, minimizing downtime but increasing rollback complexity.  
+| Aspect | Blue-green | Rolling |
+|---------|-----------|---------|
+| **Switch** | Atomic, all traffic at once | Gradual, batch by batch |
+| **Rollback** | Instant (flip back) | Redeploy previous artifact |
+| **Capacity** | Double infrastructure during release | Steady, small overhead |
+| **Exposure** | Full blast on switch | Small batches |
+| **Version mixing** | Never (clean cutover) | Old and new run simultaneously |
+
+Choose **blue-green** when: rollback speed is paramount, you need full-environment verification before traffic, and doubling capacity is acceptable — or when batch mixing is unsafe.
+
+Choose **rolling** when: capacity costs matter, old/new versions are compatible (backward-compatible APIs and schemas), and Kubernetes defaults already do it well.
+
+Choose **canary** instead of both when: the release risk is high enough to justify metric-gated gradual exposure. The expert line: the choice is driven by *version compatibility* first (can you even run old and new side by side?) and risk tolerance second.
 </Step>
 
 <Step>
-**How do you handle secrets management in DevOps?**  
+**What does secrets management look like at enterprise scale?**
 
-Best practices for secrets management include:  
+At scale, secrets strategy is about lifecycle and rotation, not storage alone:
 
-- Using **vault solutions** (e.g., HashiCorp Vault, AWS Secrets Manager)  
-- Avoiding hardcoded secrets in code  
-- Using **environment variables or encrypted configuration files**  
+- **Centralized stores** — Vault (dynamic secrets, PKI, transit encryption), cloud-managed (AWS Secrets Manager, Azure Key Vault) with replication
+- **Dynamic, short-lived credentials** — databases issue per-service credentials with TTLs; OIDC federation replaces static cloud keys; certificates auto-rotate — standing secrets shrink to break-glass only
+- **Distribution patterns** — sidecar/agent injection (Vault Agent), External Secrets Operator syncing into clusters, CI via OIDC — plaintext secrets never sit in Git, images, or CI variables longer than a job
+- **Governance** — per-service scoping, masked logs, audited reads, automatic rotation schedules, and tested revocation paths
+- **The benchmark question** — "can we revoke every credential in one hour without downtime?" Enterprise-grade answers build to yes.
 </Step>
 
 <Step>
-**What is a chaos engineering experiment?**  
+**How does chaos engineering integrate with CI/CD and SRE practice?**
 
-Chaos engineering involves intentionally introducing failures to test system resilience. Examples include:  
+Chaos engineering closes the loop between SRE theory and tested reality — resilience mechanisms get regression-tested like features:
 
-- **Network disruptions** (latency, packet loss)  
-- **Server crashes** (killing pods or nodes)  
-- **Resource exhaustion** (CPU/memory spikes)  
+- **In pipelines** — pre-release chaos stages against staging/canary: kill pods, inject latency into dependencies, exhaust connection pools — with steady-state metrics asserting the system holds
+- **As continuous experiments** — scheduled/automated game days in production with bounded blast radius (AWS FIS, Litmus, Gremlin), expanding scope as confidence grows
+- **Feeding SLOs** — failed experiments become reliability work items prioritized by the same error-budget logic that governs feature releases
+- **The guardrails** — hypothesis + steady state + blast radius + abort switch, every time; and alerting tuned so chaos doesn't page innocent bystanders
+
+The maturity statement: chaos engineering is what proves the multi-AZ design, the circuit breakers, and the runbooks actually work — the difference between *documented* resilience and *demonstrated* resilience.
 </Step>
 
 <Step>
-**How do you implement compliance in DevOps pipelines?**  
+**How do you enforce compliance in DevOps pipelines?**
 
-Compliance can be enforced using:  
+Compliance becomes a pipeline by-product when controls run on every change:
 
-- **Automated security scans** (e.g., SonarQube, Snyk)  
-- **Policy-as-Code** (e.g., Open Policy Agent)  
-- **Audit logging and access controls**  
+- **Policy-as-code gates** — OPA/Sentinel/Checkov reject non-compliant IaC, configs, and images in the PR, with severity thresholds and expiring exceptions
+- **Approval workflows enforced by platform** — protected environments (required reviewers for production), branch protection, signed commits — all recorded automatically
+- **Immutable evidence** — Git history, CI run logs, artifact signatures, SBOMs, and centralized audit logs answer "prove who changed what, when, and who approved it" as a query
+- **Framework mapping** — SOC 2/ISO 27001/GDPR/PCI controls mapped to the automated controls that satisfy them; continuous posture tools (AWS Config, Azure Policy) close the live-state gap
+- **The counterweight** — developer experience: findings arrive in PRs with fix guidance, or teams build shadow processes to bypass the gates
 </Step>
 
 <Step>
-**What is infrastructure drift, and how do you prevent it?**  
+**What is infrastructure drift, and how do you prevent and detect it?**
 
-Infrastructure drift occurs when real-world infrastructure deviates from its declared state in code. Prevention methods:  
+Drift is divergence between declared state (IaC) and actual infrastructure — caused by manual console changes, out-of-band hotfixes, or skipped automation:
 
-- **Use Infrastructure as Code (IaC) tools**  
-- **Regularly run drift detection checks**  
-- **Automate infrastructure provisioning**  
+- **Why it's dangerous** — drift makes the code wrong, so the next apply *undoes a live fix* (or worse, breaks something); environments stop being reproducible; audits fail
+- **Detection** — scheduled `terraform plan` runs against production (zero-diff = clean); cloud-native tools (AWS Config, drift detection in TF Cloud); Kubernetes: GitOps controllers detect any manual change instantly
+- **Prevention** — IaC-only change policy enforced by IAM (no console write access to prod), automated reconciliation (GitOps auto-corrects or alerts), and a fast-path exception process for emergencies (hotfix in code immediately after)
+- **The cultural note** — drift usually starts as an incident shortcut; the fix is making the automated path *faster than the console*, not just forbidding the console
 </Step>
 
 <Step>
-**What is a deployment freeze, and when should it be used?**  
+**What is a deployment freeze, and how do mature teams handle it?**
 
-A deployment freeze is a temporary halt on new releases, typically during critical business periods (e.g., holiday sales, tax season).  
+A deployment freeze is a temporary halt on production releases during high-risk business windows (holiday sales, financial quarter-end, major live events).
+
+How it's handled well:
+
+- **Scope it precisely** — freeze *production feature releases* only; bugfixes for critical issues and infrastructure/security patches usually stay allowed
+- **Ship dark during the freeze** — feature flags and pre-prod deployments continue; code accumulates behind flags and releases the day the freeze lifts
+- **Automate the enforcement** — environment protection rules in the CI/CD platform (required approvals off, scheduled blocks), not a calendar reminder
+- **Plan the thaw** — a release train queued for post-freeze, with the freeze period's changes batched and prioritized
+
+The insight to add: teams with progressive delivery barely feel freezes — dark deploys and canaries continue internally — which is another argument for building those practices.
 </Step>
 
 <Step>
-**How do you ensure high availability in a DevOps environment?**  
+**How do you design for high availability across the full stack?**
 
-High availability can be ensured through:  
+HA is designed backward from a failure matrix — decide what failure you survive, then cost it:
 
-- **Multi-region deployments**  
-- **Load balancing & auto-scaling**  
-- **Database replication & failover mechanisms**  
+- **Instance failure** — multiple replicas + health checks + load balancing (n+1 capacity) — table stakes
+- **AZ failure** — replicas spread across AZs, zone-redundant load balancers, replicated data with automated failover — the default for serious production
+- **Regional failure** — multi-region active-passive (warm standby) or active-active; DNS/global-LB failover; async data replication with known lag — driven by RTO/RPO
+- **Dependency failure** — graceful degradation: timeouts, retries with backoff, circuit breakers, feature-level fallbacks; partial failure must not cascade
+- **Human failure** — IaC-only changes, tested rollback, change windows — statistically the most common outage source
+
+The math and the test: each additional "nine" costs disproportionately (99.99% = ~52 min/year downtime budget); and HA you haven't failover-tested is a hypothesis — schedule the drill.
 </Step>
 
 <Step>
-**What is a multi-cloud strategy?**  
+**What is a multi-cloud strategy, and what does it really cost?**
 
-A multi-cloud strategy uses multiple cloud providers (e.g., AWS, Azure, GCP) to:  
+Multi-cloud runs workloads across two or more providers — but the *why* and *how* determine whether it's strategy or accidental complexity:
 
-- Reduce vendor lock-in  
-- Improve redundancy and fault tolerance  
-- Optimize costs  
+- **Legitimate drivers** — best-of-breed services per workload (GCP data/ML, AWS compute), M&A-merged estates, geographic/contract coverage, negotiating leverage
+- **The real costs** — duplicated IAM/networking/security models, per-cloud expertise, cross-cloud egress fees (the most expensive data transfer tier), and the lowest-common-denominator trap (portable stacks forfeit each cloud's best services)
+- **Pragmatic pattern** — portable substrates where workloads are generic (Kubernetes, Terraform, Postgres), deliberate proprietary-service adoption where value is decisive (documented as accepted lock-in), and one management plane (central IaC, SSO, observability)
+- **The anti-pattern to name** — "multi-cloud for resilience" implemented by running half of every stack on each cloud, without the data replication and global routing to actually fail over
+
+The mature answer: multi-cloud by *workload placement* (clear ownership per provider), not by *distributed single workloads* — unless the workload's data layer is genuinely multi-region-ready.
 </Step>
 
 <Step>
-**How does FinOps fit into DevOps?**  
+**How does FinOps integrate into DevOps engineering practice?**
 
-FinOps (Financial Operations) helps manage cloud spending efficiently. Practices include:  
+FinOps makes cloud spend an engineering-managed quantity — the same way observability made performance one:
 
-- **Cost monitoring tools** (AWS Cost Explorer, Azure Cost Management)  
-- **Auto-scaling and right-sizing resources**  
-- **Tagging and budgeting policies**  
+- **Inform** — 100% tag coverage (enforced by policy), cost allocated per team/service, container-level allocation in shared clusters (Kubecost/OpenCost), unit economics (cost per customer/transaction) as the advanced target
+- **Optimize** — rightsizing from utilization data, commitment laddering (Savings Plans matched to measured baselines), Spot for interruptible work, storage lifecycle policies, scheduled scale-down of non-prod
+- **Operate** — budgets + anomaly alerts routed to owning teams, cost reviews in architecture decisions (egress and per-invocation math *before* adoption), cost regressions treated like performance regressions in review
+
+The integration point: cost dashboards live next to latency dashboards, and engineers respond to what they can see — showback per service changes behavior more reliably than a finance memo.
 </Step>
 
 <Step>
-**What are the challenges of DevOps adoption in large enterprises?**  
+**What are the real challenges of DevOps adoption in large enterprises?**
 
-- **Legacy system integration**  
-- **Security and compliance concerns**  
-- **Cultural resistance to automation**  
-- **Skill gaps within teams**  
+Name each challenge with its mitigation — lists without fixes read as junior:
+
+- **Legacy systems** — years of manual, undocumented infrastructure: mitigate with strangler patterns, IaC for *new* components first, and parallel-run migrations rather than big-bang rewrites
+- **Regulated environments** — compliance demands evidence and controlled change: satisfy with policy-as-code and automated evidence pipelines (regulated ≠ manual — see "Capital One" case studies)
+- **Cultural resistance** — fear that automation removes jobs and shared ownership dilutes accountability: mitigate with top-down sponsorship, blameless post-incident culture, and platform teams that make the new path *easier* than the old one
+- **Skill gaps** — ops learning to code, devs learning to run production: mitigate with golden paths, internal training, and hiring a few platform engineers who raise everyone's floor
+- **Organizational scale** — hundreds of teams sharing platforms: mitigate with paved-road platforms (internal developer portals), tenant isolation, and governance-as-code
+
+The through-line: enterprise DevOps is an organizational-change program supported by tooling — tooling-only initiatives stall at the culture layer.
 </Step>
 
 <Step>
-**What is a Kubernetes operator?**  
+**What is a Kubernetes Operator, and when do you build one?**
 
-A Kubernetes Operator automates complex application lifecycle management tasks by extending Kubernetes capabilities using custom controllers.  
+An Operator is a custom controller that encodes operational knowledge for a specific application as code — a CRD defines the desired state ("Postgres: 3 replicas, v16"), and the controller continuously reconciles reality toward it:
+
+- **What it automates** — provisioning, failover, backups, version upgrades with migration logic, recovery procedures — the runbook, executed 24/7 by a control loop
+- **When to build vs adopt** — adopt first: a rich ecosystem exists (Prometheus, Postgres, Strimzi/Kafka, cloud operators). Build when you operate domain-specific stateful software with no healthy operator and real operational complexity
+- **Implementation** — Kubebuilder/Operator SDK in Go (controller-runtime): a `Reconcile()` function that must be *level-triggered and idempotent* — it runs on every change and periodically, not just on events
+- **Engineering requirements** — status conditions with observedGeneration, ownerReferences for cleanup, finalizers for external-resource teardown, rate-limited requeues
+
+The summary: Operators move ops knowledge from runbooks into controllers — the strongest expression of "treat operations as a software problem".
 </Step>
 
 <Step>
-**What are observability pillars in DevOps?**  
+**What are the three pillars of observability — and what's the fourth people miss?**
 
-The three pillars of observability are:  
+- **Metrics** — numeric time series, cheap to store and alert on; answer *what* is wrong and *how much* (Prometheus, M3)
+- **Logs** — detailed discrete events; answer *why* it happened (ELK/OpenSearch, Loki)
+- **Traces** — request journeys across services with spans; answer *where* in a distributed chain things break (Jaeger, Tempo — instrumented via OpenTelemetry)
 
-- **Logs** (text-based records of system events)  
-- **Metrics** (numerical measurements like CPU usage)  
-- **Tracing** (tracking requests across distributed systems)  
+The missed piece: **correlation/links between the pillars** — trace IDs embedded in logs and exemplars linking metrics to traces. Without correlation, you have three separate tools; with it, you have one investigation path (alert on a metric → jump to the exemplar trace → open the correlated logs).
+
+The practical stack note: OpenTelemetry as the vendor-neutral instrumentation layer, one backend per signal, and high-cardinality discipline (cardinality explosions in metrics are the classic scale failure).
 </Step>
 
 <Step>
-**What are the best practices for incident response in DevOps?**  
+**What does an advanced incident-response practice look like?**
 
-- **Automated alerts and monitoring** (PagerDuty, Prometheus)  
-- **Runbooks and playbooks for issue resolution**  
-- **Post-mortems for continuous learning**  
+Beyond "we have PagerDuty" — the mature practice:
+
+- **Defined roles** — Incident Commander (coordinates, doesn't fix), Operations (diagnose/mitigate), Communications (stakeholder updates) — separating coordination from hands-on-keyboard is what keeps large incidents manageable
+- **Severity ladder** — predefined levels (SEV1 customer-impacting → page immediately, SEV3 degraded → next day) with response expectations per level
+- **Mitigation-first** — rollback, failover, flag-off before root-cause curiosity; stability over understanding during the incident
+- **Blameless post-mortems with teeth** — within days, timeline + contributing causes (never "human error" as a terminal finding) + action items with owners and due dates, tracked to completion
+- **The metrics loop** — MTTD/MTTR trends, incident recurring-cause analysis, and error-budget consequences feeding back into priorities
+
+The culture line that completes it: blameless doesn't mean consequence-free — it means the analysis targets systems and processes, so people report incidents early instead of hiding them.
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)
