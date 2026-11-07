@@ -1,5 +1,3 @@
-import Link from "next/link";
-import SectionLink from "./SectionLink";
 import { ExternalLink } from "lucide-react";
 import Image from "next/image";
 
@@ -89,20 +87,24 @@ export default function FooterSection() {
                   <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent"></div>
                 </h3>
                 <div className="flex flex-col gap-2">
-                  <Link 
-                    href="https://t.me/prodevopsguy" 
+                  <a
+                    href="https://t.me/prodevopsguy"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
                   >
                     Free DevOps/Cloud Learning Community
                     <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                  </Link>
-                  <Link 
-                    href="https://t.me/devopsclassroom" 
+                  </a>
+                  <a
+                    href="https://t.me/devopsclassroom"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
                   >
                     The DevOps Classroom
                     <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                  </Link>
+                  </a>
                 </div>
               </div>
 

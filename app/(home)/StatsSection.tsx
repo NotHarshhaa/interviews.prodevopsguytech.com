@@ -20,7 +20,7 @@ const gradientVariants = {
 
 function StatCard({ number, label, color }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-lg border p-8 hover:border-opacity-40 transition-all duration-300">
+    <div className="group relative overflow-hidden rounded-lg border border-fd-border/60 p-8 hover:border-fd-primary/40 transition-all duration-300">
       <div className="absolute -z-10 inset-0 bg-grid-dots-current group-hover:text-cyan-400/40 h-full w-full text-transparent duration-300" />
       <div className={`bg-gradient-to-b ${gradientVariants[color]} absolute inset-0 opacity-0 group-hover:opacity-100 duration-300`} />
       

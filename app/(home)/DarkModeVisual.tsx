@@ -100,14 +100,14 @@ export default function DarkModeVisual() {
 
       <div
         ref={dragbgRef}
-        className="absolute left-1/2 top-1/2 -translate-1/2 w-8 h-8 animate-ping rounded-full bg-fd-primary z-10"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 animate-ping rounded-full bg-fd-primary z-10"
         style={{
           left: dx,
         }}
       />
       <div
         ref={drag}
-        className="absolute top-1/2 left-1/2 -translate-1/2 h-8 w-8 flex justify-center items-center rounded-full bg-fd-primary text-fd-foreground z-20"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 flex justify-center items-center rounded-full bg-fd-primary text-fd-foreground z-20"
         style={{
           left: dx,
         }}

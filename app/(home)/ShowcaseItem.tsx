@@ -22,7 +22,7 @@ export default function ShowcaseItem({ name, website, appstore, playstore, logo,
         {website && (
           <a href={website} target="_blank" rel="noopener noreferrer" className="absolute left-0 bottom-0 translate-y-12 group/link border px-3 py-1.5 shadow-xl dark:shadow-2xl group-hover:translate-y-1/2 group-hover:translate-x-4 duration-300 bg-fd-accent hover:bg-fd-background hover:border-black dark:hover:border-fd-primary dark:hover:shadow-fd-primary rounded-xl font-mono text-sm w-fit ease-[cubic-bezier(0.175,0.885,0.32,1.275)] flex gap-2">
             {website}
-            <ExternalLink className="w-4 h-4 opacity-0 inline-block group-hover/link:opacity-100 group-hover/link:translate-0 -translate-x-1/2 translate-y-1/2 scale-50 group-hover/link:scale-100 duration-300" />
+            <ExternalLink className="w-4 h-4 opacity-0 inline-block group-hover/link:opacity-100 group-hover/link:translate-x-0 group-hover/link:translate-y-0 -translate-x-1/2 translate-y-1/2 scale-50 group-hover/link:scale-100 duration-300" />
           </a>
         )}
 

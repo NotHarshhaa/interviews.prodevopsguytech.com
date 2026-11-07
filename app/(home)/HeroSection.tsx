@@ -17,14 +17,14 @@ export default function HeroSection() {
 
       <VectorField />
         
-      <SectionLink border className="z-30 hidden sm:block lg:hidden !relative -translate-y-6 max-lg:px-6" href="#" name="px-4 text-4xl text-balance tracking-tight leading-tight" />
-      <SectionLink border className="z-30 hidden lg:block !relative -translate-y-6 max-lg:px-6" href="#" name="text-5xl text-balance tracking-tight leading-tight" />
+      <SectionLink border className="z-30 hidden sm:block lg:hidden !relative -translate-y-6 max-lg:px-6" href="#" name="devops-interview-hub" />
+      <SectionLink border className="z-30 hidden lg:block !relative -translate-y-6 max-lg:px-6" href="#" name="devops-interview-hub" />
 
       <div className="space-y-8">
         <h1 className="text-3xl sm:text-4xl lg:text-6xl font-semibold dark:opacity-90 bg-gradient-to-br from-black/80 via-black/70 to-cyan-800/90 bg-clip-text text-transparent dark:from-white/90 dark:via-white/80 dark:to-cyan-400/90 border-y border-dashed border-fd-border/60 bg-fd-background backdrop-blur tracking-tight leading-tight py-6 sm:py-8">
-          <div className="max-w-fd-container text-start mx-auto max-lg:px-4 text-balance w-full">
+          <span className="block max-w-fd-container text-start mx-auto max-lg:px-4 text-balance w-full">
             Welcome to DevOps Interview Preparation Space
-          </div>
+          </span>
         </h1>
 
         <div className="flex justify-center border-y border-dashed border-fd-border/60 relative backdrop-blur dark:opacity-90 py-6 sm:py-8 transition-opacity hover:opacity-100"> 
@@ -34,7 +34,7 @@ export default function HeroSection() {
                 Your one-stop destination for mastering <span className="text-cyan-700 dark:text-cyan-400 font-normal">DevOps</span>, <span className="text-cyan-700 dark:text-cyan-400 font-normal">Cloud</span>, and <span className="text-cyan-700 dark:text-cyan-400 font-normal">SRE</span> interviews!
               </p>
               <p className="text-fd-muted-foreground text-pretty text-base sm:text-lg leading-relaxed">
-                Contains <span className="font-medium">550+</span> carefully curated interview questions with detailed answers, covering all major DevOps tools, cloud platforms, and best practices. Whether you're a beginner preparing for your first DevOps job or an experienced engineer aiming for top-tier roles, this resource will help you understand core concepts, ace technical interviews, and build confidence.
+                Contains <span className="font-medium">550+</span> carefully curated interview questions with detailed answers, covering all major DevOps tools, cloud platforms, and best practices. Whether you&apos;re a beginner preparing for your first DevOps job or an experienced engineer aiming for top-tier roles, this resource will help you understand core concepts, ace technical interviews, and build confidence.
               </p>
             </div>
           </div>

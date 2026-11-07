@@ -9,52 +9,52 @@ export default function VectorField() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas !== null) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        let width = window.innerWidth;
-        let height = window.innerHeight;
+    if (canvas === null) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-        const particles: { x: number; y: number; age: number; }[] = [];
-        const numParticles = 1000;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
-        canvas.width = width;
-        canvas.height = height;
+    const particles: { x: number; y: number; age: number; }[] = [];
+    const numParticles = 1000;
 
+    canvas.width = width;
+    canvas.height = height;
 
-        window.addEventListener('resize', resize);
-        function resize() {
-          if(!canvas) return; 
-          width = window.innerWidth;
-          height = window.innerHeight;
-          canvas.width = width;
-          canvas.height = height;
-        }
+    function resize() {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      cv.width = width;
+      cv.height = height;
+    }
 
-        window.addEventListener('mousemove', (e) => {
-          if (mouse && mouse.current && canvasRef.current) {
-            const rect = canvasRef.current.getBoundingClientRect(); // Get canvas bounds
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-          
-            mouse.current.x = mouseX;
-            mouse.current.y = mouseY;
-          }
-        });
-    
-        window.addEventListener('mouseout', () => {
-          mouse.current.x = null;
-          mouse.current.y = null;
-        });
-    
+    function handleMouseMove(e: MouseEvent) {
+      if (canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect(); // Get canvas bounds
+        mouse.current.x = e.clientX - rect.left;
+        mouse.current.y = e.clientY - rect.top;
+      }
+    }
 
-        for (let i = 0; i < numParticles; i++) {
-          particles.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            age: Math.random() * 100
-          });
-        }
+    function handleMouseOut() {
+      mouse.current.x = null;
+      mouse.current.y = null;
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        age: Math.random() * 100
+      });
+    }
 
         // v1
         // function vectorField(x: number, y: number, t: number) {
@@ -426,12 +426,10 @@ export default function VectorField() {
 
         animationRef.current = requestAnimationFrame(draw);
 
-      }
-    }
       return () => {
-        // window.removeEventListener('resize', resize);
-        window.removeEventListener('mousemove', () => {});
-        window.removeEventListener('mouseout', () => {});
+        window.removeEventListener('resize', resize);
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseout', handleMouseOut);
         if (animationRef.current !== null) {
           cancelAnimationFrame(animationRef.current);
         }

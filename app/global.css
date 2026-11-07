@@ -120,7 +120,7 @@
 }
 
 .cut-corners {
-  background:var(transparent, rgb(214, 233, 255));
+  background: transparent;
   mask:linear-gradient(
                 -45deg, 
                 transparent 10.313708498984761px, 
@@ -186,6 +186,18 @@ html {
 
 .animate-fade-to-gray {
   animation: fade-to-gray 1s ease-in-out forwards;
+}
+
+/* used by FeaturesSection cards */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cursed {

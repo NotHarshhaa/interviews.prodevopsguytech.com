@@ -1,5 +1,4 @@
 import { Cloud, Code2, BookOpen, Target, Users, Brain } from 'lucide-react';
-import SectionTitle from "./SectionTitle";
 
 interface FeatureCardProps {
   title: string;
@@ -39,7 +38,7 @@ function FeatureCard({ title, description, icon, color, number, style }: Feature
       <div className="relative z-10 min-h-[16rem]">
         <div className="flex flex-col h-full">
           {/* Icon container with floating animation */}
-          <div className={`mb-6 inline-flex items-center justify-center rounded-xl p-4 transition-all duration-500 group-hover:scale-110 animate-float bg-gradient-to-br from-cyan-500/10 to-cyan-400/5`}>
+          <div className={`mb-6 self-center inline-flex items-center justify-center rounded-xl p-4 transition-all duration-500 group-hover:scale-110 animate-float bg-gradient-to-br from-cyan-500/10 to-cyan-400/5`}>
             <div className={`w-8 h-8 ${colorVariants[color]}`}>
               {icon}
             </div>
@@ -76,29 +75,6 @@ function FeatureCard({ title, description, icon, color, number, style }: Feature
     </div>
   );
 }
-
-// Add floating animation keyframe
-const animations = `
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0px); }
-  }
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  @keyframes fadeIn {
-    from { 
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
 
 export default function FeaturesSection() {
   const features: FeatureCardProps[] = [
@@ -148,8 +124,6 @@ export default function FeaturesSection() {
 
   return (
     <section className="relative flex flex-col w-full max-w-fd-container mx-auto border-t border-dashed border-fd-border/60 py-16">
-      <style dangerouslySetInnerHTML={{ __html: animations }} />
-      
       {/* Section Header */}
       <div className="text-center mb-12 px-4">
         <h2 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-cyan-600 to-cyan-800 dark:from-cyan-400 dark:to-cyan-600 bg-clip-text text-transparent mb-4">

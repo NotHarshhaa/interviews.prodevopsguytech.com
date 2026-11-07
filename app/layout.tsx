@@ -9,6 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://interviews.prodevopsguytech.com'),
   title: 'DevOps/Cloud/SRE Interview Hub',
   description: 'A DevOps/Cloud/SRE Interview Hub for Interview Preparation',
   icons: {

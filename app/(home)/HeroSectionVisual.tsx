@@ -71,19 +71,20 @@ export default function HeroSectionVisual() {
   useEffect(() => {
     if (animating) return;
     setAnimating(true);
+    const timeoutIds: ReturnType<typeof setTimeout>[] = [];
     transitions.forEach((transition, index) => {
       const stylesArray = [...transition.styles.join(' ').split('')];
       stylesArray.forEach((letter, i) => {
-        setTimeout(() => {
+        timeoutIds.push(setTimeout(() => {
           transition.setStyles((prev) => [...prev, <span key={`${transition.name}-${index}-${i}-${letter}`} className="text-fd-primary animate-fade-to-gray">{letter}</span>]);
         },
           i * 100
           + (transitions[index - 1] ? transitions[index - 1].styles.join(' ').length * 100 : 0)
           + (transition.delay ? transition.delay : 0)
-        );
+        ));
       });
       transition.styles.forEach((style, i) => {
-        setTimeout(() => {
+        timeoutIds.push(setTimeout(() => {
           transition.refs.forEach((ref) => {
             ref.current?.classList.add(style.trim());
           })
@@ -92,10 +93,11 @@ export default function HeroSectionVisual() {
           + (transition.styles[i - 1] ? transition.styles[i - 1].split('').length + 5 : 0) * 100
           + (transitions[index - 1] ? transitions[index - 1].styles.join(' ').length * 100 : 0)
           + (transition.delay ? transition.delay : 0)
-        );
+        ));
       });
     })
     return () => {
+      timeoutIds.forEach((id) => clearTimeout(id));
       transitions.forEach((transition) => {
         transition.refs.forEach((ref) => {
           ref.current?.classList.remove(...transition.styles);
@@ -118,7 +120,7 @@ export default function HeroSectionVisual() {
         
         <div className="z-10 pointer-events-none absolute w-full h-full inset-0 bg-gradient-to-b from-fd-background/0 via-fd-background/50 to-fd-background from-[calc(100%-20rem)]"/>
         
-        <div className="flex lg:flex-row flex-col items-center relative overflow-hidden rounded-lg bg-fd-background/20 p-2 sm:p-4 pb-0 min-w-fd-container backdrop-blur-sm border border-dashed">
+        <div className="flex lg:flex-row flex-col items-center relative overflow-hidden rounded-lg bg-fd-background/20 p-2 sm:p-4 pb-0 w-full lg:min-w-fd-container max-lg:max-w-fd-container mx-auto backdrop-blur-sm border border-dashed">
           <div className="absolute top-0 right-0 -z-10 translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] rounded-full bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-transparent blur-3xl animate-pulse-slow max-md:hidden" />
           <div className="absolute top-0 right-0 -z-10 h-full w-[35rem] bg-grid-lines-lg opacity-30 dark:opacity-20 -skew-20 -translate-y-1/2 translate-x-1/2 max-md:hidden animate-float"/>
           {/* import { Icon } from '@roninoss/icons';
@@ -199,25 +201,6 @@ export default function HeroSectionVisual() {
     </SafeAreaView>
   );
 }
-
-const FEATURES = [
-  {
-    title: 'Profile Management',
-    description: 'Easily update and manage your personal information, settings, and preferences',
-    icon: 'account-circle-outline',
-  },
-  {
-    title: 'Secure Messaging',
-    description: 'Chat securely with friends and family in real-time.',
-    icon: 'message-processing',
-  },
-  {
-    title: 'Activity Tracking',
-    description: 'Monitor your daily activities and track your progress over time.',
-    icon: 'chart-timeline-variant',
-  },
-] as const;
-//  oh hi there, how did you get here?
   `}
         </pre>
         {/* <div className="absolute h-full border-r border-dashed right-[42px] top-0"/> */}
