@@ -8,149 +8,181 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 # Intermediate Level
 
-This section covers advanced concepts in Docker and Kubernetes, including optimization techniques, networking, and deployment strategies.
+This section covers more advanced concepts in Docker and Kubernetes, including optimization techniques, networking, and deployment strategies.
 
 ## Docker Intermediate Questions
 
 <Steps>
 <Step>
-**What is the difference between Docker ADD and COPY?**  
+**What is the difference between ADD and COPY in a Dockerfile?**
 
-| Feature | ADD | COPY |
+| Aspect | COPY | ADD |
 |---------|----|------|
-| **Function** | Copies files & extracts compressed files | Copies files only |
-| **Supports URLs?** | Yes | No |
-| **Best Practice** | Use for archives (`.tar.gz`) | Use for simple file copies |
+| **Function** | Copies files/directories as-is | Copies + auto-extracts local tar archives + can fetch URLs |
+| **Surprises** | None — predictable | Remote URLs are not decompressed; tar auto-extraction can be unintended |
+| **Best practice** | Default choice | Only for auto-extracting a local archive |
 
-Example:  
-
-```go
+```dockerfile
 COPY config.json /app/config.json
-ADD myapp.tar.gz /app/
+ADD releases/app-v1.2.tar.gz /opt/   # extracted automatically
 ```
+
+The interview answer is one sentence: **use COPY unless you specifically need ADD's auto-extraction** — ADD's implicit magic makes Dockerfiles harder to reason about, and `curl`/`wget` in a `RUN` beats ADD for remote files (better caching, no leftover archive layers).
 </Step>
 
 <Step>
-**How do you optimize Docker images?**  
+**How do you optimize Docker image size?**
 
-- Use **smaller base images** (e.g., `alpine` instead of `ubuntu`).  
-- **Multi-stage builds** to reduce image size:  
+Smaller images mean faster pulls, smaller attack surface, and cheaper storage:
 
-  ```go
-  FROM node:16 AS build
-  WORKDIR /app
-  COPY . .
-  RUN npm install && npm run build
+- **Minimal base images** — `alpine`, `distroless`, or `scratch` instead of full distros (ubuntu/debian-based images carry hundreds of MB of tooling)
+- **Multi-stage builds** — compilers and dev dependencies never reach the final image
+- **`.dockerignore`** — keep `.git`, tests, docs, and `node_modules` out of the build context
+- **Dependency pinning + minimal installs** — `npm ci --omit=dev`, no build-essential in the runtime image
+- **Fewer, merged layers where sensible** — combine related `RUN` commands and clean caches in the same layer (`apt-get install ... && rm -rf /var/lib/apt/lists/*`) — deleting files in a *later* layer doesn't shrink the image
 
-  FROM nginx:alpine
-  COPY --from=build /app/dist /usr/share/nginx/html
-  ```
-
-- Use `.dockerignore` to avoid unnecessary files.  
+Show the numbers if you know them: a typical Node app drops from ~1.2 GB (node:20 full image) to ~150 MB with alpine + multi-stage.
 </Step>
 
 <Step>
-**What is the difference between Docker ENTRYPOINT and CMD?**  
+**What is a multi-stage build in Docker?**
 
-- `ENTRYPOINT` is **not overridden by command-line arguments**, while `CMD` can be.  
-- Best practice: Use `ENTRYPOINT` for fixed commands.  
+Multiple `FROM` statements in one Dockerfile: early stages compile/build, the final stage copies out only the artifacts:
 
-Example:  
-
-```go
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
-CMD ["-p", "80"]
-```
-</Step>
-
-<Step>
-**How do you debug a running Docker container?**  
-
-- **Get container logs:** `docker logs my-container`  
-- **Attach to a running container:** `docker exec -it my-container /bin/sh`  
-- **Inspect container details:** `docker inspect my-container`  
-</Step>
-
-<Step>
-**What is a Docker Multi-Stage Build?**  
-
-A **multi-stage build** reduces image size by using multiple `FROM` statements.  
-
-```go
-FROM golang:1.17 AS builder
+```dockerfile
+FROM golang:1.22 AS builder
 WORKDIR /app
 COPY . .
-RUN go build -o myapp
+RUN CGO_ENABLED=0 go build -o /myapp
 
-FROM alpine
-COPY --from=builder /app/myapp /myapp
+FROM gcr.io/distroless/static-debian12
+COPY --from=builder /myapp /myapp
 ENTRYPOINT ["/myapp"]
 ```
 
-The final image **only contains the built binary**.
+The final image contains **only the compiled binary on a minimal base** — the Go toolchain, source code, and package caches (hundreds of MB, plus security risk) never ship. The security angle matters as much as size: build secrets and toolchains can't leak from the runtime image, and the final image has dramatically fewer CVEs to scan and patch. For interpreted languages the pattern still applies — build stage compiles assets, runtime stage carries only runtime + `dist/`.
 </Step>
 
 <Step>
-**How does Docker handle networking?**  
+**How does Docker layer caching work, and how do you optimize for it?**
 
-- **Bridge network (default):** Containers communicate via virtual network.  
-- **Host network:** Container shares the host's networking stack.  
-- **Overlay network:** Used in **Docker Swarm** for multi-host networking.  
+Each instruction produces a cached layer; Docker reuses a layer only if the instruction **and its input files are unchanged** — and the first changed instruction invalidates everything after it:
 
-Example:  
-
-```sh
-docker network create mynetwork
-docker run --network=mynetwork nginx
-```
-</Step>
-
-<Step>
-**What is the difference between Docker Swarm and Kubernetes?**  
-
-| Feature | Docker Swarm | Kubernetes |
-|---------|-------------|------------|
-| **Orchestration** | Lightweight, built into Docker | Advanced, feature-rich |
-| **Scaling** | Manual | Auto-scaling |
-| **Service Discovery** | Built-in | Needs external setup (DNS, Ingress) |
-</Step>
-
-<Step>
-**How do you remove unused Docker images and containers?**  
-
-```sh
-docker system prune -a
+```dockerfile
+COPY package*.json ./    # changes only when dependencies change
+RUN npm ci               # cached unless the manifest changed
+COPY . .                 # changes every build — kept LAST
+RUN npm run build
 ```
 
-This removes **stopped containers, unused networks, and dangling images**.
+Optimization rules:
+
+- **Order from least to most frequently changing** — dependencies before source code
+- **Cache-busting awareness** — `apt-get update` must run in the *same* layer as `install`, or you cache stale package lists
+- **`--mount=type=cache` (BuildKit)** — persistent cache mounts for package managers even when the layer rebuilds (`RUN --mount=type=cache,target=/root/.npm npm ci`)
+- **CI-specific** — enable BuildKit's registry-backed cache so layers survive across runner machines
 </Step>
 
 <Step>
-**What is Docker BuildKit?**  
+**How does Docker networking work?**
 
-Docker **BuildKit** improves build speed and caching.  
-Enable it with:  
+- **Default bridge** — containers get a private IP on `docker0`; the legacy default, reachable only by IP (no DNS between containers)
+- **User-defined bridge** — what you should use: containers resolve each other **by name** via Docker's embedded DNS, and isolation is per-network
 
-```sh
-DOCKER_BUILDKIT=1 docker build .
+```bash
+docker network create app-net
+docker run -d --network app-net --name db postgres:16
+docker run -d --network app-net --name api myapp     # reaches "db:5432" by name
 ```
 
-Benefits:  
-✅ **Faster builds**  
-✅ **Parallel execution**  
-✅ **Improved caching**  
+- **host** — no isolation; the container shares the host's network stack (fastest, Linux-only, security trade-off)
+- **overlay** — multi-host networking (Swarm), encrypted with `--opt encrypted`
+- **none** — fully isolated container
+
+The gotcha to name: on the default bridge there's no DNS, so compose-style name resolution only works on user-defined networks — a classic "container can't reach the database" beginner bug.
 </Step>
 
 <Step>
-**How do you limit container resource usage?**  
+**What is BuildKit, and what does it enable?**
 
-Use `--memory` and `--cpus`:  
+BuildKit is Docker's modern build engine (default since Docker 23), replacing the legacy builder:
 
-```sh
-docker run --memory=512m --cpus=1 nginx
+- **Parallel stage execution** — independent stages build concurrently
+- **Smarter caching** — content-addressed, with `--mount=type=cache` persistent cache mounts
+- **Secret mounting** — `RUN --mount=type=secret,id=npmrc` passes build secrets without baking them into layers
+- **SSH forwarding** — builds can use your SSH agent (private repo clones) without copying keys into the image
+- **Skipped stages** — only stages the final target needs are built (useful with `--target` for dev vs prod images)
+
+```bash
+docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t myapp:1.0 .
 ```
 
-This limits memory to **512MB** and CPU usage to **1 core**.
+In CI, pair BuildKit with registry-backed caching (`cache-from`/`cache-to`) so layers persist between runner machines.
+</Step>
+
+<Step>
+**How do you limit a container's resource usage?**
+
+```bash
+docker run --memory=512m --memory-swap=512m --cpus=1.5 --pids-limit=100 nginx
+```
+
+- `--memory` — hard memory cap; exceeding it triggers the **OOM killer** (exit 137) — a classic debugging signature
+- `--cpus` — CPU share (1.5 = one and a half cores' worth of scheduler time)
+- `--pids-limit` — caps process count (mitigates fork bombs)
+
+What happens under pressure matters: memory over the cap is killed (no warning), while CPU over the cap is just *throttled* (slow, not killed) — which is why CPU limits cause mysterious latency and memory limits cause mysterious exit-137s. In Kubernetes these map directly to resource `limits`, and the distinction drives QoS classes.
+</Step>
+
+<Step>
+**What is the HEALTHCHECK instruction in a Dockerfile?**
+
+HEALTHCHECK tells Docker how to test that the application is actually working — not just that the process is alive:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD curl -fs http://localhost/healthz || exit 1
+```
+
+- The command's exit code sets container status: `healthy`, `unhealthy` (after `retries` failures), or `starting`
+- Status is visible in `docker ps` — and orchestrators act on it (Swarm restarts unhealthy tasks; Compose has `depends_on` health-gating)
+
+The nuance interviewers look for: HEALTHCHECK is **ignored by Kubernetes** — K8s expects its own liveness/readiness probes instead. So the answer is "define HEALTHCHECK for plain Docker/Swarm, define probes for K8s, and keep both checking a real dependency-backed endpoint rather than a static file that's always fine."
+</Step>
+
+<Step>
+**What is the difference between `docker stop` and `docker kill`?**
+
+The graceful-shutdown pair:
+
+- `docker stop` — sends **SIGTERM**, waits (default 10 s) for a clean exit, then escalates to **SIGKILL**
+- `docker kill` — sends **SIGKILL immediately** — no chance to flush, drain, or close connections
+- `docker stop -t 30 myapp` — extend the grace period for slow shutdowns
+
+Why it matters in production: SIGTERM handling is what makes zero-downtime deployments work — the app should stop accepting new requests, finish in-flight ones, and close connections. The classic bug to name: shell-form ENTRYPOINT/CMD (`CMD node app.js`) wraps the app in a shell that **doesn't forward signals**, so the container always dies by SIGKILL after the full timeout. Exec form (`CMD ["node", "app.js"]`) fixes it.
+</Step>
+
+<Step>
+**What is the Docker build context, and why does `.dockerignore` matter?**
+
+The build context is the directory contents sent to the Docker daemon when you run `docker build .` — **everything** in the directory (respecting `.dockerignore`) is uploaded before any instruction runs:
+
+- `COPY . .` can only copy what's in the context
+- A fat context (`.git`, `node_modules`, old builds, datasets) slows *every* build and bloats cache invalidation
+- **Secrets in the context are a leak vector** — `.env` files, AWS credentials, or keys accidentally included can land in layers via `COPY . .`
+
+A minimal `.dockerignore`:
+
+```
+.git
+node_modules
+.env*
+Dockerfile*
+tests/
+docs/
+```
+
+The tie-in: context size is why monorepo builds feel slow, and why multi-stage builds should copy narrow paths (`COPY package*.json ./`) rather than `COPY . .` when possible.
 </Step>
 </Steps>
 
@@ -158,89 +190,193 @@ This limits memory to **512MB** and CPU usage to **1 core**.
 
 <Steps>
 <Step>
-**How does Kubernetes handle high availability?**  
+**What are liveness, readiness, and startup probes in Kubernetes?**
 
-- Uses **multiple master nodes** to avoid single points of failure.  
-- Deployments use **replica sets** to keep applications running.  
-- **Load balancing & failover mechanisms** ensure availability.  
-</Step>
+Probes are health checks the kubelet runs against each container — the mechanism behind self-healing and safe rollouts:
 
-<Step>
-**What is the role of kubelet in Kubernetes?**  
-
-Kubelet runs on each node and:  
-✅ **Communicates with the master node**  
-✅ **Ensures containers are running**  
-✅ **Monitors container health**  
-</Step>
-
-<Step>
-**How do you check logs of a running Pod in Kubernetes?**  
-
-```sh
-kubectl logs my-pod
-kubectl logs -f my-pod  # Stream logs in real-time
-```
-</Step>
-
-<Step>
-**What are Kubernetes Labels and Selectors?**  
-
-Labels **identify** resources, while selectors **filter resources**.  
-Example:  
+- **Liveness probe** — "is the app deadlocked?" On failure, the kubelet **restarts the container**. Risk: too-aggressive liveness probes cause restart storms under load
+- **Readiness probe** — "can this pod serve traffic *right now*?" On failure, the pod is **removed from Service endpoints** (not restarted) — it stops receiving traffic while warming up, loading caches, or waiting for a dependency
+- **Startup probe** — protects slow-starting apps: liveness/readiness checks are deferred until the startup probe succeeds, so legacy apps with 60-second boot times don't get killed mid-startup
 
 ```yaml
-metadata:
-  labels:
-    app: my-app
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  periodSeconds: 10
 ```
 
-To filter pods by label:  
-
-```sh
-kubectl get pods -l app=my-app
-```
+The design rule: check a *real* dependency-backed endpoint; a probe that always passes makes self-healing imaginary, and a liveness probe that checks downstream dependencies turns their outages into restart storms.
 </Step>
 
 <Step>
-**What is a Kubernetes Ingress?**  
+**What are ConfigMaps and Secrets, and how do they differ?**
 
-An **Ingress** manages external access to services.  
-Example:  
+Both inject configuration into pods, decoupling config from images:
+
+- **ConfigMap** — non-sensitive configuration: env vars, config files, command-line flags
+- **Secret** — sensitive data (passwords, tokens, keys); base64-encoded rather than encrypted, but with special handling (restricted permissions, not cached in some distributions, mountable as tmpfs)
 
 ```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: my-ingress
+envFrom:
+  - configMapRef:
+      name: app-config
+env:
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: db-credentials
+        key: password
+```
+
+The two delivery modes: **environment variables** (simple, but visible in `kubectl describe` and process listing) versus **volume mounts** (files updated on change; better for secrets and large config). The senior note: base64 is *not* encryption — enable **etcd encryption at rest** and RBAC on secret namespaces; many teams integrate External Secrets Operator/Vault so plaintext secrets never touch the cluster at all.
+</Step>
+
+<Step>
+**What are resource requests and limits in Kubernetes?**
+
+Per-container CPU/memory declarations that drive scheduling and enforcement:
+
+```yaml
+resources:
+  requests:
+    memory: "256Mi"     # scheduler guarantee: pod scheduled onto a node with this much free
+    cpu: "250m"         # 250 millicores = 0.25 CPU
+  limits:
+    memory: "512Mi"     # hard cap — exceed it and the container is OOMKilled (exit 137)
+    cpu: "500m"         # throttled (slowed), not killed
+```
+
+- **Requests** drive *scheduling* and are the guaranteed reservation; **limits** cap usage at runtime
+- Same behavior as Docker: CPU over-limit = throttling (latency), memory over-limit = kill
+- **QoS classes** emerge from the combination: Guaranteed (requests == limits) never evicted first; Burstable; BestEffort (no requests/limits) — first evicted under node pressure
+- Best practice: set requests from measured p95 usage, set limits for memory (protection) and consider omitting CPU limits (throttling causes tail-latency mysteries); pair with namespaces' ResourceQuotas and LimitRanges
+</Step>
+
+<Step>
+**What is the role of the kubelet?**
+
+The kubelet is the **node agent** — the control plane's hands on every worker node:
+
+- **Reconciles pods** — watches the API server for pods assigned to its node and keeps them running (creating, restarting per restartPolicy, reporting status)
+- **Runs probes** — executes liveness/readiness/startup checks and acts on results (restart / report not-ready)
+- **Bridges to the runtime** — talks to containerd via the CRI to start/stop containers
+- **Manages resources** — enforces limits via cgroups, mounts volumes, reports node and pod resource usage
+
+The mental model to give: the API server decides *what* should run; the kubelet is the component that makes node-local reality match it. Its mirror on the networking side is kube-proxy (service rules) — naming both shows architecture fluency.
+</Step>
+
+<Step>
+**How do you debug a pod in Kubernetes?**
+
+A systematic order, because each step answers a different question:
+
+```bash
+kubectl get pods                           # 1. Does it exist? What status? CrashLoopBackOff? Pending?
+kubectl describe pod my-pod                # 2. Events: probe failures, scheduling failures, image errors
+kubectl logs my-pod [-c container]         # 3. What is the app saying? (--previous: the crashed instance)
+kubectl exec -it my-pod -- sh              # 4. Look inside (DNS, env, files)
+kubectl get events --sort-by=.lastTimestamp # 5. Cluster-wide recent events
+```
+
+Common signatures to name:
+
+- **Pending** → scheduling failed: insufficient resources, taints, PVC not bound (see `describe`)
+- **ImagePullBackOff** → bad tag, private registry auth, network policy
+- **CrashLoopBackOff** → app exits at startup; `logs --previous` shows why; often bad config or a missing dependency
+- **Running but unreachable** → readiness probe failing; check probe config and the endpoint it hits
+
+For pods with no shell (distroless), use an **ephemeral debug container**: `kubectl debug -it my-pod --image=busybox`.
+</Step>
+
+<Step>
+**How does Kubernetes achieve high availability?**
+
+HA at two levels, control plane and workloads:
+
+- **Control plane HA** — multiple API-server replicas behind a load balancer, **etcd as a 3/5-node quorum** (Raft consensus — survives losing (n-1)/2 members), schedulers/controller-managers active with leader election. On managed services (EKS/AKS/GKE) the control plane is the provider's problem
+- **Workload HA** — multiple replicas across nodes (anti-affinity/topology spread across AZs), PodDisruptionBudgets so voluntary maintenance never drops below capacity, readiness probes removing unhealthy pods from Service endpoints, PriorityClasses for critical workloads
+- **Data-tier HA** — the usually-forgotten layer: replicated databases with automated failover, PVs that survive node loss (reclaim policies, zone-aware storage classes)
+
+The design truth to state: Kubernetes makes *stateless* workload HA nearly free — the effort concentrates in the stateful layer and in cross-zone resilience, where you must explicitly spread replicas and replicate data.
+</Step>
+
+<Step>
+**What is an Ingress, and how is it different from a Service?**
+
+A Service provides *cluster-internal* stable networking; an **Ingress** defines *external HTTP(S) access rules* — routing by host and path into Services:
+
+```yaml
 spec:
   rules:
-  - host: myapp.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: my-service
-            port:
-              number: 80
+    - host: app.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port: { number: 80 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port: { number: 80 }
 ```
+
+The concept people miss: an Ingress is **just rules** — it needs an **Ingress Controller** (NGINX, Traefik, or a cloud/L7 load balancer) running in the cluster to actually implement them. One controller + TLS termination (`tls:` block with Secrets) replaces a pile of per-service external load balancers. Modern alternative to name: the **Gateway API** — the successor to Ingress with cleaner role separation and richer traffic features.
+</Step>
+
+<Step>
+**What happens when you run `kubectl apply -f deployment.yaml`?**
+
+The end-to-end flow — this question tests whether you actually understand the architecture:
+
+1. **kubectl** validates the manifest client-side and sends it over HTTPS (TLS, with your credentials from kubeconfig) to the **API server**
+2. **Authentication & authorization** — your identity is verified (certs/token/OIDC) and RBAC checks whether you may create Deployments
+3. **Admission controllers** — mutating webhooks may modify the object (inject sidecars, defaults); validating webhooks may reject it (policies)
+4. **etcd** — the object is persisted as the cluster's *desired state*
+5. **Deployment controller** (control plane) notices the new Deployment and creates a **ReplicaSet**; the ReplicaSet controller creates **Pod objects** — all still just records in etcd
+6. **Scheduler** assigns each unscheduled pod to a node (fitting requests/limits, taints, affinity)
+7. The **kubelet on each chosen node** sees its new pods, pulls the image via the container runtime, starts containers, runs probes, and reports status back to the API server
+
+The summary to deliver: *declarative state in etcd + controllers reconciling toward it* — nothing commands a container into existence directly; every component converges reality toward the declared state.
+</Step>
+
+<Step>
+**How do you give a pod access to a private registry or cloud service without storing credentials?**
+
+The identity question — never bake secrets into images:
+
+- **Image pull on private registries** — an `imagePullSecret` attached to the ServiceAccount (or managed integrations: EKS IRSA + ECR token refresh, AKS managed identity, GKE Workload Identity)
+- **Cloud APIs from pods** — **workload identity federation**: the pod's ServiceAccount is bound to a cloud role (EKS IRSA, AKS Workload Identity, GKE Workload Identity), and the platform injects short-lived credentials — no static keys anywhere
+- **Vault pattern** — External Secrets Operator or Vault Agent sidecar fetches secrets at runtime; the cluster holds only references
+
+```yaml
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789:role/app-role
+serviceAccountName: app-sa
+```
+
+The security principle to state: workload identity ties permissions to *what the pod is* (its ServiceAccount), not to *what secret it holds* — credentials become short-lived, scoped, and revocable from the cloud side.
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)

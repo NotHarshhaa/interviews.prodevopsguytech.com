@@ -14,142 +14,185 @@ This section covers fundamental concepts of Docker and Kubernetes, including bas
 
 <Steps>
 <Step>
-**What is Docker, and why is it used?**  
+**What is Docker, and why is it used?**
 
-Docker is a **containerization platform** that allows developers to package applications along with their dependencies into a single unit called a **container**.  
+Docker is a containerization platform: it packages an application together with its runtime, dependencies, and configuration into a single portable unit — the container — that runs identically on any machine.
 
-- **Why use Docker?**  
-  ✅ Ensures **consistent environments** across different machines.  
-  ✅ **Lightweight & faster** than virtual machines.  
-  ✅ **Easy scaling** of applications in microservices architectures.  
+Why it became the standard for DevOps:
+
+- **"Works on my machine" dies** — the image is the environment; dev, CI, and prod run the same bits
+- **Lightweight and fast** — containers share the host kernel and start in seconds (vs minutes for VMs)
+- **The deployable artifact** — the image is versioned, immutable, and what your CI/CD pipeline actually ships
+- **Foundation of orchestration** — Kubernetes schedules Docker (and OCI) containers
 </Step>
 
 <Step>
-**What is the difference between Docker and a Virtual Machine (VM)?**  
+**What is the difference between Docker and a virtual machine?**
 
-| Feature | Docker | Virtual Machine |
+| Aspect | Docker container | Virtual machine |
 |---------|--------|----------------|
-| **Isolation** | Uses **containers** to isolate apps | Uses **hypervisor** to run separate OS instances |
-| **Performance** | **Faster, lightweight** | **Slower, resource-intensive** |
-| **Startup Time** | **Milliseconds** | **Minutes** |
-| **Use Case** | Ideal for **microservices** | Best for **full OS emulation** |
+| **Kernel** | Shares the host OS kernel | Runs its own full guest OS |
+| **Size** | Megabytes | Gigabytes |
+| **Startup** | Seconds | Minutes |
+| **Isolation** | Process-level (namespaces/cgroups) | Hardware-level (hypervisor) |
+| **Density** | Many per host | Fewer per host |
+
+The practical takeaway: VMs give you stronger isolation and any OS you like; containers give you speed, density, and reproducibility — which is why clouds run VMs underneath and containers on top, and why security-sensitive multi-tenant workloads may still demand VM-level boundaries.
 </Step>
 
 <Step>
-**What is a Docker image?**  
+**What is a Docker image, and what is a container?**
 
-A **Docker image** is a **read-only template** containing everything needed to run an application, including:  
+- **Image** — a read-only, immutable template built from a Dockerfile: application code, runtime, dependencies, and default command, stored as layered filesystem snapshots
+- **Container** — a running instance of an image: Docker adds a thin writable layer on top of the image layers and isolates the process
 
-- Source code  
-- Libraries & dependencies  
-- Configuration files  
-
-A container is created from a **Docker image** using the `docker run` command.  
+The analogy that lands: image is to class as container is to object. One image can spawn many containers; containers never modify the image — that's why a rebuilt container from the same image behaves identically, and why images (not running servers) are what CI/CD stores and deploys.
 </Step>
 
 <Step>
-**What is a Docker container?**  
+**How do you create and run a Docker container?**
 
-A **Docker container** is a **running instance of a Docker image**. It is:  
-✅ **Lightweight** (shares OS kernel)  
-✅ **Isolated** (has its own filesystem, network, and process space)  
-✅ **Portable** (can run on any system with Docker installed)  
-</Step>
-
-<Step>
-**How do you create and run a Docker container?**  
-
-To run a container from an image:  
-
-```sh
-docker run -d --name myapp nginx
+```bash
+docker run -d --name myapp -p 8080:80 nginx
 ```
 
-- `-d`: Run in **detached mode** (background).  
-- `--name myapp`: Name the container `myapp`.  
-- `nginx`: Use the **nginx image**.  
+- `-d` — detached mode (runs in the background)
+- `--name myapp` — a readable name instead of a random ID
+- `-p 8080:80` — map host port 8080 to the container's port 80
+- `nginx` — the image to run (pulled from a registry if not present locally)
+
+Follow-ups worth knowing: `docker logs myapp` to see output, `docker stop myapp` / `docker rm myapp` to tear down, and `docker ps` to list what's running.
 </Step>
 
 <Step>
-**What is the purpose of the Dockerfile?**  
+**What is the purpose of the Dockerfile?**
 
-A **Dockerfile** is a script that contains **instructions to build a Docker image**.  
-Example `Dockerfile`:  
+A Dockerfile is the build recipe for an image — every instruction creates a filesystem layer:
 
-```go
-FROM node:16
-WORKDIR /app
-COPY . .
-RUN npm install
-CMD ["node", "app.js"]
+```dockerfile
+FROM node:20-alpine      # base image
+WORKDIR /app             # working directory inside the container
+COPY package*.json ./    # copy dependency manifests first (layer caching)
+RUN npm ci               # install dependencies at build time
+COPY . .                 # copy the application source
+CMD ["node", "server.js"] # default command when the container starts
 ```
 
-- `FROM`: Base image.  
-- `WORKDIR`: Set working directory.  
-- `COPY`: Copy files.  
-- `RUN`: Execute commands (install dependencies).  
-- `CMD`: Define the default command to run.  
+Build it with `docker build -t myapp:1.0 .`. The instruction set to know: `FROM`, `COPY`/`ADD`, `RUN` (build-time execution), `CMD`/`ENTRYPOINT` (runtime command), `ENV`, `EXPOSE`, and `USER`. Because instructions are ordered layers, their *order* is a performance decision (see layer caching).
 </Step>
 
 <Step>
-**What are Docker volumes?**  
+**What are Docker volumes, and when do you use each type?**
 
-Docker **volumes** store persistent data outside a container's filesystem.  
+Containers are ephemeral — data written inside them is lost when the container is removed. Volumes persist data outside that lifecycle:
 
-- **Types:**  
-  - **Anonymous Volumes**: `docker run -v /data nginx`  
-  - **Named Volumes**: `docker volume create mydata`  
-  - **Bind Mounts**: `docker run -v /host/path:/container/path nginx`  
-</Step>
-
-<Step>
-**How do you list running Docker containers?**  
-
-Use the command:  
-
-```sh
-docker ps
+```bash
+docker run -v mydata:/var/lib/mysql mysql        # named volume (Docker-managed)
+docker run -v /host/path:/container/path app     # bind mount (host directory)
+docker run --tmpfs /tmp nginx                    # tmpfs (in-memory, ephemeral)
 ```
 
-To list **all containers** (including stopped ones):  
+- **Named volumes** — the default choice for persistence (databases); Docker manages location and lifecycle, portable across hosts
+- **Bind mounts** — map a specific host directory; ideal for local development (live code editing) — and dangerous in production (host coupling, permission drift)
+- **tmpfs** — in-memory, for secrets or scratch data that must never hit disk
+</Step>
 
-```sh
-docker ps -a
+<Step>
+**What is Docker Compose?**
+
+Compose defines and runs **multi-container applications** from one declarative file — the local-development standard:
+
+```yaml
+services:            # note: the top-level "version" field is obsolete in Compose v2
+  web:
+    image: nginx
+    ports:
+      - "80:80"
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
 ```
+
+One command starts the whole stack: `docker compose up -d` (the `down`/`logs`/`ps` verbs manage it). Compose creates a shared network so services reach each other by service name (`db:5432`). Its boundaries to know: it's for single-host development and testing — production orchestration is Kubernetes, not Compose.
 </Step>
 
 <Step>
-**What is Docker Compose?**  
+**What is the difference between CMD and ENTRYPOINT in a Dockerfile?**
 
-Docker Compose is a tool for **defining and running multi-container applications**.  
+Both define what runs when the container starts — the distinction is *what can be overridden*:
 
-- Example `docker-compose.yml`:  
+```dockerfile
+ENTRYPOINT ["nginx", "-g", "daemon off;"]   # fixed executable
+CMD ["-p", "80"]                            # default arguments — replaceable
+```
 
-  ```yaml
-  version: "3"
-  services:
-    web:
-      image: nginx
-      ports:
-        - "80:80"
-    db:
-      image: mysql
-      environment:
-        MYSQL_ROOT_PASSWORD: root
-  ```
+- `docker run myapp` runs `nginx -g "daemon off;" -p 80`
+- `docker run myapp -p 8080` runs `nginx -g "daemon off;" -p 8080` — the run **arguments replace CMD**, not ENTRYPOINT
+- `docker run --entrypoint sh myapp` is the escape hatch to override the entrypoint (handy for debugging)
 
-- Start with: `docker-compose up -d`  
-- Stop with: `docker-compose down`  
+Pattern to remember: ENTRYPOINT for the fixed program, CMD for its default arguments.
 </Step>
 
 <Step>
-**What is the difference between CMD and ENTRYPOINT in Docker?**  
+**How do you inspect and debug a Docker container?**
 
-| Feature | CMD | ENTRYPOINT |
-|---------|-----|-----------|
-| **Purpose** | Default command | Fixed executable command |
-| **Overridable?** | Yes | No (unless `--entrypoint` is used) |
-| **Example** | `CMD ["python", "app.py"]` | `ENTRYPOINT ["nginx", "-g", "daemon off;"]` |
+```bash
+docker ps -a                  # all containers, including exited ones
+docker logs -f myapp          # follow stdout/stderr (add --tail 100)
+docker exec -it myapp sh      # shell into a running container
+docker inspect myapp          # full JSON: mounts, network, env, restart policy
+docker stats                  # live CPU/memory per container
+```
+
+Two debugging facts worth knowing: a container that exits immediately usually has a crashing entrypoint — `docker logs` shows the error and `docker ps -a` shows its exit code; and if the image is minimal (no shell), `docker exec` fails — use `docker exec` against a debug sidecar or a `-debug` image variant.
+</Step>
+
+<Step>
+**What are Docker image layers?**
+
+Every Dockerfile instruction produces a read-only filesystem **layer**; layers stack, and containers add one writable layer on top:
+
+```
+COPY . .            <- layer 4 (changes most often)
+RUN npm ci          <- layer 3
+COPY package*.json  <- layer 2
+FROM node:20-alpine <- layer 1 (base)
+```
+
+Why layers matter:
+
+- **Caching** — unchanged layers are reused on rebuild; that's why you copy dependency manifests *before* source code (see layer-caching questions)
+- **Sharing** — images built on the same base share those layers on disk and in registries
+- **Cleanup gotcha** — deleting a file in a later layer doesn't shrink the image; the file still lives in the earlier layer (so never `COPY . .` then `RUN rm secrets` — use `.dockerignore` and multi-stage builds)
+</Step>
+
+<Step>
+**How do you clean up unused Docker resources?**
+
+```bash
+docker system prune           # stopped containers, dangling images, unused networks
+docker system prune -a --volumes   # + ALL unused images and volumes (destructive!)
+docker image prune -f         # dangling images only
+docker volume ls -f dangling=true  # find orphaned volumes before deleting
+```
+
+`prune` is a CI-runner housekeeping staple (builders fill disks with cached layers). The caution to show: `-a` and `--volumes` are destructive to anything not currently in use — on shared hosts, verify what's running first, and treat volume deletion as a data-deletion decision, not cleanup.
+</Step>
+
+<Step>
+**What is a container registry?**
+
+A registry stores and distributes versioned images — the pipeline's artifact store:
+
+- **Public** — Docker Hub; **private/managed** — ECR, GCR/Artifact Registry, GHCR, Harbor (self-hosted)
+- **Push/pull model** — CI builds and pushes `myapp:1.4.2`; any host or cluster pulls exactly that tag
+
+Registry practices that matter in interviews: tag immutability discipline (never reuse tags; avoid `latest` in deployments — you can't roll back to "latest"), private registries for proprietary code, and registries as the natural scanning point (Trivy/Snyk check images on push).
 </Step>
 </Steps>
 
@@ -157,28 +200,44 @@ Docker Compose is a tool for **defining and running multi-container applications
 
 <Steps>
 <Step>
-**What is Kubernetes?**  
+**What is Kubernetes, and what problem does it solve?**
 
-Kubernetes (K8s) is an **orchestration platform** for managing containerized applications.  
+Kubernetes (K8s) is a container **orchestration platform**: it runs your containers across a fleet of machines and keeps the desired state alive without human babysitting.
 
-- **Features:**  
-  ✅ **Automated scaling**  
-  ✅ **Self-healing** (restarts failed containers)  
-  ✅ **Load balancing**  
-  ✅ **Rolling updates**  
+The problems it takes over (each one a thing you'd otherwise script yourself):
+
+- **Self-healing** — a crashed or dead-node container is rescheduled automatically
+- **Scaling** — horizontal scaling of replicas, cluster autoscaling
+- **Rolling updates & rollback** — new versions replace old with health gates
+- **Service discovery & load balancing** — stable networking to moving pods
+- **Secret/config management** — injected into containers declaratively
+
+The framing to give: Docker runs containers on *one host*; Kubernetes runs them on a *data center*, declaratively.
 </Step>
 
 <Step>
-**What is a Kubernetes Pod?**  
+**What is the architecture of a Kubernetes cluster?**
 
-A **Pod** is the smallest unit in Kubernetes. It **groups one or more containers** that share the same network and storage.  
+Two planes:
+
+- **Control plane** (the brain) — **API server** (the entry point for everything), **etcd** (the cluster's state store), **scheduler** (assigns pods to nodes), **controller manager** (reconciles desired vs actual state)
+- **Worker nodes** (the muscle) — **kubelet** (agent that runs pods on the node), **kube-proxy** (network rules for services), and the container runtime (containerd)
+
+Key mental model: *everything* talks to the API server, and every component works by reconciling — reading desired state from the API and making reality match. You never address nodes directly; you declare state to the API server.
 </Step>
 
 <Step>
-**What is a Kubernetes Deployment?**  
+**What is a Pod?**
 
-A **Deployment** manages Pod creation and updates.  
-Example YAML:  
+The Pod is Kubernetes' smallest deployable unit — one or more containers that share a network namespace (same IP, can talk over `localhost`), storage volumes, and lifecycle.
+
+Why pods exist instead of running containers directly: the shared "pod sandbox" lets tightly coupled helpers (a log shipper, an auth proxy) live beside the main container — the sidecar pattern. In practice, most pods hold exactly one container, and you rarely create pods directly: controllers (Deployments) own them.
+</Step>
+
+<Step>
+**What is a Deployment, and why not create Pods directly?**
+
+A Deployment is a controller that manages a set of identical pods — it's the standard way to run stateless work:
 
 ```yaml
 apiVersion: apps/v1
@@ -186,10 +245,10 @@ kind: Deployment
 metadata:
   name: my-app
 spec:
-  replicas: 3
+  replicas: 3                     # desired pod count
   selector:
     matchLabels:
-      app: my-app
+      app: my-app                 # which pods this Deployment owns
   template:
     metadata:
       labels:
@@ -197,37 +256,106 @@ spec:
     spec:
       containers:
         - name: app
-          image: nginx
+          image: nginx:1.27      # pinned version — never "latest"
 ```
 
-- `replicas: 3` → Runs **3 instances**.  
-- `matchLabels` → Ensures the correct Pods are managed.  
+The controller continuously reconciles: a pod dies → a new one appears; the image is changed → a **rolling update** replaces pods with health gates; you want yesterday's version → `kubectl rollout undo`. Pods directly have none of that — which is why "never create naked pods" is the beginner rule.
 </Step>
 
 <Step>
-**What is a Kubernetes Service?**  
+**What is a Kubernetes Service, and what are its types?**
 
-A **Service** exposes a set of Pods over a network.  
+Pods are ephemeral — they die, reschedule, and change IPs. A **Service** gives them a stable virtual IP (and DNS name) that routes to the current healthy pods, selected by labels:
 
-- **Types:**  
-  - **ClusterIP** (default)  
-  - **NodePort** (exposes on a fixed port)  
-  - **LoadBalancer** (uses cloud provider's load balancer)  
+- **ClusterIP** (default) — internal-only address; service-to-service traffic inside the cluster
+- **NodePort** — opens a static port (30000–32767) on every node for external access — quick demos, not production
+- **LoadBalancer** — provisions a cloud load balancer pointing at the service; the standard external entry on managed clouds
+- **ExternalName / Headless** — special cases: DNS alias to an external service; no VIP (DNS returns pod IPs directly — used by stateful sets)
+
+The selection mechanism to mention: Services use **label selectors**, and endpoints update automatically as pods come and go — that's how a moving set of pods keeps a stable address.
+</Step>
+
+<Step>
+**What is a Namespace, and when do you use one?**
+
+A namespace is a virtual cluster *inside* the cluster: resources get scoped into named groups (`kubectl get pods -n payments`).
+
+- **Purpose** — team/project isolation, environment separation (dev/staging clusters often use namespaces), and resource quotas per namespace
+- **What it is NOT** — a security boundary by itself (network policies and RBAC provide that), and certain resources (nodes, PVs, the API itself) are cluster-scoped, outside all namespaces
+
+Conventions: `default`, `kube-system` (control-plane components — hands off), `kube-public`. The common pattern is namespace-per-team or namespace-per-environment on shared clusters, paired with quotas and RBAC.
+</Step>
+
+<Step>
+**What is kubectl, and which commands do you use daily?**
+
+`kubectl` is the CLI client for the Kubernetes API — how humans (and pipelines) read and change cluster state:
+
+```bash
+kubectl get pods                          # list pods (-A: all namespaces)
+kubectl describe pod my-pod               # events, conditions, errors — your first debug stop
+kubectl logs my-pod -f                    # stream container logs
+kubectl exec -it my-pod -- sh             # shell inside the container
+kubectl apply -f manifest.yaml            # create/update from a file (declarative)
+kubectl rollout status/restart/undo deployment/my-app
+```
+
+The habit to demonstrate: when something breaks, the order is `get` (does it exist?) → `describe` (what do the events say?) → `logs` (what is it saying?) → `exec` (look inside). `describe` showing the **Events** section answers most beginner-level cluster questions.
+</Step>
+
+<Step>
+**What is the difference between `kubectl apply` and `kubectl create`?**
+
+- **`kubectl create -f file.yaml`** — imperative: creates the resource once; errors if it already exists. Nothing is remembered about the file
+- **`kubectl apply -f file.yaml`** — declarative: creates *or updates* to match the file, storing the last-applied configuration to compute diffs. Re-runnable, idempotent
+
+This distinction is the gateway to GitOps: `apply` (driven from versioned manifests, by a person or by Argo CD/Flux) is how cluster state *should* be changed; imperative `create`/`edit` produce untracked snowflakes that drift from the repo. In interviews, answering "apply, from Git" signals you've operated a real cluster.
+</Step>
+
+<Step>
+**What are labels and selectors in Kubernetes?**
+
+Labels are key-value tags attached to every Kubernetes object; selectors query objects by those labels — the connective tissue of the whole API:
+
+```yaml
+metadata:
+  labels:
+    app: my-app
+    tier: backend
+```
+
+```bash
+kubectl get pods -l app=my-app          # filter by label
+```
+
+Everything depends on them: Services find pods via selectors, Deployments track their pods, network policies target groups of pods, and `kubectl` filtering uses them. The recommended convention: label every resource with app/version/team — because selectors are how tools (and your rollouts) find their targets, inconsistent labels break deployments in confusing ways.
+</Step>
+
+<Step>
+**How does Kubernetes handle container failures (self-healing)?**
+
+Self-healing is the reconciliation loop: the declared state (3 replicas, this image) is continuously compared to reality, and differences are corrected:
+
+- **Container crashes** — the kubelet restarts it according to the **restartPolicy** (Always is the Deployment default, with exponential backoff)
+- **Node dies** — the node's lease expires, the controller manager marks its pods as gone, and the scheduler recreates them on healthy nodes
+- **Unhealthy-but-running container** — this is what **probes** catch: if a liveness probe fails, the kubelet restarts the container; if a readiness probe fails, the pod is removed from Service endpoints (see intermediate questions for probe types)
+
+The important boundary: Kubernetes heals *containers and pods* — it cannot fix an application that is broken-but-alive unless you define a probe that detects that state. Self-healing is only as good as your health definitions.
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)
