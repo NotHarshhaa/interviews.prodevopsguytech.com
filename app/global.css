@@ -21,6 +21,102 @@
   --color-fd-border: #242424;
 }
 
+@theme {
+  /* Display voice for headings — body stays Inter */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* Browser surfaces, themed from the palette                           */
+/* ------------------------------------------------------------------ */
+
+::selection {
+  background: color-mix(in oklab, var(--color-fd-primary) 28%, transparent);
+  color: var(--color-fd-foreground);
+}
+
+@supports selector(::selection) {
+  .dark ::selection {
+    background: color-mix(in oklab, var(--color-fd-primary) 35%, transparent);
+    color: var(--color-fd-background);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-fd-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Slim scrollbar tinted from the world */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-fd-muted-foreground, #888) 45%, transparent) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--color-fd-muted-foreground, #888) 40%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--color-fd-primary) 55%, transparent);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion system                                                       */
+/* ------------------------------------------------------------------ */
+
+/* Scroll reveal — elements are visible by default (no-JS safe);
+   the Reveal component opts them in before observing. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  filter: blur(2px);
+}
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Kept utilities from the incumbent system                            */
+/* ------------------------------------------------------------------ */
+
 @keyframes react-rotate {
   from {
     transform: rotateX(66deg) rotateZ(0deg);
@@ -144,12 +240,6 @@
   0%, 10% {
     transform: translateX(0) rotate(0deg);
   }
-  /* 33% {
-    translate: 0 100%;
-  }
-  66% {
-    translate: 0 -100%;
-  } */
   90%, 100% {
     transform: translateX(calc(100cqw - 1rem - 1.5rem));
   }
@@ -159,6 +249,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 3rem;
+  caret-color: var(--color-fd-primary);
 }
 
 .animate-fade-in {
@@ -179,25 +270,12 @@ html {
     color: var(--color-fd-primary)
   }
   100% {
-    /* color: alpha(var(--color-fd-foreground) / 50%) */
     color: var(--color-fd-foreground)
   }
 }
 
 .animate-fade-to-gray {
   animation: fade-to-gray 1s ease-in-out forwards;
-}
-
-/* used by FeaturesSection cards */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .cursed {

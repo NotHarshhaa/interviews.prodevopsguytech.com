@@ -1,72 +1,45 @@
-interface StatCardProps {
-  number: string;
+import { CountUp } from '@/components/count-up';
+import { Reveal } from '@/components/reveal';
+
+interface Stat {
+  value: number;
+  suffix: string;
   label: string;
-  color: 'pink' | 'cyan' | 'orange' | 'purple';
 }
 
-const colorVariants = {
-  pink: 'text-pink-500 dark:text-pink-400',
-  cyan: 'text-cyan-500 dark:text-cyan-400',
-  orange: 'text-orange-500 dark:text-orange-400',
-  purple: 'text-indigo-500 dark:text-indigo-400',
-}
-
-const gradientVariants = {
-  pink: 'from-pink-500/20 to-pink-400/0',
-  cyan: 'from-cyan-500/20 to-cyan-400/0',
-  orange: 'from-orange-500/20 to-orange-400/0',
-  purple: 'from-indigo-500/20 to-indigo-400/0',
-}
-
-function StatCard({ number, label, color }: StatCardProps) {
-  return (
-    <div className="group relative overflow-hidden rounded-lg border border-fd-border/60 p-8 hover:border-fd-primary/40 transition-all duration-300">
-      <div className="absolute -z-10 inset-0 bg-grid-dots-current group-hover:text-cyan-400/40 h-full w-full text-transparent duration-300" />
-      <div className={`bg-gradient-to-b ${gradientVariants[color]} absolute inset-0 opacity-0 group-hover:opacity-100 duration-300`} />
-      
-      <div className="relative z-10">
-        <div className={`text-5xl font-bold font-mono mb-2 ${colorVariants[color]}`}>
-          {number}
-        </div>
-        <div className="text-fd-muted-foreground text-lg">
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
+const stats: Stat[] = [
+  { value: 550, suffix: '+', label: 'Curated Questions' },
+  { value: 15, suffix: '+', label: 'DevOps Tools Covered' },
+  { value: 3, suffix: '', label: 'Major Cloud Platforms' },
+  { value: 9, suffix: '', label: 'Topic Tracks' },
+];
 
 export default function StatsSection() {
-  const stats: StatCardProps[] = [
-    {
-      number: "550+",
-      label: "Interview Questions",
-      color: "cyan" as const
-    },
-    {
-      number: "15+",
-      label: "DevOps Tools Covered",
-      color: "pink" as const
-    },
-    {
-      number: "3",
-      label: "Major Cloud Platforms",
-      color: "orange" as const
-    },
-    {
-      number: "100%",
-      label: "Success Rate",
-      color: "purple" as const
-    }
-  ];
-
   return (
-    <section className="relative flex flex-col w-full max-w-fd-container mx-auto border-t border-dashed">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
-      </div>
+    <section className="relative w-full max-w-fd-container mx-auto border-t border-dashed border-fd-border/60">
+      <Reveal>
+        <dl className="grid grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`group relative flex flex-col items-center gap-2 px-6 py-10 text-center transition-colors duration-300 hover:bg-fd-background/40 sm:py-12 ${
+                i > 0 ? 'border-l border-dashed border-fd-border/60' : ''
+              } ${i >= 2 ? 'max-lg:border-t max-lg:border-dashed max-lg:border-fd-border/60' : ''} ${
+                i === 2 ? 'max-lg:border-l-0' : ''
+              }`}
+            >
+              <dd className="font-display text-5xl font-bold tracking-tight text-fd-foreground sm:text-6xl">
+                <CountUp value={stat.value} />
+                <span className="text-fd-primary">{stat.suffix}</span>
+              </dd>
+              <dt className="text-sm font-medium text-fd-muted-foreground">
+                {stat.label}
+              </dt>
+              <div className="absolute inset-x-8 bottom-0 h-px origin-center scale-x-0 bg-fd-primary/50 transition-transform duration-500 group-hover:scale-x-100" />
+            </div>
+          ))}
+        </dl>
+      </Reveal>
     </section>
   );
-} 
+}

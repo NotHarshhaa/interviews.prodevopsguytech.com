@@ -1,171 +1,217 @@
-import { ExternalLink } from "lucide-react";
-import Image from "next/image";
+import { ExternalLink, ArrowUp } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const socials = [
   {
-    name: "Website",
-    href: "https://prodevopsguytech.com",
+    name: 'Website',
+    href: 'https://prodevopsguytech.com',
     icon: WebsiteIcon,
   },
   {
-    name: "Github",
-    href: "https://github.com/NotHarshhaa",
+    name: 'Github',
+    href: 'https://github.com/NotHarshhaa',
     icon: GithubIcon,
   },
   {
-    name: "Telegram",
-    href: "https://t.me/NotHarshhaa",
+    name: 'Telegram',
+    href: 'https://t.me/NotHarshhaa',
     icon: TelegramIcon,
-  }
-]
+  },
+];
+
+const exploreLinks = [
+  { href: '/docs/getting-started', text: 'Getting Started' },
+  { href: '/docs/core-concepts/getting-started', text: 'Core Concepts' },
+  { href: '/docs/containers/getting-started', text: 'Containers' },
+  { href: '/docs/ci-cd/getting-started', text: 'CI/CD' },
+  { href: '/docs/mock-interviews/getting-started', text: 'Mock Interviews' },
+];
 
 function Socials() {
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-3">
       {socials.map((social) => (
-        <a 
-          href={social.href} 
-          key={social.name} 
-          className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 hover:from-cyan-500/20 hover:to-cyan-400/10 transition-all duration-300 hover:scale-110"
+        <a
+          href={social.href}
+          key={social.name}
+          aria-label={social.name}
+          className="group flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-fd-border/60 bg-fd-background/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-solid hover:border-fd-primary/40 hover:bg-fd-primary/10"
         >
-          <div className="absolute inset-0 rounded-xl bg-grid-dots opacity-30 dark:opacity-20 group-hover:opacity-40" />
-          <div className="absolute inset-0 rounded-xl border border-dashed border-fd-border/60 group-hover:border-cyan-500/30 transition-colors duration-300" />
-          <social.icon className="w-5 h-5 fill-current text-fd-muted-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors duration-300" />
+          <social.icon className="h-4.5 w-4.5 fill-current text-fd-muted-foreground transition-colors duration-300 group-hover:text-fd-primary" />
         </a>
       ))}
     </div>
-  )
+  );
+}
+
+function FooterColumn({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-fd-foreground">
+        {title}
+        <span className="h-px flex-1 bg-fd-border/60" />
+      </h3>
+      {children}
+    </div>
+  );
 }
 
 export default function FooterSection() {
   return (
-    <>
-      <footer id="footer" className="relative w-full max-w-fd-container mx-auto text-fd-muted-foreground">
-        {/* Background Effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[20rem]">
-            <div className="-z-10 bg-gradient-to-b from-cyan-500/20 via-cyan-400/10 to-transparent rounded-full w-full h-full blur-3xl opacity-30 dark:opacity-20" />
-            <div className="absolute inset-0 bg-grid-dots opacity-30 dark:opacity-20" />
-          </div>
-        </div>
-
-        <div className="relative border-t border-dashed border-fd-border/60 bg-fd-background/50 backdrop-blur-lg">
-          <div className="w-full max-w-fd-container mx-auto p-4 sm:p-6">
-            {/* Main Footer Content */}
-            <div className="grid grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8">
-              {/* Brand Section - Desktop */}
-              <div className="hidden lg:flex flex-col gap-4 lg:col-span-4">
-                <div className="flex items-center gap-2 group">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 transition-all duration-300 group-hover:from-cyan-500/20 group-hover:to-cyan-400/10">
-                    <Image
-                      src="/favicon.ico"
-                      alt="logo"
-                      width={28}
-                      height={28}
-                      className="h-7 w-7 transition-transform duration-300 group-hover:scale-110"
-                      priority
-                    />
-                  </div>
-                  <span className="font-semibold text-lg text-fd-foreground whitespace-nowrap">
+    <footer id="footer" className="relative w-full max-w-fd-container mx-auto text-fd-muted-foreground">
+      <div className="border-t border-dashed border-fd-border/60 bg-fd-background/50 backdrop-blur-lg">
+        <div className="w-full max-w-fd-container mx-auto p-4 sm:p-6">
+          <div className="grid grid-cols-2 gap-8 lg:grid-cols-12 lg:gap-6">
+            {/* Brand */}
+            <div className="col-span-2 flex flex-col gap-5 lg:col-span-5">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg border border-dashed border-fd-border/60 bg-fd-background/60 p-1.5">
+                  <Image
+                    src="/favicon.ico"
+                    alt="DevOps Interview Hub logo"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7"
+                    priority
+                  />
+                </div>
+                <div>
+                  <span className="block font-display text-lg font-semibold text-fd-foreground">
                     DevOps Interview Hub
                   </span>
-                </div>
-                <p className="text-xs text-fd-muted-foreground/80 leading-relaxed">
-                  Your comprehensive resource for DevOps interview preparation, featuring curated questions, detailed answers, and practical insights.
-                </p>
-                <Socials />
-                <div className="text-xs text-fd-muted-foreground/70 flex items-center gap-2">
-                  <div className="inline-block -scale-x-100">©</div>
-                  <span>Copyright {new Date().getFullYear()} • All rights reserved</span>
+                  <span className="block font-mono text-xs text-fd-muted-foreground/70">
+                    interviews.prodevopsguytech.com
+                  </span>
                 </div>
               </div>
+              <p className="max-w-[42ch] text-sm leading-relaxed">
+                Your comprehensive resource for DevOps interview preparation — curated
+                questions, detailed answers, and practical insights. Free and open to
+                everyone.
+              </p>
+              <Socials />
+            </div>
 
-              {/* Learning Hub Section */}
-              <div className="flex flex-col gap-3 lg:col-span-4">
-                <h3 className="text-base font-semibold text-fd-foreground flex items-center gap-2">
-                  Learning Hub
-                  <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent"></div>
-                </h3>
-                <div className="flex flex-col gap-2">
-                  <a
-                    href="https://t.me/prodevopsguy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
-                  >
-                    Free DevOps/Cloud Learning Community
-                    <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                  </a>
-                  <a
-                    href="https://t.me/devopsclassroom"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
-                  >
-                    The DevOps Classroom
-                    <div className="w-4 h-0.5 bg-cyan-600/30 dark:bg-cyan-400/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                  </a>
-                </div>
-              </div>
+            {/* Explore */}
+            <div className="flex flex-col gap-3 lg:col-span-3">
+              <FooterColumn title="Explore">
+                <ul className="flex flex-col gap-1">
+                  {exploreLinks.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-primary/5 hover:text-fd-primary"
+                      >
+                        {link.text}
+                        <ArrowRightSmall />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </FooterColumn>
+            </div>
 
-              {/* Resources Section */}
-              <div className="flex flex-col gap-3 lg:col-span-4">
-                <h3 className="text-base font-semibold text-fd-foreground flex items-center gap-2">
-                  DevOps Resources
-                  <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent"></div>
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {[
-                    { href: "https://repos.prodevopsguytech.com", text: "Important DevOps/Cloud Repos" },
-                    { href: "https://docs.prodevopsguytech.com", text: "DevOps/Cloud Resources Portal" },
-                    { href: "https://jobs.prodevopsguytech.com", text: "DevOps/Cloud Jobs Portal" }
-                  ].map((link) => (
+            {/* Community */}
+            <div className="flex flex-col gap-3 lg:col-span-2">
+              <FooterColumn title="Community">
+                <ul className="flex flex-col gap-1">
+                  <li>
                     <a
-                      key={link.href}
-                      href={link.href}
+                      href="https://t.me/prodevopsguy"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-2 text-fd-muted-foreground/80 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-cyan-500/5 text-sm"
+                      className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-primary/5 hover:text-fd-primary"
                     >
-                      {link.text}
-                      <ExternalLink className="h-3.5 w-3.5 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      Learning Community
+                      <ArrowRightSmall />
                     </a>
-                  ))}
-                </div>
-              </div>
+                  </li>
+                  <li>
+                    <a
+                      href="https://t.me/devopsclassroom"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-primary/5 hover:text-fd-primary"
+                    >
+                      DevOps Classroom
+                      <ArrowRightSmall />
+                    </a>
+                  </li>
+                </ul>
+              </FooterColumn>
+            </div>
 
-              {/* Brand Section - Mobile */}
-              <div className="lg:hidden flex flex-col gap-4 col-span-2">
-                <div className="flex items-center gap-2 group">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-cyan-500/10 to-cyan-400/5">
-                    <Image
-                      src="/favicon.ico"
-                      alt="logo"
-                      width={24}
-                      height={24}
-                      className="h-6 w-6"
-                      priority
-                    />
-                  </div>
-                  <span className="font-semibold text-base text-fd-foreground whitespace-nowrap">
-                    DevOps Interview Hub
-                  </span>
-                </div>
-                <p className="text-xs text-fd-muted-foreground/80 leading-relaxed">
-                  Your comprehensive resource for DevOps interview preparation.
-                </p>
-                <Socials />
-                <div className="text-xs text-fd-muted-foreground/70 flex items-center gap-2">
-                  <div className="inline-block -scale-x-100">©</div>
-                  <span>Copyright {new Date().getFullYear()}</span>
-                </div>
-              </div>
+            {/* Resources */}
+            <div className="flex flex-col gap-3 lg:col-span-2">
+              <FooterColumn title="Portals">
+                <ul className="flex flex-col gap-1">
+                  {[
+                    { href: 'https://repos.prodevopsguytech.com', text: 'Repos Portal' },
+                    { href: 'https://docs.prodevopsguytech.com', text: 'Resources Portal' },
+                    { href: 'https://jobs.prodevopsguytech.com', text: 'Jobs Portal' },
+                  ].map((link) => (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-primary/5 hover:text-fd-primary"
+                      >
+                        {link.text}
+                        <ExternalLink className="h-3 w-3 opacity-50 transition-opacity group-hover:opacity-100" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </FooterColumn>
             </div>
           </div>
+
+          {/* Bottom bar */}
+          <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-dashed border-fd-border/60 py-4 text-xs text-fd-muted-foreground/70 sm:flex-row">
+            <span>
+              Copyright {new Date().getFullYear()} · DevOps Interview Hub · All rights
+              reserved
+            </span>
+            <Link
+              href="#"
+              className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono transition-colors hover:text-fd-primary"
+            >
+              Back to top
+              <ArrowUp className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
         </div>
-      </footer>
-    </>
-  )
+      </div>
+    </footer>
+  );
+}
+
+function ArrowRightSmall() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 16 16"
+      fill="none"
+      className="opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100 -translate-x-1"
+    >
+      <path
+        d="M1 8h12M9 3l5 5-5 5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 function GithubIcon(props: React.SVGProps<SVGSVGElement>) {

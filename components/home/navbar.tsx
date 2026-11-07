@@ -21,7 +21,7 @@ import type {
 import { buttonVariants } from '../ui/button';
 
 const navItemVariants = cva(
-  'inline-flex items-center gap-1 p-2 text-fd-muted-foreground transition-colors hover:text-fd-accent-foreground data-[active=true]:text-fd-primary [&_svg]:size-4',
+  'inline-flex items-center gap-1 p-2 text-fd-muted-foreground transition-[color,background-size] duration-300 [background-image:linear-gradient(currentColor,currentColor)] [background-position:left_calc(100%-2px)] [background-size:0%_1.5px] [background-repeat:no-repeat] hover:text-fd-accent-foreground hover:[background-size:100%_1.5px] data-[active=true]:text-fd-primary data-[active=true]:[background-size:100%_1.5px] [&_svg]:size-4',
 );
 
 export function Navbar(props: HTMLAttributes<HTMLElement>) {

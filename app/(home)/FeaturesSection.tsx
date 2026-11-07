@@ -1,156 +1,152 @@
-import { Cloud, Code2, BookOpen, Target, Users, Brain } from 'lucide-react';
+import {
+  Cloud,
+  Code2,
+  BookOpen,
+  Target,
+  Users,
+  Brain,
+  ArrowRight,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Reveal } from '@/components/reveal';
+import { cn } from '@/lib/cn';
 
-interface FeatureCardProps {
+interface Feature {
   title: string;
   description: string;
-  icon: React.ReactNode;
-  color: 'pink' | 'cyan' | 'orange' | 'purple';
-  number: string;
-  style?: React.CSSProperties;
+  icon: LucideIcon;
+  tags: string[];
+  featured?: boolean;
 }
 
-const gradientVariants = {
-  pink: 'to-pink-400',
-  cyan: 'to-cyan-400',
-  orange: 'to-orange-400',
-  purple: 'to-indigo-400',
-}
+const features: Feature[] = [
+  {
+    title: 'DevOps Tools',
+    description:
+      'Comprehensive coverage of the essential toolchain — from containerization to delivery pipelines.',
+    icon: Code2,
+    tags: ['Docker', 'Kubernetes', 'Jenkins', 'Git', 'Ansible'],
+    featured: true,
+  },
+  {
+    title: 'Cloud Platforms',
+    description: 'In-depth questions on the big three and cloud-native technologies.',
+    icon: Cloud,
+    tags: ['AWS', 'Azure', 'GCP'],
+  },
+  {
+    title: 'SRE Practices',
+    description: 'Reliability engineering concepts and day-to-day operations.',
+    icon: Target,
+    tags: ['Monitoring', 'Observability', 'SLOs', 'Incident response'],
+  },
+  {
+    title: 'Core Concepts',
+    description: 'The fundamentals every interviewer expects you to know cold.',
+    icon: Brain,
+    tags: ['CI/CD', 'Automation', 'IaC'],
+  },
+  {
+    title: 'Interview Prep',
+    description: 'Role-specific questions with practical scenarios, junior to senior.',
+    icon: Users,
+    tags: ['Junior → Senior', 'Scenario-based'],
+  },
+  {
+    title: 'Learning Resources',
+    description: 'Every answer explains the reasoning, not just the definition.',
+    icon: BookOpen,
+    tags: ['Detailed answers', 'Best practices', 'Real-world examples'],
+  },
+];
 
-const colorVariants = {
-  pink: 'text-pink-500 dark:text-pink-400',
-  cyan: 'text-cyan-500 dark:text-cyan-400',
-  orange: 'text-orange-500 dark:text-orange-400',
-  purple: 'text-indigo-500 dark:text-indigo-400',
-}
-
-function FeatureCard({ title, description, icon, color, number, style }: FeatureCardProps) {
+function FeatureCard({ feature }: { feature: Feature }) {
+  const Icon = feature.icon;
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-dashed border-fd-border/60 bg-fd-background/20 backdrop-blur-sm p-6 sm:p-8 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1" style={{
-      opacity: 1,
-      transform: 'none',
-      ...style
-    }}>
-      {/* Background effects */}
-      <div className="absolute -z-10 inset-0 bg-grid-dots opacity-30 dark:opacity-20 group-hover:opacity-40 dark:group-hover:opacity-30 h-full w-full duration-500" />
-      <div className={`bg-gradient-to-br from-transparent via-transparent ${gradientVariants[color]} absolute inset-0 opacity-0 group-hover:opacity-10 duration-500 blur-xl`} />
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-[16rem]">
-        <div className="flex flex-col h-full">
-          {/* Icon container with floating animation */}
-          <div className={`mb-6 self-center inline-flex items-center justify-center rounded-xl p-4 transition-all duration-500 group-hover:scale-110 animate-float bg-gradient-to-br from-cyan-500/10 to-cyan-400/5`}>
-            <div className={`w-8 h-8 ${colorVariants[color]}`}>
-              {icon}
-            </div>
-          </div>
+    <div
+      className={cn(
+        'group relative flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-fd-border/60 bg-fd-background/40 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-fd-border hover:bg-fd-background/80 hover:shadow-xl hover:shadow-black/5 sm:p-7 dark:hover:shadow-black/30',
+        feature.featured && 'lg:col-span-2',
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-grid-dots opacity-0 transition-opacity duration-500 group-hover:opacity-15 dark:opacity-20" />
 
-          {/* Title and description */}
-          <div className="space-y-3 pr-4">
-            <h3 className={`text-xl sm:text-2xl font-semibold tracking-tight transition-all duration-500 ${colorVariants[color]} group-hover:scale-[1.02]`}>
-              {title}
-            </h3>
-            <p className="text-fd-muted-foreground/80 text-pretty leading-relaxed text-sm sm:text-base pb-12">
-              {description}
-            </p>
-          </div>
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-dashed border-fd-border/60 bg-fd-background text-fd-primary transition-all duration-300 group-hover:border-solid group-hover:border-fd-primary/40 group-hover:bg-fd-primary/10">
+          <Icon className="h-5.5 w-5.5" />
         </div>
-        
-        {/* Number indicator */}
-        <div className={`absolute top-4 right-4 font-mono text-sm ${colorVariants[color]} opacity-40 group-hover:opacity-100 duration-500 transition-all`}>
-          <div className="relative">
-            <span className="absolute inset-0 animate-pulse opacity-75">{number}</span>
-            {number}
-          </div>
-        </div>
-
-        {/* Hover indicator */}
-        <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-500">
-          <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/10 to-cyan-400/5 flex items-center justify-center ${colorVariants[color]} hover:scale-110 transition-transform duration-300`}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transform translate-x-0.5 group-hover:translate-x-1 transition-transform duration-300">
-              <path d="M1 8h12M9 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+        <div className="flex h-8 w-8 translate-x-1 items-center justify-center rounded-full bg-fd-primary/10 text-fd-primary opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+          <ArrowRight className="h-4 w-4" />
         </div>
       </div>
+
+      <h3 className="relative mt-5 font-display text-xl font-semibold tracking-tight text-fd-foreground">
+        {feature.title}
+      </h3>
+      <p className="relative mt-2 flex-1 text-pretty leading-relaxed text-fd-muted-foreground">
+        {feature.description}
+      </p>
+
+      <ul className="relative mt-5 flex flex-wrap gap-1.5">
+        {feature.tags.map((tag) => (
+          <li
+            key={tag}
+            className="rounded-md border border-dashed border-fd-border/60 bg-fd-background px-2 py-0.5 font-mono text-xs text-fd-muted-foreground transition-colors duration-300 group-hover:border-fd-primary/25 group-hover:text-fd-foreground"
+          >
+            {tag}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 export default function FeaturesSection() {
-  const features: FeatureCardProps[] = [
-    {
-      title: "DevOps Tools",
-      description: "Comprehensive coverage of Docker, Kubernetes, Jenkins, Git, and other essential DevOps tools.",
-      icon: <Code2 className="h-6 w-6" />,
-      color: "cyan" as const,
-      number: "01"
-    },
-    {
-      title: "Cloud Platforms",
-      description: "In-depth questions on AWS, Azure, GCP, and cloud-native technologies.",
-      icon: <Cloud className="h-6 w-6" />,
-      color: "pink" as const,
-      number: "02"
-    },
-    {
-      title: "SRE Practices",
-      description: "Site Reliability Engineering concepts, monitoring, observability, and incident management.",
-      icon: <Target className="h-6 w-6" />,
-      color: "orange" as const,
-      number: "03"
-    },
-    {
-      title: "Learning Resources",
-      description: "Detailed explanations, best practices, and real-world examples for each answer.",
-      icon: <BookOpen className="h-6 w-6" />,
-      color: "purple" as const,
-      number: "04"
-    },
-    {
-      title: "Interview Prep",
-      description: "Role-specific questions for junior to senior positions, with practical scenarios.",
-      icon: <Users className="h-6 w-6" />,
-      color: "cyan" as const,
-      number: "05"
-    },
-    {
-      title: "Core Concepts",
-      description: "Fundamental DevOps principles, CI/CD, automation, and infrastructure as code.",
-      icon: <Brain className="h-6 w-6" />,
-      color: "pink" as const,
-      number: "06"
-    }
-  ];
-
   return (
-    <section className="relative flex flex-col w-full max-w-fd-container mx-auto border-t border-dashed border-fd-border/60 py-16">
-      {/* Section Header */}
-      <div className="text-center mb-12 px-4">
-        <h2 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-cyan-600 to-cyan-800 dark:from-cyan-400 dark:to-cyan-600 bg-clip-text text-transparent mb-4">
-          Everything You Need to Succeed
-        </h2>
-        <p className="text-fd-muted-foreground/80 text-lg max-w-2xl mx-auto">
-          Comprehensive resources and tools to help you master DevOps concepts and ace your interviews.
-        </p>
-      </div>
+    <section className="relative flex w-full flex-col border-t border-dashed border-fd-border/60 py-16 sm:py-20">
+      <div className="mx-auto w-full max-w-fd-container max-lg:px-6">
+        <Reveal>
+          <div className="mb-12 max-w-2xl">
+            <h2 className="font-display text-3xl font-semibold tracking-[-0.02em] text-fd-foreground sm:text-4xl">
+              Everything you need to succeed
+            </h2>
+            <p className="mt-3 text-pretty text-lg text-fd-muted-foreground">
+              Comprehensive resources and tools to help you master DevOps concepts and
+              ace your interviews.
+            </p>
+          </div>
+        </Reveal>
 
-      {/* Features Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 p-4 sm:p-8">
-        {features.map((feature, index) => (
-          <FeatureCard 
-            key={index} 
-            {...feature}
-            style={{
-              animationDelay: `${index * 100}ms`,
-              opacity: 0,
-              animation: 'fadeIn 0.5s ease-out forwards',
-            }}
-          />
-        ))}
-      </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, i) => (
+            <Reveal
+              key={feature.title}
+              delay={(i % 3) * 90}
+              className={cn(feature.featured && 'lg:col-span-2')}
+            >
+              <FeatureCard feature={feature} />
+            </Reveal>
+          ))}
 
-      {/* Bottom Gradient */}
-      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-fd-background via-fd-background/50 to-transparent pointer-events-none" />
+          {/* Grid filler with a real job: send the reader to the docs */}
+          <Reveal delay={180} className="md:col-span-2">
+            <Link
+              href="/docs"
+              className="group flex h-full min-h-44 flex-col justify-between gap-6 rounded-xl border border-dashed border-fd-primary/30 bg-fd-primary/5 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-solid hover:bg-fd-primary/10 hover:shadow-xl hover:shadow-fd-primary/10 sm:p-7 md:flex-row md:items-center"
+            >
+              <p className="font-display text-xl font-semibold tracking-tight text-fd-foreground">
+                <span className="text-fd-primary">9 tracks.</span> One path from
+                fundamentals to offer.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-fd-primary">
+                Browse all tracks
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </Reveal>
+        </div>
+      </div>
     </section>
   );
-} 
+}
