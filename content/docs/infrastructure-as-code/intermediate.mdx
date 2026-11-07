@@ -8,187 +8,301 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 # Intermediate Level
 
-This section covers advanced concepts in Infrastructure as Code, including state management, testing strategies, and best practices.
+This section covers intermediate concepts in Infrastructure as Code, including state management, testing strategies, and best practices.
 
-## **Terraform Questions**  
+## Terraform Questions
 
 <Steps>
 <Step>
-**What is the difference between Terraform `local` and `remote` state?**  
+**What is the difference between local and remote state?**
 
-Terraform state can be stored **locally** (on disk) or **remotely** (in S3, Consul, etc.).  
-
-| Storage | Pros | Cons |
+| Aspect | Local state (`terraform.tfstate` on disk) | Remote state (S3, GCS, Azure Blob, Terraform Cloud) |
 |---------|------|------|
-| **Local State** (`terraform.tfstate`) | Fast, simple | Not suitable for teams |
-| **Remote State** (S3, etc.) | Shared, secure | Slightly slower |
-
-Example remote state (S3 backend):  
+| **Team use** | Broken — everyone has their own copy, last writer wins | Shared source of truth for the whole team |
+| **Security** | Plaintext secrets on laptops | Encrypted at rest, access-controlled |
+| **Locking** | None — concurrent applies corrupt state | Built-in locking (S3+DynamoDB, Azure blob lease) |
+| **CI/CD** | Impossible to automate safely | Required for pipeline-driven applies |
 
 ```hcl
 terraform {
   backend "s3" {
-    bucket = "my-terraform-state"
-    key    = "prod/terraform.tfstate"
-    region = "us-east-1"
+    bucket         = "my-terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
   }
 }
 ```
+
+The rule to state plainly: **local state is for learning and throwaway labs only** — every shared environment uses remote state with locking and encryption, because state contains resource IDs and frequently secrets.
 </Step>
 
 <Step>
-**How do you handle secrets in Terraform?**  
+**How do you handle secrets in Terraform?**
 
-Avoid hardcoding secrets in `.tf` files:  
-✅ Use **environment variables**  
-✅ Use **Terraform Vault Provider**  
-✅ Store secrets in **AWS Secrets Manager**  
+The challenge is double: secrets must not live in code, **and Terraform state stores them anyway** once a resource uses them.
+
+- **Code side** — variables marked `sensitive = true`; values injected via environment variables (`TF_VAR_db_password`), a secrets-manager data source (Vault/AWS Secrets Manager providers), or `-var-file` excluded from Git
+- **State side** — enable backend encryption + strict access control; Terraform Cloud/Enterprise offers stronger state encryption; the nuclear option for leaked values: rotate the secret, then `terraform taint`/replace the resource
+- **Avoid** — `terraform output` with `sensitive` values still prints with `-raw`; plan/apply logs can echo secrets — keep state access and CI logs locked down
+
+The honest line: Terraform has no end-to-end secret solution — the pattern is "inject at apply time from a vault, encrypt the backend, and audit who can read state."
 </Step>
 
 <Step>
-**What is Terraform Locking, and why is it important?**  
+**What is state locking, and what happens when it fails?**
 
-Terraform uses **state locking** to prevent simultaneous updates by multiple users.  
+Locking prevents two concurrent applies from corrupting state (each reading the same baseline and writing conflicting changes):
 
-Example (DynamoDB locking):  
+- **S3 backend** — DynamoDB lock table (the `dynamodb_table` setting); S3 remote state with Terraform ≥1.10 also supports S3-native locking via `use_lockfile`
+- **Terraform Cloud/Enterprise** — locks are built into runs
+- **Failure mode** — a crashed apply leaves a stale lock; Terraform refuses to run. Resolution: verify no one is actually applying, then force-unlock with the lock ID (`terraform force-unlock <LOCK_ID>`) — with the explicit understanding that force-unlocking during a live apply *will* corrupt state
 
-```hcl
-backend "s3" {
-  bucket         = "my-terraform-bucket"
-  dynamodb_table = "terraform-lock"
-}
-```
+Related safety commands to know: `terraform plan -lock-timeout=5m` (wait politely instead of failing instantly) and running applies through CI (serialized, single-writer by design).
 </Step>
 
 <Step>
-**What is Terraform Workspaces?**  
+**What are Terraform workspaces, and when should you use them vs. separate directories?**
 
-Terraform **Workspaces** allow managing multiple environments within a single configuration.  
+Workspaces give one configuration multiple named state instances:
 
-```sh
+```bash
 terraform workspace new dev
-terraform workspace select dev
+terraform workspace select prod
 ```
+
+- **Use case** — identical infrastructure with small per-environment differences (e.g., `count = var.env == "prod" ? 3 : 1`), referencing `terraform.workspace` in code
+- **The limitation interviewers want** — workspaces share *one code path*: environment drift creeps in as `if workspace == ...` logic, and all environments' state depends on one config. Divergent environments quickly become unmaintainable
+- **The alternative** — **directory-per-environment** (`environments/dev`, `environments/prod`) reusing shared modules: more boilerplate, but environments can differ freely and apply independently
+- Also distinguish from **Terraform Cloud workspaces** — which are more like "runs for a directory + variables" units, not the CLI concept
+
+Rule of thumb: workspaces for genuinely identical environments (per-region replicas), directories for divergent ones (dev vs prod).
 </Step>
 
 <Step>
-**How do you create reusable Terraform modules?**  
+**How do you create and structure reusable Terraform modules?**
 
-Modules help organize and reuse code.  
-
-Example (`modules/network/main.tf`):  
+A module is a directory with its own `.tf` files, invoked from elsewhere:
 
 ```hcl
-variable "vpc_cidr" {}
+# modules/vpc/main.tf
+variable "vpc_cidr" { type = string }
+variable "environment" { type = string }
 
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
+  tags       = { Environment = var.environment }
+}
+
+output "vpc_id" { value = aws_vpc.main.id }
+```
+
+```hcl
+# root configuration
+module "vpc" {
+  source      = "./modules/vpc"           # or a registry/Git source with ?ref=v1.2.0
+  vpc_cidr    = "10.0.0.0/16"
+  environment = "prod"
 }
 ```
+
+Best practices to name:
+
+- **Contract-driven** — inputs (variables with types/descriptions) and outputs (what consumers need); no hidden lookups into the root config
+- **One responsibility per module** — VPC module, RDS module; compose at the root
+- **Version module sources** — Git tags/registry versions (`?ref=v1.2.0`); consumers upgrade deliberately
+- **Registry structure** — `examples/`, `README` with inputs/outputs table; private registries (TFC, Artifactory) for org-wide reuse
+
+The org-level payoff: teams stop copy-pasting infrastructure — they consume reviewed, versioned building blocks.
+</Step>
+
+<Step>
+**What is `terraform import`, and when do you use it?**
+
+`import` brings existing, manually-created infrastructure under Terraform management:
+
+```bash
+# Modern (1.5+): import blocks — declarative, reviewable in PRs
+import {
+  to = aws_instance.web
+  id = "i-0abcd1234efgh5678"
+}
+
+# Legacy CLI: terraform import aws_instance.web i-0abcd1234efgh5678
+```
+
+After importing, you must **write matching configuration** (the `plan` shows the gap — ideally zero) — `terraform plan -generate-config-out=generated.tf` (1.5+) scaffolds it for you.
+
+When to use: adopting IaC for an existing estate, or capturing a console-created emergency resource. The follow-up to know: import registers the resource in state but doesn't create code — until config matches, the next apply would propose deleting/recreating it. Related tool: `terraformer` for bulk-exporting whole estates.
 </Step>
 </Steps>
 
-## **Ansible Questions**  
+## Ansible Questions
 
 <Steps>
 <Step>
-**How do you use Ansible variables?**  
+**How do variables work in Ansible, and what's the precedence order?**
 
-Variables can be defined in:  
-✅ Playbooks (`vars:`)  
-✅ Inventory (`host_vars`, `group_vars`)  
-✅ Command-line (`-e` flag)  
+Variables come from many sources — and precedence decides conflicts. The commonly used layers (low → high):
 
-Example:  
+1. **Role defaults** (`roles/x/defaults/main.yml`) — lowest, overridable defaults
+2. **Inventory group_vars / host_vars** — per-group/per-host facts
+3. **Playbook `vars:`** — play-level explicit values
+4. **`extra vars` (`-e/--extra-vars`)** — **highest precedence, always wins**
 
 ```yaml
 - hosts: web
   vars:
     app_port: 8080
   tasks:
-    - debug: msg="App runs on port {{ app_port }}"
+    - name: Show port
+      debug:
+        msg: "App runs on {{ app_port }}"
 ```
+
+The pattern this enables: role defaults define sane behavior, inventory overrides per environment, and `-e` forces CI-specific values. Also know `set_fact`/`register` for runtime-computed values — and that Jinja2 templating (`{{ }}`) drives all interpolation.
 </Step>
 
 <Step>
-**What are Ansible Facts?**  
+**What are Ansible facts, and how do you control them?**
 
-Facts are **system information** collected automatically.  
+Facts are system data Ansible collects automatically at the start of each play (OS version, IP addresses, CPU count, disks):
 
-Example:  
-
-```sh
-ansible all -m setup
+```bash
+ansible web -m setup                      # dump all facts
+ansible web -m setup -a "filter=ansible_distribution*"
 ```
-</Step>
-
-<Step>
-**What is the purpose of Ansible Handlers?**  
-
-Handlers run **only when notified**.  
-
-Example:  
 
 ```yaml
-- name: Install Nginx
-  apt:
-    name: nginx
-  notify: Restart Nginx
+- debug:
+    msg: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+```
+
+Usage to know: facts drive conditional logic (`when: ansible_os_family == "RedHat"` chooses apt vs yum), and templates reference them. Control flags: `gather_facts: no` (faster for tasks that don't need them), `fact_caching` (Redis/JSON cache to skip re-collection), and `ansible_facts` naming (older `ansible_` prefix vs the newer namespaced form).
+</Step>
+
+<Step>
+**What are Ansible handlers, and how do they work?**
+
+Handlers are tasks that run **only when notified** by a change — and only once, at the end of the play, no matter how many tasks notified them:
+
+```yaml
+tasks:
+  - name: Deploy config
+    template:
+      src: nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+    notify: Restart nginx              # fires only if the template changed
 
 handlers:
-  - name: Restart Nginx
+  - name: Restart nginx
     service:
       name: nginx
       state: restarted
 ```
+
+The idempotency synergy is the point: if the config is already correct, no change happens, no notification fires, and nginx keeps running — a restart happens *only* when something actually changed. Details to know: handlers run in the order *defined*, not the order notified; `listen` lets multiple handlers share a topic; and `flush_handlers` forces them to run mid-play when ordering matters.
+</Step>
+
+<Step>
+**What are Ansible roles, and how do you structure one?**
+
+Roles package playbooks into reusable, shareable units with a conventional layout:
+
+```
+roles/nginx/
+├── defaults/main.yml     # low-priority, overridable variables
+├── vars/main.yml         # high-priority internal variables
+├── tasks/main.yml        # the tasks to execute
+├── handlers/main.yml     # restart-on-change logic
+├── templates/            # Jinja2 files (nginx.conf.j2)
+├── files/                # static files to copy
+├── meta/main.yml         # dependencies, metadata
+└── README.md
+```
+
+- **Usage** — `roles:` in a play, `ansible-galaxy init nginx` to scaffold, Galaxy/Ansible Automation Hub for sharing
+- **The DRY payoff** — "configure nginx" written once, parameterized per environment, reused across every playbook
+- **Modern alternative to mention** — **Collections** bundle roles + modules + plugins as the current distribution format
+</Step>
+
+<Step>
+**How do you test Ansible playbooks and roles?**
+
+Test in layers, like any code:
+
+- **Syntax** — `ansible-lint` (style + common bugs), `ansible-playbook --syntax-check`, `yamllint`
+- **Dry run** — `--check` mode shows what *would* change without changing anything (diff with `--diff`)
+- **Local integration** — Molecule: spins up containers/VMs, applies the role, runs **verifier** assertions, destroys — the standard role-testing framework
+- **Idempotency check** — Molecule's default assertion: run the role twice, second run must report zero changes
+
+The CI pattern to name: lint + `--check` on every PR; Molecule against containers for role repos. Untested infrastructure code fails at the worst time — during a prod deploy.
 </Step>
 </Steps>
 
-## **CloudFormation Questions**
+## CloudFormation Questions
 
 <Steps>
 <Step>
-**What are the main components of AWS CloudFormation?**  
+**What are the main components of CloudFormation?**
 
-| Component | Description |
-|-----------|------------|
-| **Templates** | Defines resources in YAML/JSON |
-| **Stacks** | Collection of AWS resources |
-| **StackSets** | Deploy stacks across multiple accounts |
+- **Templates** — YAML/JSON declarations of resources and their relationships (the code)
+- **Stacks** — a deployed instance of a template; created/updated/deleted as an atomic unit with automatic rollback on failure
+- **Change sets** — a preview of what an update will do before executing it (Terraform plan's equivalent)
+- **StackSets** — deploy one template across **many accounts and regions** in one operation (org-wide baselines: logging, guardrails)
+- **Nested stacks / modules** — reusable template components; plus the newer **CloudFormation Modules** for abstracted resource groups
+
+The mental model to give: template = code, stack = running instance, change set = plan, StackSet = fleet deployment. Everything else (drift detection, deletion policies, rollback triggers) hangs off that model.
 </Step>
 
 <Step>
-**How do you update a CloudFormation stack?**  
+**How do you update a CloudFormation stack safely?**
 
-Use:  
+```bash
+# 1. Create a change set — review before anything changes
+aws cloudformation create-change-set \
+  --stack-name my-stack \
+  --template-body file://template.yml \
+  --change-set-name my-change
 
-```sh
-aws cloudformation update-stack --stack-name my-stack --template-body file://template.yml
+# 2. Inspect: which resources are Modified vs Replaced?
+aws cloudformation describe-change-set --change-set-name my-change
+
+# 3. Execute only after review
+aws cloudformation execute-change-set --change-set-name my-change
 ```
+
+Safety concepts to name:
+
+- **Update vs replacement** — some property changes require CloudFormation to **recreate** the resource (e.g., an instance's AZ) — change sets flag this explicitly, which is where data-loss accidents get caught
+- **Update policies** — `UpdateReplacePolicy`/`DeletionPolicy: Retain` protect databases and volumes during replacement/deletion
+- **Rollback** — failed updates automatically roll back to the last stable state; `RollbackConfiguration` with monitoring alarms can trigger rollback on runtime failures (e.g., app health), not just deploy failures
 </Step>
 
 <Step>
-**What is the difference between `DependsOn` and `CreationPolicy` in CloudFormation?**  
+**What is the difference between `DependsOn`, `Ref`/`GetAtt`, and `CreationPolicy`?**
 
-| Feature | Purpose |
-|---------|---------|
-| `DependsOn` | Ensures a resource is created before another |
-| `CreationPolicy` | Waits for a signal before marking as successful |
+- **Implicit dependency (Ref/GetAtt)** — referencing another resource's attribute (`!Ref MyVPC`) automatically orders creation. This is the *default* mechanism — explicit `DependsOn` is only for ordering that produces no natural reference (e.g., "wait for the log group before the app")
+- **`DependsOn`** — explicit ordering: this resource waits for another to complete first
+- **`CreationPolicy`** — goes further: the resource isn't marked CREATE_COMPLETE until it **signals back** (e.g., an EC2 instance's cfn-init scripts finish and send `cfn-signal`). Without it, CloudFormation marks an instance "created" when the VM exists — not when the app on it is actually running
+
+The interview point: `DependsOn` sequences *creation*, `CreationPolicy` sequences *readiness* — confusing them produces stacks that complete while applications aren't up yet. (Sibling to know: `UpdatePolicy` controls how instances are replaced during updates.)
 </Step>
 </Steps>
 
 ## 📢 Contribute & Stay Updated
 
-💡 **Want to contribute?**  
-We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.  
+💡 **Want to contribute?**
+We welcome contributions! If you have insights, new tools, or improvements, feel free to submit a pull request.
 
 📌 **How to Contribute?**
-- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.  
-- Fix errors, add missing topics, or suggest improvements.  
-- Submit a pull request with your updates.  
+- Read the [CONTRIBUTING.md](https://github.com/NotHarshhaa/DevOps-Interview-Questions/blob/master/CONTRIBUTING.md) guide.
+- Fix errors, add missing topics, or suggest improvements.
+- Submit a pull request with your updates.
 
-## 🌍 Community & Support  
+## 🌍 Community & Support
 
-🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)  
-📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)  
-💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy) 
+🔗 **GitHub:** [@NotHarshhaa](https://github.com/NotHarshhaa)
+📝 **Blog:** [ProDevOpsGuy](https://blog.prodevopsguy.xyz)
+💬 **Telegram Community:** [Join Here](https://t.me/prodevopsguy)
