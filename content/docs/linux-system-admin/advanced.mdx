@@ -1,0 +1,653 @@
+---
+title: Advanced Level
+description: Advanced Level Linux & System Administration interview questions (100 questions).
+root: linux-system-admin
+---
+
+# Advanced Level
+
+100 questions covering  Part 3: Advanced Linux Internals, Storage & Low-Level Troubleshooting.
+
+<Steps>
+
+<Step>
+**What is `/etc/shadow` vs `/etc/passwd`?**
+
+`/etc/passwd` contains general user metadata (username, UID, GID, home dir, shell) and is world-readable; `/etc/shadow` contains cryptographic password hashes and account expiration policies, readable strictly by root.
+</Step>
+
+<Step>
+**What is `/etc/group` and `/etc/gshadow`?**
+
+`/etc/group` defines user group memberships; `/etc/gshadow` holds secure group passwords and administrators.
+</Step>
+
+<Step>
+**What is Pluggable Authentication Modules (PAM)?**
+
+A flexible mechanism for authenticating users across Linux services (`/etc/pam.d/`), allowing dynamic integration of MFA, LDAP, and password complexity rules.
+</Step>
+
+<Step>
+**What is Linux Name Service Caching Daemon (`nscd`)?**
+
+Caches lookups for name service databases (`passwd`, `group`, `hosts`) to reduce load on LDAP and NIS servers.
+</Step>
+
+<Step>
+**What is `glibc` and what is `musl libc`?**
+
+Standard C library implementations providing core system calls and basic facilities:
+- `glibc` (GNU C Library): Feature-complete, standard on Debian/Ubuntu/RHEL.
+- `musl libc`: Lightweight, minimal footprint, standard on Alpine Linux.
+</Step>
+
+<Step>
+**What is Linux Dynamic Linker (`ld.so` / `ld-linux.so`)?**
+
+Locates and loads shared libraries (`.so`) needed by an executable into memory at runtime (`ldd binary` lists dependencies).
+</Step>
+
+<Step>
+**What is `/etc/ld.so.conf` and `ldconfig`?**
+
+`/etc/ld.so.conf` lists directories containing shared libraries; `ldconfig` builds the binary search cache (`/etc/ld.so.cache`).
+</Step>
+
+<Step>
+**What is `chattr` and the Immutable Bit (`chattr +i`)?**
+
+Sets filesystem attributes: `chattr +i file.txt` makes a file **immutable** (cannot be modified, deleted, renamed, or linked, even by the root user).
+</Step>
+
+<Step>
+**What is `lsattr`?**
+
+Lists second extended filesystem attributes (like immutable `i` or append-only `a`) of files.
+</Step>
+
+<Step>
+**What is Linux File System Quota (`edquota`, `repquota`)?**
+
+Restricts the amount of disk space (blocks) and number of inodes that individual users or groups can consume on a filesystem.
+</Step>
+
+<Step>
+**What is `/dev/urandom` vs `/dev/random`?**
+
+- `/dev/random`: Blocks when kernel entropy pool is low.
+- `/dev/urandom`: Non-blocking cryptographically secure pseudo-random number generator, safe for all standard cryptographic purposes.
+</Step>
+
+<Step>
+**What is Linux Kernel Entropy Pool?**
+
+A collection of hardware noise (keyboard clicks, mouse movements, disk seek times, hardware RNG) used to generate random numbers.
+</Step>
+
+<Step>
+**What is `tune2fs` in ext4?**
+
+Adjusts tunable filesystem parameters (reserved block percentage, maximum mount count between fscks, volume labels) on ext2/ext3/ext4 filesystems.
+</Step>
+
+<Step>
+**What is `dumpe2fs`?**
+
+Prints detailed superblock and block group metadata for ext4 filesystems.
+</Step>
+
+<Step>
+**What is `xfs_info` and `xfs_repair`?**
+
+- `xfs_info`: Displays geometry and allocation group details of XFS filesystems.
+- `xfs_repair`: Checks and repairs damaged XFS filesystems (must be run on unmounted filesystems).
+</Step>
+
+<Step>
+**What is `fsck` (File System Consistency Check)?**
+
+Verifies the integrity of filesystems and repairs corrupted inode tables and unlinked data blocks.
+</Step>
+
+<Step>
+**What is Linux Block Device Major and Minor Numbers?**
+
+- **Major Number:** Identifies the device driver associated with the device (e.g., 8 for SCSI/SATA disks).
+- **Minor Number:** Identifies the specific physical device or partition managed by that driver (e.g., 0 for `sda`, 1 for `sda1`).
+</Step>
+
+<Step>
+**What is `udev` and `/etc/udev/rules.d/`?**
+
+The Linux kernel device manager that dynamically creates device nodes in `/dev/` when hardware is connected and executes custom rule scripts.
+</Step>
+
+<Step>
+**What is `lsblk` and `blkid`?**
+
+- `lsblk`: Displays visual tree of all block storage devices and mount points.
+- `blkid`: Prints unique UUIDs and filesystem formats of block devices.
+</Step>
+
+<Step>
+**What is `hdparm` and `smartctl`?**
+
+- `hdparm`: Tunes and tests SATA/IDE disk read speeds.
+- `smartctl`: Queries S.M.A.R.T. disk telemetry to predict physical drive failures (bad sectors, temperature, reallocated sectors).
+</Step>
+
+<Step>
+**What is Linux NVMe CLI (`nvme-cli`)?**
+
+Utility for interacting with high-performance NVMe SSDs (formatting, firmware updates, namespace creation, error logs).
+</Step>
+
+<Step>
+**What is I/O Scheduler in Linux (mq-deadline, kyber, bfq, none)?**
+
+Determines the order in which block I/O operations are dispatched to storage hardware:
+- `none`: Optimal for NVMe SSDs (delegates scheduling to fast hardware controller).
+- `mq-deadline`: Simple, deterministic deadline scheduler for SATA SSDs.
+- `bfq` (Budget Fair Queueing): Desktop interactive responsiveness.
+</Step>
+
+<Step>
+**What is `ionice`?**
+
+Sets process I/O scheduling class and priority (`Idle`, `Best-effort`, `Real-time`): `ionice -c 3 ./backup.sh` runs disk backups only when disk is idle.
+</Step>
+
+<Step>
+**What is Linux Direct I/O (`O_DIRECT`)?**
+
+A file open flag that bypasses the OS page cache entirely, reading and writing directly between userspace memory buffers and storage devices (used by databases to avoid double caching).
+</Step>
+
+<Step>
+**What is Asynchronous I/O (AIO) vs `io_uring`?**
+
+- **AIO:** Legacy asynchronous kernel I/O interface; limited to Direct I/O on block devices.
+- **`io_uring`:** High-performance Linux 5.1+ asynchronous interface using shared lockless ring buffers between kernel and userspace, supporting all file and network I/O with zero syscall overhead.
+</Step>
+
+<Step>
+**What is `kswapd` Daemon?**
+
+The background kernel thread that monitors memory watermarks and reclaims page cache or swaps memory pages when free memory drops below `pages_low`.
+</Step>
+
+<Step>
+**What is Memory Compaction in Linux?**
+
+Rearranges allocated memory pages to create contiguous blocks of free physical memory, satisfying high-order allocation requests (HugePages).
+</Step>
+
+<Step>
+**What is SLAB, SLUB, and SLOB Allocator?**
+
+Kernel memory allocators managing small, frequently used kernel object caches (inodes, dentry caches):
+- `SLUB`: Modern default scalable allocator with minimal metadata overhead.
+</Step>
+
+<Step>
+**What is `/proc/meminfo` and what do `MemAvailable`, `Buffers`, `Cached`, `Dirty` mean?**
+
+- `MemAvailable`: Estimated memory available to launch new applications without swapping (includes reclaimable caches).
+- `Buffers`: In-memory raw disk block metadata cache.
+- `Cached`: Page cache holding files read from disk.
+- `Dirty`: Modified pages waiting to be written to disk.
+</Step>
+
+<Step>
+**What is `/proc/slabinfo` and `slabtop`?**
+
+Displays real-time kernel slab memory cache consumption per object type (dentry, inode_cache).
+</Step>
+
+<Step>
+**What is Linux Dentry Cache (Directory Entry Cache)?**
+
+In-memory kernel cache mapping directory path lookups (`/var/log/nginx/access.log`) to inode numbers, accelerating file lookups.
+</Step>
+
+<Step>
+**What is `drop_caches` (`/proc/sys/vm/drop_caches`)?**
+
+Forces the kernel to immediately clean and free non-dirty page cache, dentries, and inodes: `echo 3 > /proc/sys/vm/drop_caches`.
+</Step>
+
+<Step>
+**What is Linux HugePages (`vm.nr_hugepages`)?**
+
+Pre-allocating dedicated 2MB or 1GB static memory blocks in physical RAM, locked against swapping (used for Oracle, PostgreSQL, and DPDK).
+</Step>
+
+<Step>
+**What is POSIX Shared Memory (`shm_open`, `/dev/shm`)?**
+
+Inter-process communication mechanism allowing multiple independent processes to map the exact same physical RAM segment into their address spaces for microsecond data exchange.
+</Step>
+
+<Step>
+**What is Memory-Mapped Files (`mmap`)?**
+
+Maps a file directly into a process's virtual address space; reading or writing to memory automatically triggers page cache reads and lazy writes to disk.
+</Step>
+
+<Step>
+**What is Copy-on-Write (CoW) in Process Forking (`fork()`)?**
+
+When `fork()` spawns a child process, the child shares the parent's physical memory pages marked read-only. Memory pages are duplicated only when parent or child writes to a page.
+</Step>
+
+<Step>
+**What is `vfork()` vs `fork()` vs `clone()`?**
+
+- `fork()`: Creates child process with CoW virtual memory.
+- `vfork()`: Suspends parent; child borrows parent address space until `exec()`.
+- `clone()`: Underlying syscall allowing fine-grained sharing of namespaces, memory, and file descriptors (used to create both threads and containers).
+</Step>
+
+<Step>
+**What is a POSIX Thread (Pthread) vs Linux Process?**
+
+In the Linux kernel, both processes and threads are represented by the exact same data structure (`task_struct`). Threads are simply `clone()` tasks that share the exact same virtual memory space (`CLONE_VM`) and file descriptor table (`CLONE_FILES`).
+</Step>
+
+<Step>
+**What is Linux Thread-Local Storage (TLS)?**
+
+A dedicated memory area where each thread in a multi-threaded process maintains its own private instance of static or global variables.
+</Step>
+
+<Step>
+**What is Context Switch (Voluntary vs Involuntary)?**
+
+- **Voluntary:** Process yields CPU while waiting for I/O (`sleep()`, network read).
+- **Involuntary:** Kernel scheduler preempts process when its CPU time slice expires or a higher-priority task wakes up.
+</Step>
+
+<Step>
+**What is `/proc/cpuinfo`?**
+
+Contains processor architecture, core counts, cache sizes (L1/L2/L3), CPU flags (`sse4_2`, `avx512`), and hardware vulnerability mitigations (Spectre/Meltdown).
+</Step>
+
+<Step>
+**What is CPU Governor (`cpufreq`)?**
+
+Controls dynamic CPU clock frequency scaling: `performance` (maximum clock speed), `powersave`, `ondemand`.
+</Step>
+
+<Step>
+**What is CPU C-States vs P-States?**
+
+- **C-States:** Idle power-saving states (C0 = active; C1-C6 = sleeping with powered-down CPU components).
+- **P-States:** Active operational performance frequency/voltage states (P0 = maximum turbo frequency).
+</Step>
+
+<Step>
+**What is Interrupt Request (IRQ) and `/proc/interrupts`?**
+
+Hardware signals sent to the CPU when devices (NIC, disk) require attention. `/proc/interrupts` shows per-CPU interrupt counts.
+</Step>
+
+<Step>
+**What is SMP IRQ Affinity (`/proc/irq/<N>/smp_affinity`)?**
+
+Binding network card hardware interrupts to specific CPU cores to prevent interrupt processing contention across cores.
+</Step>
+
+<Step>
+**What is SoftIRQ (Software Interrupt)?**
+
+Deferred kernel interrupt handlers running in `ksoftirqd/N` kernel threads that process heavy tasks (network packet reception) scheduled by fast hardware IRQs.
+</Step>
+
+<Step>
+**What is Network RX / TX Ring Buffer (`ethtool -g`)?**
+
+Circular memory buffers on physical NICs that queue incoming (RX) and outgoing (TX) packets before the kernel driver processes them. Increasing ring buffer size prevents packet drops during traffic bursts.
+</Step>
+
+<Step>
+**What is `ethtool` for Network Interface Tuning?**
+
+CLI tool to view and configure network card driver parameters, link speeds, auto-negotiation, and hardware offloading features.
+</Step>
+
+<Step>
+**What is MTU Mismatch and IP Fragmentation?**
+
+If a packet exceeds the MTU of an intermediate router and the `DF` (Don't Fragment) bit is set, the router drops the packet and returns an ICMP "Fragmentation Needed" message. If ICMP is blocked, the connection hangs (Black Hole).
+</Step>
+
+<Step>
+**What is Network Namespace (`ip netns`)?**
+
+Isolates physical/virtual network devices, IP routing tables, firewall rules, and port bindings into independent network sandboxes.
+</Step>
+
+<Step>
+**What is Linux Veth (Virtual Ethernet) Device?**
+
+A virtual point-to-point network pipe acting as a bi-directional tunnel between two network namespaces.
+</Step>
+
+<Step>
+**What is Linux Bridge (`ip link add br0 type bridge`)?**
+
+Software-defined Layer 2 switch forwarding Ethernet frames between attached interfaces based on MAC address tables.
+</Step>
+
+<Step>
+**What is Linux MACVLAN vs IPVLAN?**
+
+- **MACVLAN:** Assigns a unique MAC address and IP to each sub-interface on top of a single physical NIC.
+- **IPVLAN:** Multiple virtual interfaces share the exact same physical MAC address but have unique IP addresses.
+</Step>
+
+<Step>
+**What is Linux TUN / TAP Device?**
+
+Virtual software network devices:
+- **TUN (Layer 3):** Simulates network-layer devices and processes raw IP packets (used by OpenVPN, WireGuard).
+- **TAP (Layer 2):** Simulates Ethernet devices and processes raw Ethernet frames (used by QEMU VMs).
+</Step>
+
+<Step>
+**What is Linux Dynamic Routing with FRRouting (FRR)?**
+
+Open-source IP routing protocol suite providing BGP, OSPF, and IS-IS daemon implementations for Linux servers.
+</Step>
+
+<Step>
+**What is Linux TCP SYN Cookies Internal Algorithm?**
+
+When the SYN queue is full, the kernel computes the initial sequence number of `SYN-ACK` as a cryptographic hash of (Client IP, Server IP, Client Port, Server Port, Timestamp, MSS). The connection is instantiated only upon receiving the client `ACK`.
+</Step>
+
+<Step>
+**What is Linux TCP Fast Open (`net.ipv4.tcp_fastopen=3`)?**
+
+Enables data exchange directly within the initial TCP `SYN` packet, reducing handshake latency for returning clients.
+</Step>
+
+<Step>
+**What is Linux TCP SACK and D-SACK?**
+
+Selective Acknowledgment allows receivers to acknowledge out-of-order packets; Duplicate SACK informs senders of duplicate packet receptions.
+</Step>
+
+<Step>
+**What is Linux TCP CUBIC vs BBR Congestion Control?**
+
+- **CUBIC:** Standard loss-based congestion control; scales back window aggressively on packet drops.
+- **BBR:** Bottleneck Bandwidth and Round-trip propagation time model; maximizes bandwidth and minimizes packet queueing delays.
+</Step>
+
+<Step>
+**What is Linux Socket Option `SO_BINDTODEVICE`?**
+
+Binds a network socket strictly to a specific physical network interface (e.g., `eth1`), routing all traffic through that device regardless of system route tables.
+</Step>
+
+<Step>
+**What is Linux Socket Option `TCP_NODELAY` (Disabling Nagle's Algorithm)?**
+
+Sends packets immediately without buffering small payloads to wait for ACK acknowledgments, mandatory for low-latency RPC and gaming.
+</Step>
+
+<Step>
+**What is Linux Socket Option `TCP_CORK`?**
+
+Buffers and merges partial packets into full MSS frames before transmitting over the network, maximizing throughput for file transfers.
+</Step>
+
+<Step>
+**What is `/proc/net/dev`?**
+
+Displays real-time byte and packet transmission/reception statistics and error drop counts for all network interfaces.
+</Step>
+
+<Step>
+**What is `/proc/net/snmp` and `/proc/net/netstat`?**
+
+System-wide TCP/UDP/IP protocol telemetry (TCP retransmissions, resets, connection aborts, listen queue overflows).
+</Step>
+
+<Step>
+**What is Linux Kernel Module Signature Verification (`CONFIG_MODULE_SIG`)?**
+
+Enforces that the kernel will only load kernel modules (`.ko`) that have been cryptographically signed with a trusted private key, blocking malicious rootkits.
+</Step>
+
+<Step>
+**What is Kernel Lockdown Mode (`integrity` vs `confidentiality`)?**
+
+Restricts even the root user from modifying running kernel memory, accessing raw PCIe/MSR registers, or reading kernel memory via `/dev/mem` when UEFI Secure Boot is active.
+</Step>
+
+<Step>
+**What is Linux Kernel Address Space Layout Randomization (KASLR)?**
+
+Randomizes the memory location of the kernel code and data structures at boot time, mitigating kernel exploit vulnerabilities.
+</Step>
+
+<Step>
+**What is Linux Seccomp-BPF Syscall Filtering Architecture?**
+
+Compiles system call filter rules into Berkeley Packet Filter bytecode evaluated inside the kernel before each syscall executes.
+</Step>
+
+<Step>
+**What is Linux Landlock LSM (Linux Security Module)?**
+
+Unprivileged application sandboxing module allowing programs to restrict their own filesystem and network access without requiring root permissions.
+</Step>
+
+<Step>
+**What is Linux IMA (Integrity Measurement Architecture)?**
+
+Measures and verifies the cryptographic SHA256 hashes of executable files and kernel modules before allowing execution.
+</Step>
+
+<Step>
+**What is Linux TPM 2.0 (Trusted Platform Module) and Measured Boot?**
+
+Hardware security chip storing cryptographic measurements (PCR hashes) of each boot stage (UEFI, GRUB, Kernel), sealing disk encryption keys against tampering.
+</Step>
+
+<Step>
+**What is LUKS (Linux Unified Key Setup) and `cryptsetup`?**
+
+Standard disk encryption specification providing full-disk block encryption using AES-XTS.
+</Step>
+
+<Step>
+**What is Clevis and Tang for Network-Bound Disk Encryption (NBDE)?**
+
+Automates unlocking LUKS-encrypted root disks on boot over a trusted private network without human passphrase entry.
+</Step>
+
+<Step>
+**What is Systemd Service Sandboxing Directives?**
+
+Hardening directives inside unit files:
+```ini
+[Service]
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectKernelTunables=true
+RestrictAddressFamilies=AF_INET AF_INET6
+```
+</Step>
+
+<Step>
+**What is Systemd Socket Activation?**
+
+Systemd listens on network sockets on behalf of services. When a client connects, systemd spawns the service on-demand and hands over the established socket, enabling zero idle memory usage.
+</Step>
+
+<Step>
+**What is Systemd Slice (`*.slice`) and Resource Control?**
+
+Groups service units into cgroup resource allocation slices (`system.slice`, `user.slice`) with hard memory and CPU limits (`MemoryMax=2G`, `CPUQuota=200%`).
+</Step>
+
+<Step>
+**What is Systemd Transient Units (`systemd-run`)?**
+
+Spawns ad-hoc, isolated background commands as tracked systemd services with explicit cgroup resource limits.
+</Step>
+
+<Step>
+**What is Systemd Journal Remote (`systemd-journal-remote`)?**
+
+Streams binary structured systemd journal logs securely over HTTPS to a centralized remote log collector server.
+</Step>
+
+<Step>
+**What is Linux Sysctl `kernel.pid_max`?**
+
+The maximum number of process IDs the Linux kernel can allocate (default: 32768 on 32-bit; can be raised to 4 million on 64-bit systems to prevent PID exhaustion).
+</Step>
+
+<Step>
+**What is Linux Sysctl `fs.inotify.max_user_watches`?**
+
+Limits the maximum number of filesystem directories a user process (IDE, build tool, Prometheus) can monitor for file changes.
+</Step>
+
+<Step>
+**What is Linux Sysctl `net.ipv4.ip_local_port_range`?**
+
+Defines the range of ephemeral client ports used for outbound TCP/UDP connections (default: `32768 60999`; tuned to `1024 65535` for proxies).
+</Step>
+
+<Step>
+**What is Linux Sysctl `net.ipv4.tcp_fin_timeout`?**
+
+The duration a TCP socket remains in the `FIN_WAIT_2` state before being forcibly closed by the kernel (default: 60s; tuned to 15s to reclaim sockets).
+</Step>
+
+<Step>
+**What is Linux Sysctl `vm.overcommit_memory` (0, 1, 2)?**
+
+- `0`: Heuristic overcommit (kernel estimates available RAM).
+- `1`: Always overcommit memory (standard for Redis).
+- `2`: Strict non-overcommit; allocations cannot exceed `Swap + (RAM * vm.overcommit_ratio)`.
+</Step>
+
+<Step>
+**What is Linux Sysctl `vm.panic_on_oom`?**
+
+- `0`: Kernel OOM Killer terminates offending processes.
+- `1`: Kernel immediately panics and reboots when memory is exhausted (used in clustered HA nodes to trigger hardware failover).
+</Step>
+
+<Step>
+**What is Linux Sysctl `kernel.hung_task_timeout_secs`?**
+
+The duration a process can remain in uninterruptible sleep (`D` state) before the kernel logs a warning stack trace to dmesg (default: 120s).
+</Step>
+
+<Step>
+**What is Linux Sysctl `fs.file-nr`?**
+
+Displays three values: allocated file handles, allocated unused file handles, and maximum file handles system-wide.
+</Step>
+
+<Step>
+**What is Linux File Descriptor Leaks and how are they detected?**
+
+When applications open files/sockets without calling `close()`. Detected via `ls -l /proc/<PID>/fd | wc -l` or monitoring Prometheus metric `process_open_fds`.
+</Step>
+
+<Step>
+**What is Linux Thread Leaks and how are they diagnosed?**
+
+When applications spawn worker threads without joining or terminating them. Diagnosed via `ps -o nlwp <PID>` (number of lightweight processes).
+</Step>
+
+<Step>
+**What is Linux Memory Leak vs Memory Fragmentation?**
+
+- **Leak:** Application allocates memory and loses reference pointers, preventing garbage collection or freeing.
+- **Fragmentation:** Total free memory is sufficient, but divided into small non-contiguous blocks, preventing large memory allocations.
+</Step>
+
+<Step>
+**What is `valgrind` (Memcheck)?**
+
+Memory debugging tool that executes compiled binaries to detect memory leaks, buffer overflows, and uninitialized variable reads.
+</Step>
+
+<Step>
+**What is `bpftrace` for High-Level Dynamic Tracing?**
+
+High-level tracing language for Linux eBPF allowing one-liner scripts to inspect function arguments, latencies, and syscall counts in live production kernels.
+</Step>
+
+<Step>
+**What is `bcc-tools` (BFF Profiling Tools)?**
+
+Collection of specialized eBPF diagnostics scripts (`execsnoop`, `opensnoop`, `biolatency`, `tcpconnect`, `tcpretrans`).
+</Step>
+
+<Step>
+**What is `sysstat` Package Architecture?**
+
+Automated daemon (`sysstat.service`) collecting SAR binary activity data every 10 minutes stored in `/var/log/sysstat/saDD`.
+</Step>
+
+<Step>
+**What is Linux `nfsstat`?**
+
+Displays NFS client and server statistics (RPC calls, caching hit rates, network timeouts).
+</Step>
+
+<Step>
+**What is Linux Automounter (`autofs`)?**
+
+Daemon that automatically mounts remote network filesystems (NFS/CIFS) on-demand when directories are accessed and unmounts them after inactivity.
+</Step>
+
+<Step>
+**What is Linux Core Dump Configuration (`/proc/sys/kernel/core_pattern`)?**
+
+Template defining the filename and storage path where core dumps are written upon process crashes (`/var/crash/core.%e.%p.%t`).
+</Step>
+
+<Step>
+**What is Linux Network Namespace Exec (`ip netns exec`)?**
+
+Executes a command inside a target network namespace (e.g., `ip netns exec net0 ping 8.8.8.8`).
+</Step>
+
+<Step>
+**What is Linux Kernel Livepatching (kpatch / Canonical Livepatch)?**
+
+Applies critical Linux kernel security patches to memory while the system is running **with zero reboots and zero downtime**.
+</Step>
+
+<Step>
+**What is Linux Rootkit Detection (`rkhunter` / `chkrootkit`)?**
+
+Scans system binaries, kernel modules, and network ports for known rootkits, backdoors, and local exploits.
+</Step>
+
+<Step>
+**What is the Golden Troubleshooting Order for Production Linux Outages?**
+
+1. **Scope the Outage:** Determine affected users and services.
+2. **USE & RED Method Metrics:** Check CPU, Memory, Disk I/O, Network Saturation (`uptime`, `free -h`, `iostat -xz 1`, `ss -tulpn`).
+3. **Kernel & Service Logs:** Inspect `dmesg -T` for OOM kills / disk stalls; inspect `journalctl -u <service> -e`.
+4. **Deep System Call Tracing:** Use `strace`, `lsof`, or `bpftrace` to identify blocked system calls.
+5. **Remediate & Post-Mortem:** Apply mitigation, restore service, and capture telemetry for blameless post-mortem analysis.
+</Step>
+
+</Steps>

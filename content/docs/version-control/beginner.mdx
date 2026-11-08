@@ -1,0 +1,353 @@
+---
+title: Beginner Level
+description: Beginner Level Version Control interview questions (50 questions).
+root: version-control
+---
+
+# Beginner Level
+
+50 questions covering  Part 1: Git Internals & Core Mechanics.
+
+<Steps>
+
+<Step>
+**What is Git and how does its Directed Acyclic Graph (DAG) architecture work?**
+
+Git is a distributed version control system that stores project history as an immutable Directed Acyclic Graph (DAG) of cryptographically hashed objects. Unlike delta-based VCS (SVN), Git takes snapshots of the entire project directory tree at each commit, linking child commits back to parent commits via SHA1/SHA256 hashes.
+</Step>
+
+<Step>
+**Explain the four core Git Object types in `.git/objects/`.**
+
+1. **Blob:** Stores pure uncompressed file content (data payload) without filename, directory structure, or permissions.
+2. **Tree:** Represents a directory; maps filenames, file permissions (`100644`, `100755`), and directory structures to their corresponding Blob and sub-Tree SHA hashes.
+3. **Commit:** Contains a pointer to the root Tree object, parent commit SHA(s), author/committer metadata with timestamps, and the commit message.
+4. **Annotated Tag:** An independent object pointing to a commit SHA with tagger metadata, timestamp, GPG signature, and tag message.
+</Step>
+
+<Step>
+**Explain the Three Trees (Three Areas) of Git.**
+
+1. **Working Directory:** The local sandbox files on your physical disk where you actively edit code.
+2. **Staging Area (Index):** A binary file (`.git/index`) caching the exact snapshot prepared for the next commit.
+3. **Repository (`HEAD`):** The immutable object database in `.git/` containing all committed history.
+</Step>
+
+<Step>
+**How does `git add` work under the hood?**
+
+1. Compresses file content with zlib and creates a **Blob object** in `.git/objects/` named after its SHA1/SHA256 hash.
+2. Updates the **Index file** (`.git/index`), mapping the file path to the newly created Blob SHA.
+</Step>
+
+<Step>
+**How does `git commit` work under the hood?**
+
+1. Writes **Tree objects** representing directories recorded in the Index.
+2. Creates a **Commit object** pointing to the top-level root Tree, parent commit SHA, author metadata, and message.
+3. Moves the current branch ref pointer (`.git/refs/heads/<branch>`) forward to point to the new Commit SHA.
+</Step>
+
+<Step>
+**What is `HEAD` in Git and what is a "Detached HEAD"?**
+
+- **`HEAD`:** A symbolic reference pointer (`.git/HEAD`) pointing to the currently checked-out branch ref (e.g., `ref: refs/heads/main`).
+- **Detached `HEAD`:** When `HEAD` points directly to a specific **Commit SHA** rather than a named branch ref. Any new commits created in detached HEAD state are orphaned and will be pruned by garbage collection unless a new branch is created.
+</Step>
+
+<Step>
+**Compare `git merge` vs `git rebase`.**
+
+- **`git merge`:** Creates a non-destructive 3-way merge commit combining two branch histories. Preserves true historical context and chronological timestamps.
+- **`git rebase`:** Replays commits from the current branch on top of the target base branch, rewriting commit SHAs to produce a clean, linear commit history.
+</Step>
+
+<Step>
+**What is a Fast-Forward Merge vs Three-Way Merge (`--no-ff`)?**
+
+- **Fast-Forward Merge:** If the target branch has no new commits since branching, Git simply moves the branch pointer forward without creating a new merge commit.
+- **Three-Way Merge (`--no-ff`):** Explicitly creates a merge commit with two parent commits, preserving visual branch topology.
+</Step>
+
+<Step>
+**What is `git cherry-pick` and how does it work?**
+
+Applies the exact diff introduced by a specific commit from another branch onto your current branch, creating a brand-new commit with a new SHA and timestamp.
+</Step>
+
+<Step>
+**What is `git revert` vs `git reset`?**
+
+- **`git revert <commit>` (Safe for Public Branches):** Creates a *new* forward commit that applies the exact inverse diff of the target commit, preserving Git history.
+- **`git reset` (Dangerous for Shared Branches):** Moves the branch pointer backward, rewriting history.
+</Step>
+
+<Step>
+**Explain `git reset --soft` vs `--mixed` vs `--hard`.**
+
+- **`--soft`:** Moves branch `HEAD` backward; leaves Staging Area (Index) and Working Directory unchanged (changes remain staged).
+- **`--mixed` (Default):** Moves `HEAD` backward and un-stages changes in the Index; leaves Working Directory files untouched.
+- **`--hard` (Destructive):** Moves `HEAD` backward and completely wipes all changes in both the Index and Working Directory, discarding uncommitted work.
+</Step>
+
+<Step>
+**What is `git reflog` and how is it used for disaster recovery?**
+
+A local chronological ledger recording every single time `HEAD` moved in your local repository (commits, checkouts, rebases, hard resets).
+- **Recovery:** If an engineer accidentally ran `git reset --hard HEAD~5`, running `git reflog` identifies the previous commit SHA before the reset. Running `git reset --hard HEAD@{1}` restores all lost commits in 1 second.
+</Step>
+
+<Step>
+**What is `git stash` and what are `stash pop` vs `stash apply`?**
+
+Temporarily shelves uncommitted changes (dirty working tree) onto an internal stack (`stash@{0}`):
+- **`git stash pop`:** Applies stashed changes and removes them from the stash stack.
+- **`git stash apply`:** Applies stashed changes but preserves the entry on the stash stack.
+</Step>
+
+<Step>
+**What is `git bisect` and how does it automate debugging?**
+
+Uses binary search algorithms to find the exact commit that introduced a regression bug between a known good commit and a known bad commit:
+```bash
+git bisect start
+git bisect bad HEAD
+git bisect good v1.0.0
+# Git checks out middle commit; test and mark 'git bisect good' or 'bad'
+```
+</Step>
+
+<Step>
+**What is `git clean`?**
+
+Removes untracked files from the working directory (`git clean -fd` removes untracked files and directories).
+</Step>
+
+<Step>
+**What is `.gitignore` and why won't it ignore already tracked files?**
+
+`.gitignore` specifies untracked files Git should ignore. If a file was already committed to Git history before being added to `.gitignore`, Git continues tracking it. To ignore it, untrack it first: `git rm --cached <file>`.
+</Step>
+
+<Step>
+**What is `git submodule` vs `git subtree`?**
+
+- **`submodule`:** Points to a specific external Git repository commit SHA as an independent nested repo.
+- **`subtree`:** Embeds external repository source code directly into the parent repository tree as standard files.
+</Step>
+
+<Step>
+**What is `git commit --amend`?**
+
+Combines staged changes with the most recent commit, rewriting its commit message, Tree, and SHA. *Only use on local un-pushed commits.*
+</Step>
+
+<Step>
+**What is `git pull` vs `git fetch`?**
+
+- **`git fetch`:** Downloads remote commits, branches, and tags into your local `.git` repository without modifying working files.
+- **`git pull`:** Executes `git fetch` followed immediately by `git merge FETCH_HEAD` (or `git rebase` if configured).
+</Step>
+
+<Step>
+**What is `git blame`?**
+
+Annotates each line of a file with the commit hash, author name, and timestamp of the last revision that modified that line.
+</Step>
+
+<Step>
+**What is `git log --graph --oneline --decorate --all`?**
+
+Displays a visual ASCII graph of branch topologies, merge points, tags, and commits in a compact, readable format.
+</Step>
+
+<Step>
+**What is `git diff` vs `git diff --staged`?**
+
+- **`git diff`:** Shows changes between your Working Directory and the Staging Area (unstaged changes).
+- **`git diff --staged` (or `--cached`):** Shows changes between the Staging Area and your last commit (`HEAD`).
+</Step>
+
+<Step>
+**What is a Git Plumbing vs Porcelain Command?**
+
+- **Porcelain Commands (User-Facing):** High-level commands for daily development (`git add`, `git commit`, `git merge`, `git checkout`).
+- **Plumbing Commands (Low-Level Core):** Low-level commands operating on the raw object database (`git hash-object`, `git cat-file`, `git write-tree`, `git commit-tree`).
+</Step>
+
+<Step>
+**What is `git cat-file`?**
+
+Plumbing command to inspect raw Git objects in `.git/objects/`:
+- `git cat-file -t <sha>`: Shows object type (`blob`, `tree`, `commit`, `tag`).
+- `git cat-file -p <sha>`: Pretty-prints the uncompressed object content.
+</Step>
+
+<Step>
+**What is `git hash-object`?**
+
+Computes the SHA1/SHA256 hash of a file payload and optionally writes it to `.git/objects/` as a zlib-compressed blob (`git hash-object -w file.txt`).
+</Step>
+
+<Step>
+**What is a Git Reference (`ref`)?**
+
+A simple text file located under `.git/refs/` containing a 40-character Commit SHA (e.g., `.git/refs/heads/main` points to the tip commit of `main`).
+</Step>
+
+<Step>
+**What is a Symbolic Reference (`symref`)?**
+
+A ref file that points to another ref file rather than a raw Commit SHA (e.g., `.git/HEAD` contains `ref: refs/heads/main`).
+</Step>
+
+<Step>
+**What is a Remote-Tracking Branch (`refs/remotes/origin/main`)?**
+
+A local read-only bookmark recording the state of the branch on the remote server as of the last `git fetch` operation.
+</Step>
+
+<Step>
+**What is `.git/config` Hierarchy?**
+
+Three-tiered configuration evaluated with increasing precedence:
+1. **System (`/etc/gitconfig`):** Applied to all OS users.
+2. **Global (`~/.gitconfig`):** Applied to all repos of the current user.
+3. **Local (`.git/config`):** Scoped strictly to the current repository.
+</Step>
+
+<Step>
+**What is `git remote` and how do you manage remote upstream mirrors?**
+
+- `git remote add upstream <url>`: Adds a secondary remote repository (used in open-source fork workflows).
+- `git remote -v`: Lists configured remote URLs.
+- `git remote prune origin`: Deletes stale local references to remote branches that were deleted on the server.
+</Step>
+
+<Step>
+**What is `git tag` (Lightweight vs Annotated)?**
+
+- **Lightweight Tag:** A simple pointer file directly containing a Commit SHA (`git tag v1.0`).
+- **Annotated Tag:** A full Git object containing tagger identity, timestamp, GPG signature, and message (`git tag -a v1.0 -m "Release v1.0"`).
+</Step>
+
+<Step>
+**What is `git checkout` vs `git switch` vs `git restore` (Git 2.23+)?**
+
+- `git checkout` was overloaded for both branch switching and file restoration.
+- **`git switch <branch>`:** Dedicated command strictly for switching branches.
+- **`git restore <file>`:** Dedicated command strictly for discarding working directory or staged file modifications.
+</Step>
+
+<Step>
+**What is `git shortlog`?**
+
+Summarizes `git log` output by grouping commits by author name, displaying commit counts and titles.
+</Step>
+
+<Step>
+**What is `git show`?**
+
+Displays the commit metadata, author, and full unified diff introduced by a specific commit or tag.
+</Step>
+
+<Step>
+**What is `git status -s` (Short Format)?**
+
+Displays repository status in a compact 2-column format (`M` modified, `A` added, `??` untracked).
+</Step>
+
+<Step>
+**What is `git archive`?**
+
+Exports the project tree at a specific commit or tag into a compressed zip or tarball archive without the `.git` directory (`git archive -o release.zip HEAD`).
+</Step>
+
+<Step>
+**What is `git bundle`?**
+
+Packages entire repository branches and commit histories into a single portable binary file, allowing offline git transfer across air-gapped networks.
+</Step>
+
+<Step>
+**What is `git update-ref`?**
+
+Plumbing command to safely update or create a ref file pointing to a specific commit SHA without moving `HEAD`.
+</Step>
+
+<Step>
+**What is `git rev-parse`?**
+
+Converts human-readable branch names, tags, or relative revisions (`HEAD~3`, `main^2`) into canonical 40-character Commit SHAs.
+</Step>
+
+<Step>
+**What is `git merge-base`?**
+
+Finds the best common ancestor commit between two branches, used internally by Git to compute 3-way merge diffs.
+</Step>
+
+<Step>
+**What is `git describe`?**
+
+Finds the most recent reachable annotated tag from a commit and appends the number of additional commits and current commit hash (`v1.4.0-12-g2a1b3c`).
+</Step>
+
+<Step>
+**What is `git rm` vs `git rm --cached`?**
+
+- `git rm <file>`: Removes file from both the Staging Area and local Working Directory disk.
+- `git rm --cached <file>`: Removes file from the Staging Area (stops tracking in Git) while preserving the file on local disk.
+</Step>
+
+<Step>
+**What is `git mv`?**
+
+Renames or moves a file, automatically staging the change in the Index as a delete and add (detected as rename during commit).
+</Step>
+
+<Step>
+**What is `git ls-files`?**
+
+Plumbing command listing all files currently tracked in the Git Index or working directory.
+</Step>
+
+<Step>
+**What is `git ls-tree`?**
+
+Plumbing command listing the contents (mode, type, SHA, name) of a Tree object (`git ls-tree HEAD`).
+</Step>
+
+<Step>
+**What is `git write-tree`?**
+
+Plumbing command that creates a Tree object from the current contents of the Index and writes it to `.git/objects/`.
+</Step>
+
+<Step>
+**What is `git commit-tree`?**
+
+Plumbing command that creates a Commit object given a Tree SHA, parent commit SHAs, and a commit message.
+</Step>
+
+<Step>
+**What is `git pack-objects` and Packfiles (`.pack` / `.idx`)?**
+
+Git compresses loose individual object files into single packfiles using delta compression algorithms, generating index files (`.idx`) for fast binary searching.
+</Step>
+
+<Step>
+**What is `git unpack-objects`?**
+
+Extracts individual loose object files from a packed `.pack` archive file.
+</Step>
+
+<Step>
+**What is `git count-objects`?**
+
+Counts loose and packed objects in `.git/` and reports total disk space consumed by the repository.
+
+---
+</Step>
+
+</Steps>

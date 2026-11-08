@@ -1,0 +1,336 @@
+---
+title: Intermediate Level
+description: Intermediate Level Version Control interview questions (50 questions).
+root: version-control
+---
+
+# Intermediate Level
+
+50 questions covering  Part 2: Advanced Branching, Rebasing & Merge Conflict Mastery.
+
+<Steps>
+
+<Step>
+**How do you execute an Interactive Rebase (`git rebase -i`)?**
+
+```bash
+git rebase -i HEAD~4
+```
+Opens an editor with options:
+- `pick`: Use commit as-is.
+- `reword`: Change commit message.
+- `edit`: Pause to amend files.
+- `squash`: Meld commit into previous commit and combine messages.
+- `fixup`: Meld commit into previous commit and discard message.
+- `drop`: Delete the commit.
+</Step>
+
+<Step>
+**How do you resolve a complex Git Merge Conflict?**
+
+1. Git halts on conflict, marking files with conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>>`).
+2. Inspect conflicting blocks; manually edit code to reconcile desired logic.
+3. Stage resolved files: `git add <file>`.
+4. Complete the operation: `git merge --continue` or `git rebase --continue`.
+</Step>
+
+<Step>
+**What is `git rerere` (Reuse Recorded Resolution)?**
+
+Automatically records how you resolved a merge conflict. When the exact same merge conflict occurs in the future (during rebases or branch updates), Git resolves it automatically using the recorded solution. Enable via `git config --global rerere.enabled true`.
+</Step>
+
+<Step>
+**What is Trunk-Based Development vs GitFlow?**
+
+- **Trunk-Based:** Developers merge small, frequent commits into a single shared branch (`main`) multiple times a day, enabling CI/CD.
+- **GitFlow:** Heavy model with long-lived branches (`develop`, `feature`, `release`, `hotfix`, `master`) that delays integration and causes merge hell.
+</Step>
+
+<Step>
+**What is `git push --force-with-lease` vs `--force`?**
+
+- **`--force`:** Unconditionally overwrites the remote branch, potentially destroying teammates' commits pushed in the interim.
+- **`--force-with-lease`:** Rejects the push if the remote branch reference has changed since your last fetch, protecting against overwriting un-fetched remote work.
+</Step>
+
+<Step>
+**What is `git gc` (Garbage Collection)?**
+
+Optimizes repository storage by packing loose objects into compressed packfiles (`.pack`), removing orphaned unreachable objects, and pruning old reflog entries.
+</Step>
+
+<Step>
+**What is `git fsck`?**
+
+File System Consistency Check that verifies the cryptographic connectivity and integrity of objects in the Git database, identifying dangling blobs and commits.
+</Step>
+
+<Step>
+**What is `git-filter-repo` (BFG Repo-Cleaner)?**
+
+High-performance tools for permanently stripping sensitive files (leaked passwords, large binaries) from entire Git commit history across all branches and tags.
+</Step>
+
+<Step>
+**What is a Git Hook (`pre-commit`, `commit-msg`, `pre-push`)?**
+
+Scripts placed in `.git/hooks/` that execute automatically at key lifecycle points (e.g., `pre-commit` runs linters and secret scanners before creating a commit).
+</Step>
+
+<Step>
+**What is Git Signed Commits (GPG / SSH)?**
+
+Signing commits with a private cryptographic key (`git commit -S -m "msg"`). GitHub displays a "Verified" badge, proving commit authenticity and author identity.
+</Step>
+
+<Step>
+**What is `git rebase --onto`?**
+
+Replants a branch topic that was branched off an old feature onto a completely different base branch: `git rebase --onto main old_feature client_branch`.
+</Step>
+
+<Step>
+**What is `git cherry-pick -n` (No Commit)?**
+
+Applies the diff from the target commit to your working directory and staging area without creating a commit, allowing you to batch multiple cherry-picks.
+</Step>
+
+<Step>
+**What is `git merge --squash`?**
+
+Combines all commits from a feature branch into a single set of staged changes on the target branch without creating a merge commit, ready to be committed as one clean commit.
+</Step>
+
+<Step>
+**What is `git diff` Three-Dot (`...`) vs Two-Dot (`..`)?**
+
+- `git diff branchA..branchB`: Shows direct diff between the tips of branchA and branchB.
+- `git diff branchA...branchB`: Shows the diff introduced on branchB since its common merge-base ancestor with branchA.
+</Step>
+
+<Step>
+**What is `git log` Three-Dot (`...`) vs Two-Dot (`..`)?**
+
+- `git log master..feature`: Shows commits present on `feature` but missing from `master`.
+- `git log master...feature`: Shows commits present on either branch, excluding commits common to both (symmetric difference).
+</Step>
+
+<Step>
+**What is `git notes`?**
+
+Attaches arbitrary metadata, code review comments, or build URLs to existing commits without modifying commit SHAs.
+</Step>
+
+<Step>
+**What is `git worktree`?**
+
+Allows checking out and developing on multiple branches simultaneously in separate directory folders on disk from a single cloned repository.
+</Step>
+
+<Step>
+**What is `git submodule update --init --recursive`?**
+
+Initializes, clones, and checks out all nested submodules declared in `.gitmodules`.
+</Step>
+
+<Step>
+**What is `git sparse-checkout`?**
+
+Configures the working directory to populate only specified subfolders of a large monorepo, leaving all other files unmaterialized on disk.
+</Step>
+
+<Step>
+**What is `git replace`?**
+
+Creates replacement refs allowing you to graft historical repositories or alter commit history view without modifying underlying commit objects.
+</Step>
+
+<Step>
+**What is `git shallow clone` (`--depth=N`)?**
+
+Clones only the most recent $N$ commits, creating a truncated history to optimize pipeline checkout speeds.
+</Step>
+
+<Step>
+**What is `git blobless clone` (`--filter=blob:none`)?**
+
+Clones all commit trees and history while downloading file blobs on-demand only when checking out files, saving gigabytes in massive monorepos.
+</Step>
+
+<Step>
+**What is `git treeless clone` (`--filter=tree:0`)?**
+
+Clones only commit objects, downloading trees and blobs on-demand during checkout.
+</Step>
+
+<Step>
+**What is `git commit --fixup` and `git rebase --autosquash`?**
+
+- `git commit --fixup <sha>`: Creates a fixup commit targeting a prior commit.
+- `git rebase -i --autosquash`: Automatically reorders and marks all fixup commits to squash into their target parents automatically.
+</Step>
+
+<Step>
+**What is `git checkout -b <branch> --track <remote>/<branch>`?**
+
+Creates a new local branch and configures upstream remote tracking in a single command.
+</Step>
+
+<Step>
+**What is `git branch -D` vs `-d`?**
+
+- `-d` (Safe): Deletes branch only if it has already been fully merged into upstream.
+- `-D` (Force): Forcibly deletes branch regardless of merge status.
+</Step>
+
+<Step>
+**What is `git remote prune origin`?**
+
+Cleans up stale local tracking branches under `refs/remotes/origin/` that have been deleted on the remote GitHub server.
+</Step>
+
+<Step>
+**What is `git branch --merged` vs `--no-merged`?**
+
+- `--merged`: Lists local branches that have been merged into `HEAD` (safe to delete).
+- `--no-merged`: Lists branches containing unmerged commits.
+</Step>
+
+<Step>
+**What is `git push origin :<branch>`?**
+
+Legacy syntax to delete a remote branch on the server (equivalent to `git push origin --delete <branch>`).
+</Step>
+
+<Step>
+**What is `git push origin --tags`?**
+
+Pushes all local tags to the remote repository.
+</Step>
+
+<Step>
+**What is `git tag -d <tag>` and `git push origin :refs/tags/<tag>`?**
+
+Deletes a tag locally and removes it from the remote repository.
+</Step>
+
+<Step>
+**What is `git config --global pull.rebase true`?**
+
+Configures `git pull` to execute a rebase instead of creating a merge commit, maintaining a linear commit history.
+</Step>
+
+<Step>
+**What is `git config --global init.defaultBranch main`?**
+
+Sets `main` as the default branch name for newly initialized repositories.
+</Step>
+
+<Step>
+**What is `git config --global core.autocrlf`?**
+
+- `true` (Windows): Converts LF to CRLF on checkout, converts CRLF to LF on commit.
+- `input` (Linux/macOS): Converts CRLF to LF on commit.
+</Step>
+
+<Step>
+**What is `.gitattributes` and `eol=lf`?**
+
+Declares repository-wide line ending and binary file handling rules committed to Git to enforce consistent LF endings across operating systems.
+</Step>
+
+<Step>
+**What is `.gitattributes` `diff=nodiff`?**
+
+Marks generated files (minified JS, lockfiles) so `git diff` does not clutter reviews with massive text diffs.
+</Step>
+
+<Step>
+**What is `git stash branch <branch>`?**
+
+Creates and checks out a new branch starting from the commit where the stash was created, then applies and drops the stash.
+</Step>
+
+<Step>
+**What is `git stash push -m "message"`?**
+
+Saves a stash with a descriptive label for easy identification in `git stash list`.
+</Step>
+
+<Step>
+**What is `git stash show -p`?**
+
+Displays the full unified diff of changes stored inside a stash.
+</Step>
+
+<Step>
+**What is `git stash drop stash@{N}`?**
+
+Permanently deletes a specific stash entry from the stack.
+</Step>
+
+<Step>
+**What is `git stash clear`?**
+
+Deletes all stashes in the repository.
+</Step>
+
+<Step>
+**What is `git bisect run <script.sh>`?**
+
+Automates bisecting by executing a script that tests code and returns exit code 0 (good) or non-zero (bad), finding the broken commit in seconds.
+</Step>
+
+<Step>
+**What is `git bisect reset`?**
+
+Terminates the bisect session and returns the working directory to the original branch `HEAD`.
+</Step>
+
+<Step>
+**What is `git cherry-pick --abort`?**
+
+Cancels an in-progress cherry-pick operation and restores the repository state prior to the command.
+</Step>
+
+<Step>
+**What is `git rebase --abort` vs `--skip`?**
+
+- `--abort`: Cancels the rebase and resets to the original pre-rebase state.
+- `--skip`: Discards the current conflicting commit entirely and continues rebasing remaining commits.
+</Step>
+
+<Step>
+**What is `git merge --abort`?**
+
+Cancels a conflicted merge and restores the pre-merge state cleanly.
+</Step>
+
+<Step>
+**What is `git log -S "string"` (Pickaxe)?**
+
+Searches commit history for commits that added or deleted occurrences of the specified text string.
+</Step>
+
+<Step>
+**What is `git log -G "regex"`?**
+
+Searches commit history for commits whose patch diffs match the specified regular expression.
+</Step>
+
+<Step>
+**What is `git log --follow <file>`?**
+
+Tracks file history across historical file renames and moves.
+</Step>
+
+<Step>
+**What is `git format-patch -1 <sha>`?**
+
+Generates an emailable patch file representing a single specific commit.
+
+---
+</Step>
+
+</Steps>

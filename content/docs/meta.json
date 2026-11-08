@@ -1,8 +1,5 @@
 {
   "pages": [
-    "[BookOpen][Docs](/docs/)",
-    "[LayoutTemplate][Showcase](/#showcase)",
-
     "---Overview---",
     "index",
 
@@ -10,15 +7,17 @@
     "getting-started/index",
 
     "---DevOps Interview Questions---",
-    "automation-scripting",
-    "best-practices",
-    "ci-cd",
-    "cloud",
-    "containers",
-    "core-concepts",
-    "infrastructure-as-code",
-    "mock-interviews",
-    "monitoring-logging",
-    "networking-security"
+    { "folder": "automation-scripting", "title": "Automation & Scripting" },
+    { "folder": "best-practices", "title": "Best Practices" },
+    { "folder": "ci-cd", "title": "CI/CD" },
+    { "folder": "cloud", "title": "Cloud" },
+    { "folder": "containers", "title": "Containers" },
+    { "folder": "core-concepts", "title": "Core Concepts" },
+    { "folder": "infrastructure-as-code", "title": "Infrastructure as Code" },
+    { "folder": "linux-system-admin", "title": "Linux & System Administration" },
+    { "folder": "mock-interviews", "title": "Mock Interviews" },
+    { "folder": "monitoring-logging", "title": "Monitoring & Logging" },
+    { "folder": "networking-security", "title": "Networking & Security" },
+    { "folder": "version-control", "title": "Version Control" }
   ]
 }

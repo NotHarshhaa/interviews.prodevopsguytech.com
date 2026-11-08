@@ -1,0 +1,317 @@
+---
+title: Intermediate Level
+description: Intermediate Level Linux & System Administration interview questions (40 questions).
+root: linux-system-admin
+---
+
+# Intermediate Level
+
+40 questions covering  Part 2: Kernel Tuning, Sockets & Performance Troubleshooting.
+
+<Steps>
+
+<Step>
+**How do you tune the Linux Kernel for a High-Throughput Web Server (100k Concurrent Connections)?**
+
+Configure `/etc/sysctl.conf`:
+```ini
+fs.file-max = 2097152
+net.core.somaxconn = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_tw_reuse = 1
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+```
+</Step>
+
+<Step>
+**Explain the TCP 3-Way Handshake at the Linux Socket Layer (`listen()`, `accept()`, `connect()`).**
+
+1. Server creates socket, calls `bind()`, and enters listening mode with `listen()`, initializing the **SYN Queue** (`tcp_max_syn_backlog`) and **Accept Queue** (`somaxconn`).
+2. Client calls `connect()`, sending a `SYN` packet.
+3. Server kernel places connection in `SYN_RECV` state inside the SYN Queue and returns `SYN-ACK`.
+4. Client kernel returns `ACK` (`ESTABLISHED` state).
+5. Server kernel moves connection to the Accept Queue.
+6. Server application calls `accept()` to pull the established socket from the Accept Queue and begin data I/O.
+</Step>
+
+<Step>
+**What is TCP Accept Queue Overflow and how do you detect it?**
+
+When the application process is slow in calling `accept()`, the Accept Queue (`somaxconn`) fills up. The Linux kernel silently drops incoming client `ACK` packets.
+- **Detection:** `netstat -s | grep -i "listenqueue"` or `ss -lnt` (look for `Send-Q` matching `Recv-Q`).
+</Step>
+
+<Step>
+**What is `epoll` vs `select` vs `poll` in Linux Socket Programming?**
+
+- `select` / `poll`: Iterates linearly over all registered file descriptors ($O(N)$), degrading severely at scale.
+- `epoll` (`epoll_create`, `epoll_ctl`, `epoll_wait`): Uses kernel callbacks and a ready list scaling $O(1)$, notifying the application *only* of the specific file descriptors that have ready I/O events.
+</Step>
+
+<Step>
+**What is Zero-Copy in Linux (`sendfile()` / `splice()`)?**
+
+Eliminates CPU data copying between kernel space and user space. `sendfile()` streams data directly from disk page cache to the network socket buffer in kernel space, achieving line-rate throughput with minimal CPU overhead.
+</Step>
+
+<Step>
+**What is Transparent Huge Pages (THP) and why should it be disabled for Redis/MongoDB?**
+
+THP allocates 2MB memory pages instead of standard 4KB pages to reduce TLB misses. However, for fine-grained random memory access databases, THP causes extreme memory allocation latency spikes and write amplification. Disabled via `echo never > /sys/kernel/mm/transparent_hugepage/enabled`.
+</Step>
+
+<Step>
+**What is Dirty Memory (`vm.dirty_ratio` vs `vm.dirty_background_ratio`)?**
+
+Memory pages in page cache that have been modified by applications but not yet flushed to physical disk:
+- `vm.dirty_background_ratio` (default: 10%): Kernel flushes dirty pages asynchronously in the background.
+- `vm.dirty_ratio` (default: 20%): Hard limit where application write operations are blocked and forced to flush dirty pages synchronously to disk.
+</Step>
+
+<Step>
+**What is Linux Kernel Ring Buffer (`dmesg`)?**
+
+A fixed-size circular buffer in kernel memory where kernel drivers, hardware alerts, OOM-killer events, and segfaults are logged.
+</Step>
+
+<Step>
+**What is eBPF (Extended Berkeley Packet Filter) in Linux Systems?**
+
+An in-kernel virtual machine that executes verified, sandboxed bytecode at Linux kernel tracepoints, kprobes, and socket layers without modifying kernel source code or loading unstable third-party kernel modules.
+</Step>
+
+<Step>
+**What is `perf` for Linux Performance Profiling?**
+
+The official Linux profiling tool analyzing hardware performance counters, CPU instruction cycles, cache misses, and kernel tracepoints to generate Flame Graphs.
+</Step>
+
+<Step>
+**Scenario: A Linux server load average is 45.0 on an 8-core CPU, but CPU utilization is only 15%. What is the bottleneck and how do you diagnose it?**
+
+- **Cause:** High load average with low CPU utilization indicates processes are blocked in **Uninterruptible Sleep (`D` state)** waiting on slow **Disk I/O** or a hanging **Network File System (NFS)** mount.
+- **Diagnosis:**
+  1. Check CPU I/O Wait in `top` (`%wa`).
+  2. Check disk device saturation in `iostat -xz 1 5` (look for `%util` approaching 100%).
+  3. Find processes in `D` state: `ps aux | awk '$8 ~ /D/'`.
+  4. Inspect what syscalls are blocked: `cat /proc/<PID>/stack`.
+</Step>
+
+<Step>
+**Scenario: A critical process crashes with "Too many open files" (`EMFILE`). How do you fix it permanently?**
+
+1. Check current process file limits: `cat /proc/<PID>/limits`.
+2. Check system-wide file allocation: `cat /proc/sys/fs/file-nr`.
+3. Fix for systemd service: Add `LimitNOFILE=65535` under `[Service]` in `/etc/systemd/system/<service>.service` and run `systemctl daemon-reload && systemctl restart <service>`.
+4. Fix for interactive users: Edit `/etc/security/limits.conf`:
+   ```ini
+   * soft nofile 65535
+   * hard nofile 65535
+   ```
+</Step>
+
+<Step>
+**Scenario: A deleted log file is still consuming 100GB of disk space in `df -h`. Why and how do you reclaim the space immediately?**
+
+- **Why:** An active running process (e.g., Java / Nginx) still holds an open file descriptor pointing to the deleted file inode. The OS cannot free data blocks until all file descriptors close.
+- **Identify Process:** `lsof | grep deleted` (find PID and file descriptor number, e.g., FD 4).
+- **Reclaim Space Immediately:** Truncate the file descriptor to zero bytes without restarting the process:
+  ```bash
+  > /proc/<PID>/fd/<FD_NUM>
+  ```
+</Step>
+
+<Step>
+**Scenario: A multi-threaded application suffers from extreme memory fragmentation and allocation latency. How do you replace glibc malloc with `jemalloc` or `tcmalloc`?**
+
+Inject high-performance multi-threaded allocators via dynamic linker preload:
+```bash
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so ./my_application
+```
+`jemalloc` uses thread-specific memory arenas, eliminating mutex contention during high concurrency memory allocations.
+</Step>
+
+<Step>
+**Scenario: A Linux server becomes completely unresponsive over SSH due to memory exhaustion. How do you trigger Magic SysRq keys?**
+
+Send kernel commands directly via hardware console or cloud serial console:
+- **`R-E-I-S-U-B`:**
+  - `r`: Put keyboard in raw mode.
+  - `e`: Send `SIGTERM` to all processes.
+  - `i`: Send `SIGKILL` to all processes.
+  - `s`: Sync all dirty filesystems to disk.
+  - `u`: Remount all filesystems as read-only.
+  - `b`: Reboot the system safely without filesystem corruption.
+</Step>
+
+<Step>
+**What is NUMA (Non-Uniform Memory Access) and NUMA Node Balancing?**
+
+Multi-socket server architecture where each CPU socket has dedicated local memory channels. Accessing remote memory across interconnects incurs latency penalties. Tuned using `numactl --interleave=all` or pinning processes to local NUMA nodes (`numactl --cpunodebind=0`).
+</Step>
+
+<Step>
+**What is Cgroup v2 Unified Hierarchy (`/sys/fs/cgroup`)?**
+
+Replaces separate v1 controllers with a unified process tree, providing accurate memory writeback accounting, memory pressure stalls (PSI), and rootless delegation.
+</Step>
+
+<Step>
+**What is Pressure Stall Information (PSI) in Linux?**
+
+Kernel metric measuring resource starvation across CPU, memory, and I/O (`/proc/pressure/memory`), quantifying the percentage of time tasks were stalled waiting for resources.
+</Step>
+
+<Step>
+**What is Linux Capabilities Table (`getpcaps`, `setcap`)?**
+
+Viewing and assigning granular capabilities to executable files (e.g., `setcap 'cap_net_bind_service=+ep' /usr/bin/node` allows binding to port 80 without root).
+</Step>
+
+<Step>
+**What is SELinux Permissive vs Enforcing Mode?**
+
+- **Enforcing:** Blocks access and logs violations.
+- **Permissive:** Allows access but logs violations for policy debugging (`audit2allow`).
+</Step>
+
+<Step>
+**What is Linux Network Interface Bonding (LACP / Mode 4)?**
+
+Aggregating multiple physical network interfaces into a single virtual interface for bandwidth scaling and automatic failover using IEEE 802.3ad.
+</Step>
+
+<Step>
+**What is Linux VLAN Tagging (`802.1Q`)?**
+
+Creating sub-interfaces (e.g., `eth0.100`) to tag outgoing Ethernet frames with a 12-bit VLAN identifier.
+</Step>
+
+<Step>
+**What is Linux Generic Segmentation Offload (GSO)?**
+
+Delays packet segmentation until the packet reaches the network interface driver, reducing CPU processing overhead.
+</Step>
+
+<Step>
+**What is Linux Large Receive Offload (LRO) / GRO?**
+
+Reassembles consecutive incoming TCP packets into a single large buffer before passing them up the TCP/IP stack.
+</Step>
+
+<Step>
+**What is Linux Kernel Module Blacklisting (`/etc/modprobe.d/blacklist.conf`)?**
+
+Preventing specific kernel drivers (e.g., `nouveau`, `floppy`) from loading automatically on boot.
+</Step>
+
+<Step>
+**What is `lsmod` and `modprobe`?**
+
+- `lsmod`: Lists currently loaded kernel modules.
+- `modprobe <module>`: Dynamically loads or unloads a module along with its dependencies.
+</Step>
+
+<Step>
+**What is `dkms` (Dynamic Kernel Module Support)?**
+
+Automatically recompiles third-party kernel modules (NVIDIA drivers, ZFS) whenever a new Linux kernel update is installed.
+</Step>
+
+<Step>
+**What is Linux Kernel Panic and Kdump?**
+
+A fatal unrecoverable system error. Kdump uses `kexec` to boot a secondary recovery kernel and capture the crashed kernel memory dump (`vmcore`) to disk for crash analysis.
+</Step>
+
+<Step>
+**What is Linux Swap Partition vs Swap File?**
+
+A swap partition is a dedicated raw block partition; a swap file is a pre-allocated file on an existing filesystem (`dd if=/dev/zero of=/swapfile bs=1M count=4096`). Both offer identical performance on modern Linux kernels.
+</Step>
+
+<Step>
+**What is Linux Inode Exhaustion Mitigation?**
+
+Find directories containing millions of small files:
+```bash
+find / -xdev -printf '%h\n' | sort | uniq -c | sort -k1 -n
+```
+</Step>
+
+<Step>
+**What is `taskset` for CPU Pinning (CPU Affinity)?**
+
+Restricting a process to execute strictly on designated CPU cores (`taskset -c 0,1 ./app`) to maximize CPU L1/L2 cache hits.
+</Step>
+
+<Step>
+**What is `chrt` for Real-Time Scheduling?**
+
+Sets real-time scheduling policies (`SCHED_FIFO`, `SCHED_RR`) and priorities for latency-critical Linux processes.
+</Step>
+
+<Step>
+**What is Linux CFS Bandwidth Control (`cpu.cfs_quota_us`)?**
+
+The cgroup mechanism enforcing hard container CPU limits over a quota period (usually 100,000 microseconds).
+</Step>
+
+<Step>
+**What is Linux Memory Ballooning in VMs?**
+
+A hypervisor driver that expands inside the guest OS memory space to reclaim physical RAM from idle VMs.
+</Step>
+
+<Step>
+**What is `blkdiscard` / `fstrim` (SSD TRIM)?**
+
+Informs underlying SSD flash storage controllers which data blocks are no longer in use, maintaining write performance.
+</Step>
+
+<Step>
+**What is RAID 0, 1, 5, 10 in Linux (`mdadm`)?**
+
+- **RAID 0:** Striping (high speed, zero fault tolerance).
+- **RAID 1:** Mirroring (high redundancy, 50% capacity).
+- **RAID 5:** Striping with distributed parity (survives 1 drive failure).
+- **RAID 10:** Mirrored stripe sets (high speed and redundancy).
+</Step>
+
+<Step>
+**What is ZFS Zpool vs Dataset?**
+
+- **Zpool:** Storage pool aggregating raw disks with software RAID-Z.
+- **Dataset:** Virtual filesystem created within a Zpool supporting snapshotting, compression, and quotas.
+</Step>
+
+<Step>
+**What is Linux Epoll Starvation?**
+
+When an epoll worker loop gets stuck processing high-volume I/O on a single socket, starving other active sockets of CPU attention.
+</Step>
+
+<Step>
+**What is Linux Socket Buffer Autotuning?**
+
+The Linux kernel dynamically adjusts TCP receive and transmit buffers based on the calculated Bandwidth-Delay Product (BDP).
+</Step>
+
+<Step>
+**What is an Enterprise Linux System Hardening Checklist?**
+
+1. Disable SSH root login and password authentication (enforce SSH keys).
+2. Configure automated security patching (`unattended-upgrades`).
+3. Enable and enforce SELinux / AppArmor in enforcing mode.
+4. Minimize open ports and enforce host firewalls (ufw/firewalld).
+5. Enforce auditd logging for privileged system calls.
+6. Disable unused filesystems (cramfs, freevxfs, jffs2, hfs).
+
+---
+</Step>
+
+</Steps>

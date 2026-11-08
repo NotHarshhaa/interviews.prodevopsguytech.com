@@ -1,0 +1,466 @@
+---
+title: Beginner Level
+description: Beginner Level Linux & System Administration interview questions (60 questions).
+root: linux-system-admin
+---
+
+# Beginner Level
+
+60 questions covering  Part 1: Linux Architecture, Processes & Memory Management.
+
+<Steps>
+
+<Step>
+**Explain the Linux Boot Process from power-on to user login.**
+
+1. **BIOS / UEFI:** Executes Power-On Self-Test (POST), checks hardware, and reads the bootloader from Master Boot Record (MBR) or EFI System Partition (ESP).
+2. **Bootloader (GRUB2):** Loads the compressed Linux kernel image (`vmlinuz`) and initial RAM disk (`initramfs`) into memory.
+3. **Kernel Initialization:** Mounts root filesystem in RAM, initializes hardware device drivers, and mounts real root filesystem (`/`).
+4. **Init Process (`systemd` - PID 1):** Starts default system target (`multi-user.target` or `graphical.target`), spawning system daemons, network services, and login prompts (`agetty`).
+</Step>
+
+<Step>
+**What is `systemd` and what are Units, Targets, and Timers?**
+
+`systemd` is the Linux init system and service manager running as **PID 1**.
+- **Unit:** A configuration file (`.service`, `.socket`, `.mount`, `.timer`) representing a managed system resource.
+- **Target:** A synchronization point grouping units together (e.g., `multi-user.target` replaces SysV init runlevel 3).
+- **Timer:** Native systemd replacement for cron, executing service units based on monotonic or calendar events.
+</Step>
+
+<Step>
+**Explain the Linux Process States (`R`, `S`, `D`, `Z`, `T`).**
+
+- **`R` (Running / Runnable):** Process is currently executing on CPU or waiting in the run queue.
+- **`S` (Interruptible Sleep):** Process is waiting for an event or I/O; can be awakened by signals.
+- **`D` (Uninterruptible Sleep - Disk Sleep):** Process is waiting on hardware I/O (disk, NFS); **cannot be killed by `SIGKILL`**.
+- **`Z` (Zombie / Defunct):** Process has completed execution, but its exit status has not been reaped by its parent process.
+- **`T` (Stopped / Traced):** Process suspended by `SIGSTOP` or debugger (`ptrace`).
+</Step>
+
+<Step>
+**What is a Zombie Process and how do you resolve it?**
+
+A child process that has exited but remains in the process table because its parent has not invoked `wait()` / `waitpid()`. Zombies consume process table entries (PIDs) but zero CPU/RAM. Since zombies are already dead, they cannot be killed with `kill -9`.
+- **Resolution:** Send `SIGCHLD` to the parent process, or kill the parent process so the zombie is orphaned and adopted by **PID 1 (`systemd`)**, which reaps it immediately.
+</Step>
+
+<Step>
+**Explain Linux Load Average (1, 5, and 15-minute metrics).**
+
+The average number of processes that are in a **runnable state** (using or waiting for CPU) plus processes in **uninterruptible sleep (`D` state)** (waiting for disk or network I/O) over 1, 5, and 15 minutes.
+- A load average of `4.0` on a 4-core machine means 100% CPU utilization. If load average is `12.0` on 4 cores, CPU or disk I/O is heavily saturated.
+</Step>
+
+<Step>
+**Compare `top`, `htop`, and `atop` for process monitoring.**
+
+- **`top`:** Built-in standard real-time process monitoring utility.
+- **`htop`:** Interactive, colorized viewer supporting mouse clicks, tree views, and easy process signal dispatching.
+- **`atop`:** Advanced performance monitor logging historical system-level metrics (CPU, memory, disk, network) and per-process activity to disk for retrospective troubleshooting.
+</Step>
+
+<Step>
+**What is Virtual Memory and how does Paging work?**
+
+An abstraction providing each process with a private, contiguous address space. Memory is divided into fixed-size **Pages** (typically 4KB). The Memory Management Unit (MMU) uses **Page Tables** to translate virtual memory addresses to physical RAM addresses.
+</Step>
+
+<Step>
+**What is a Page Fault (Minor vs Major Page Fault)?**
+
+- **Minor Page Fault:** The requested memory page is already in physical RAM (e.g., shared library), requiring only updating the process page table (fast, no disk I/O).
+- **Major Page Fault:** The requested page is not in RAM (must be read from swap space or disk filesystem), causing process latency stalls.
+</Step>
+
+<Step>
+**What is Swap Space and how does the `swappiness` kernel parameter work?**
+
+Dedicated disk space used as an extension of physical RAM when memory is exhausted.
+- **`vm.swappiness` (0–100):** Controls the kernel's aggressiveness in swapping anonymous memory pages to disk relative to reclaiming page cache (default: 60; recommended for Kubernetes/Databases: 0–10).
+</Step>
+
+<Step>
+**What is the Linux Out-Of-Memory (OOM) Killer?**
+
+A kernel mechanism activated when physical RAM and swap are completely exhausted. It computes an `oom_score` for each process based on memory consumption and `oom_score_adj`, terminating the highest-scoring process with `SIGKILL` to prevent a full kernel panic.
+</Step>
+
+<Step>
+**What is `/proc` filesystem in Linux?**
+
+A pseudo-filesystem (procfs) dynamically generated in memory by the kernel that acts as an interface to internal kernel data structures, process states, and runtime hardware metrics.
+</Step>
+
+<Step>
+**What is `/sys` filesystem (sysfs)?**
+
+A pseudo-filesystem providing a structured, hierarchical tree of kernel objects, device drivers, and hardware subsystem settings (e.g., block devices, network interfaces, power states).
+</Step>
+
+<Step>
+**What is `systemctl` and how do you manage service lifecycles?**
+
+CLI utility to manage systemd services:
+- `systemctl start <service>` / `stop` / `restart` / `reload`
+- `systemctl status <service>`
+- `systemctl enable <service>` (creates symlinks in target directories to start on boot)
+- `systemctl daemon-reload` (reloads unit files from disk)
+</Step>
+
+<Step>
+**What is `journalctl` and how do you query system logs?**
+
+Queries the systemd binary structured journal:
+- `journalctl -u nginx.service -f` (follow live service logs)
+- `journalctl -p err -b` (show all error-level logs since current boot)
+- `journalctl --since "1 hour ago"`
+</Step>
+
+<Step>
+**Explain File Permissions and Octal Notation (`chmod`).**
+
+Read (`r` = 4), Write (`w` = 2), Execute (`x` = 1):
+- `chmod 755 script.sh` $\rightarrow$ Owner: `rwx` (7), Group: `r-x` (5), Others: `r-x` (5).
+- `chmod 644 file.txt` $\rightarrow$ Owner: `rw-` (6), Group: `r--` (4), Others: `r--` (4).
+</Step>
+
+<Step>
+**What are Special Permissions: SUID, SGID, and Sticky Bit?**
+
+- **SUID (`chmod u+s` / 4000):** Executes the binary with the file owner's permissions (e.g., `/usr/bin/passwd` runs as root).
+- **SGID (`chmod g+s` / 2000):** New files created in directory inherit directory group ownership.
+- **Sticky Bit (`chmod +t` / 1000):** In shared directories (`/tmp`), only file owners or root can delete files.
+</Step>
+
+<Step>
+**What is a Hard Link vs a Soft Link (Symlink)?**
+
+- **Hard Link:** A direct directory reference pointing to the existing inode on the same filesystem. Deleting the original file does not delete the data; data is removed only when link count reaches 0.
+- **Soft Link (Symlink):** A separate file containing a path reference to the target file. Can cross filesystems; breaks (dangling link) if the target file is deleted or moved.
+</Step>
+
+<Step>
+**What is an Inode in Linux?**
+
+A filesystem data structure storing metadata about a file: file size, ownership UID/GID, access permissions, timestamps (`atime`, `mtime`, `ctime`), and data block pointers (does **not** store filename or actual file content).
+</Step>
+
+<Step>
+**How do you troubleshoot "No space left on device" when `df -h` shows disk space available?**
+
+The filesystem has **exhausted its Inodes** (caused by millions of zero-byte temporary files or mail queue files). Verify via `df -i`. Delete small orphaned files (`find /tmp -type f -delete`) to free inodes.
+</Step>
+
+<Step>
+**What is the difference between `atime`, `mtime`, and `ctime`?**
+
+- **`atime` (Access Time):** Last time file content was read.
+- **`mtime` (Modification Time):** Last time file content was modified.
+- **`ctime` (Change Time):** Last time file metadata or inode attributes (permissions, ownership) changed.
+</Step>
+
+<Step>
+**Explain the Linux Filesystem Hierarchy Standard (FHS).**
+
+- `/bin`, `/usr/bin`: Core user binaries.
+- `/sbin`, `/usr/sbin`: System administration binaries.
+- `/etc`: Host-specific configuration files.
+- `/var`: Variable data (logs, spool, caches).
+- `/tmp`: Ephemeral temporary files (cleared on reboot).
+- `/dev`: Device nodes representing hardware.
+- `/proc`, `/sys`: Virtual kernel filesystems.
+- `/opt`: Add-on third-party software packages.
+</Step>
+
+<Step>
+**What is LVM (Logical Volume Manager) and what are PV, VG, and LV?**
+
+Storage abstraction allowing dynamic disk resizing without repartitioning:
+- **Physical Volume (PV):** Physical block devices (e.g., `/dev/nvme0n1`).
+- **Volume Group (VG):** Pool of storage aggregating multiple PVs.
+- **Logical Volume (LV):** Virtual partitions allocated from a VG, formatted with filesystems (ext4, XFS).
+</Step>
+
+<Step>
+**How do you extend an ext4 and XFS filesystem dynamically using LVM?**
+
+```bash
+# 1. Extend the Logical Volume by 50GB
+lvextend -L +50G /dev/vg_prod/lv_data
+
+# 2. Resize filesystem online:
+resize2fs /dev/vg_prod/lv_data   # For ext4
+xfs_growfs /mnt/data             # For XFS
+```
+</Step>
+
+<Step>
+**Compare ext4 vs XFS vs Btrfs.**
+
+- **ext4:** Battle-tested, rock-solid, supports shrinking and online expansion.
+- **XFS:** High-performance 64-bit journaling filesystem optimized for large files and parallel multi-threaded I/O (default in RHEL/CentOS); cannot be shrunk.
+- **Btrfs:** Copy-on-Write (CoW) filesystem with built-in subvolumes, snapshots, and software RAID.
+</Step>
+
+<Step>
+**What is `/etc/fstab` and what are the 6 fields?**
+
+Defines static filesystem mounting rules on boot:
+1. `Device/UUID` (e.g., `UUID=1234-...`)
+2. `Mount Point` (e.g., `/mnt/data`)
+3. `Filesystem Type` (e.g., `ext4`, `xfs`)
+4. `Mount Options` (e.g., `defaults,noatime`)
+5. `Dump` (0 = disable dump backup)
+6. `Pass / Fsck Order` (1 = root filesystem, 2 = other filesystems, 0 = skip fsck).
+</Step>
+
+<Step>
+**What is `noatime` mount option and why is it used for database performance?**
+
+Disables updating the inode `atime` whenever a file is read, eliminating write I/O overhead on disk during heavy read workloads.
+</Step>
+
+<Step>
+**What is `tmpfs` and `/dev/shm`?**
+
+Memory-backed temporary filesystems storing files directly in virtual memory (RAM/swap) with ultra-low latency; wiped completely on reboot.
+</Step>
+
+<Step>
+**What is `strace` and how do you trace a running process?**
+
+Diagnostic tool intercepting and recording system calls made by a process:
+```bash
+strace -p <PID> -f -e trace=open,read,write,network
+```
+</Step>
+
+<Step>
+**What is `lsof` and how do you find open files/network sockets?**
+
+Lists open files:
+- `lsof -i :8080` (find process listening on port 8080)
+- `lsof -p <PID>` (list all files/sockets opened by a process)
+- `lsof +D /var/log` (list open files in a directory).
+</Step>
+
+<Step>
+**What is `fuser`?**
+
+Identifies processes using specific files, directories, or sockets (`fuser -k 8080/tcp` kills the process holding port 8080).
+</Step>
+
+<Step>
+**What is `vmstat` and what do `bi`, `bo`, `wa`, `si`, `so` mean?**
+
+Reports virtual memory statistics:
+- `bi`/`bo`: Blocks received from (`bi`) / sent to (`bo`) block devices (Disk I/O).
+- `wa`: CPU I/O Wait percentage (CPU idle while waiting on disk).
+- `si`/`so`: Memory swapped in (`si`) / out (`so`) from disk per second ($> 0$ indicates RAM exhaustion).
+</Step>
+
+<Step>
+**What is `iostat` and what does `%util` indicate?**
+
+Monitors I/O device loading:
+- `%util`: Percentage of CPU time during which I/O requests were issued to the device. Approaching 100% indicates storage saturation and disk bottlenecks.
+</Step>
+
+<Step>
+**What is `netstat` vs `ss`?**
+
+`ss` is the modern, fast replacement for legacy `netstat`. It dumps socket statistics directly from kernel memory (`sock_diag`) rather than parsing slow `/proc/net/` files.
+- `ss -tulpn`: Show listening TCP/UDP sockets with process names and PIDs.
+</Step>
+
+<Step>
+**What is `ip` command vs `ifconfig`?**
+
+`ip` (iproute2) replaces legacy `ifconfig`:
+- `ip addr show` (replaces `ifconfig`)
+- `ip route show` (replaces `route -n`)
+- `ip link set eth0 up`
+</Step>
+
+<Step>
+**What is `sar` (System Activity Reporter)?**
+
+Part of the `sysstat` package that collects, logs, and reports historical CPU, memory, network, and disk performance data.
+</Step>
+
+<Step>
+**What is `nice` vs `renice`?**
+
+Controls process CPU scheduling priority (niceness ranges from `-20` highest priority to `19` lowest priority, default `0`).
+- `nice -n 10 ./script.sh`
+- `renice -n -5 -p <PID>`
+</Step>
+
+<Step>
+**What is `kill` vs `pkill` vs `killall`?**
+
+- `kill <PID>`: Dispatches a signal to a specific process ID.
+- `pkill <pattern>`: Sends signals to processes matching a regex name.
+- `killall <name>`: Sends signals to all processes matching exact binary name.
+</Step>
+
+<Step>
+**Explain common Linux Signals (`SIGTERM`, `SIGKILL`, `SIGHUP`, `SIGINT`, `SIGQUIT`).**
+
+- **`SIGTERM` (15):** Graceful termination request; can be caught and handled.
+- **`SIGKILL` (9):** Immediate forceful termination by kernel; **cannot be caught or ignored**.
+- **`SIGHUP` (1):** Hangup signal; commonly used to trigger configuration reloads without process restart.
+- **`SIGINT` (2):** Interrupt signal sent via `Ctrl+C`.
+- **`SIGQUIT` (3):** Quit signal generating a core dump via `Ctrl+\`.
+</Step>
+
+<Step>
+**What is a Core Dump?**
+
+An on-disk snapshot of a process's memory space and register states captured at the exact moment it crashed (e.g., segmentation fault), analyzed using `gdb` for debugging.
+</Step>
+
+<Step>
+**What is `gdb` (GNU Debugger)?**
+
+Interactive debugger for inspecting memory, call stacks, and execution points of C/Go/Rust binary programs and core dumps (`gdb /bin/app core.dump`).
+</Step>
+
+<Step>
+**What is `/etc/resolv.conf`?**
+
+Configuration file for the Linux DNS stub resolver specifying nameservers (`nameserver 8.8.8.8`), search domains, and lookup options (`ndots:5`).
+</Step>
+
+<Step>
+**What is `/etc/hosts`?**
+
+Static local table mapping IP addresses to hostnames evaluated before querying external DNS servers.
+</Step>
+
+<Step>
+**What is `/etc/nsswitch.conf`?**
+
+Name Service Switch configuration defining the lookup precedence for databases (e.g., `hosts: files dns` checks `/etc/hosts` before querying DNS).
+</Step>
+
+<Step>
+**What is `systemd-resolved`?**
+
+A system service providing local network name resolution, DNS caching, and LLMNR/DNS-over-TLS resolving.
+</Step>
+
+<Step>
+**What is `iptables` Architecture (Tables, Chains, Targets)?**
+
+- **Tables:** `filter` (packet filtering), `nat` (address translation), `mangle` (header modification), `raw`.
+- **Chains:** `PREROUTING`, `INPUT`, `FORWARD`, `OUTPUT`, `POSTROUTING`.
+- **Targets:** `ACCEPT`, `DROP`, `REJECT`, `SNAT`, `DNAT`, `MASQUERADE`.
+</Step>
+
+<Step>
+**What is `nftables`?**
+
+The modern framework replacing `iptables`, `ip6tables`, and `arptables` with a unified syntax, single CLI (`nft`), and kernel bytecode engine.
+</Step>
+
+<Step>
+**What is `ufw` (Uncomplicated Firewall) vs `firewalld`?**
+
+- **`ufw` (Ubuntu/Debian):** Simplified CLI frontend for managing iptables/nftables firewall rules.
+- **`firewalld` (RHEL/CentOS):** Dynamic zone-based firewall daemon supporting runtime rule changes without dropping active connections.
+</Step>
+
+<Step>
+**What is `tcpdump` and how do you capture packets?**
+
+Command-line packet analyzer:
+```bash
+tcpdump -i eth0 -nn -s0 -w capture.pcap port 443
+```
+- `-i eth0`: Interface.
+- `-nn`: Do not resolve hostnames or ports.
+- `-s0`: Capture full packet payload.
+- `-w file.pcap`: Write to Wireshark PCAP file.
+</Step>
+
+<Step>
+**What is `iperf3`?**
+
+Network bandwidth testing tool measuring maximum achievable TCP/UDP throughput and packet loss between client and server.
+</Step>
+
+<Step>
+**What is `traceroute` vs `mtr`?**
+
+- **`traceroute`:** Sends packets with incrementing TTLs to identify each hop in a network route.
+- **`mtr` (My Traceroute):** Combines `traceroute` and `ping` into a live real-time network path diagnostics tool displaying packet loss and latency per hop.
+</Step>
+
+<Step>
+**What is `/etc/security/limits.conf` (PAM Limits)?**
+
+Sets user and group resource limits (max open file descriptors `nofile`, max user processes `nproc`).
+</Step>
+
+<Step>
+**What is `chroot` Jail?**
+
+Changes the perceived root directory (`/`) for a running process, isolating it from the rest of the host filesystem (precursor to Linux containers).
+</Step>
+
+<Step>
+**What is `systemd-cgls` and `systemd-cgtop`?**
+
+- **`systemd-cgls`:** Displays the cgroup process hierarchy as a tree.
+- **`systemd-cgtop`:** Monitors real-time CPU, memory, and I/O consumption per systemd cgroup service unit.
+</Step>
+
+<Step>
+**What is `sysctl` and `/etc/sysctl.conf`?**
+
+CLI and configuration interface for viewing and modifying Linux kernel runtime parameters at `/proc/sys/` (`sysctl -p` applies changes).
+</Step>
+
+<Step>
+**What is `journalctl -k` (dmesg)?**
+
+Displays kernel ring buffer messages from systemd journal.
+</Step>
+
+<Step>
+**What is `logrotate`?**
+
+Linux utility that automates rotation, compression, and removal of application log files.
+</Step>
+
+<Step>
+**What is `rsyslog` vs `systemd-journald`?**
+
+- **`systemd-journald`:** Captures and stores binary structured logs for systemd units.
+- **`rsyslog`:** Traditional syslog daemon that receives logs from journald and formats/routes them to text files (`/var/log/syslog`) or remote syslog servers.
+</Step>
+
+<Step>
+**What is `auditd` (Linux Audit Daemon)?**
+
+Kernel auditing subsystem logging security events (file access, permission modifications, system calls) for compliance and intrusion detection.
+</Step>
+
+<Step>
+**What is `cron` vs `systemd` Timers?**
+
+systemd timers provide sub-second accuracy, dependency management, execution logging in journald, and monotonic timers (e.g., run 10 minutes after boot).
+</Step>
+
+<Step>
+**What is `sudo` vs `su`?**
+
+- **`su` (Switch User):** Switches user session, requiring the target user's password.
+- **`sudo` (SuperUser Do):** Executes commands with elevated privileges, requiring the calling user's password, authenticated against `/etc/sudoers`.
+
+---
+</Step>
+
+</Steps>

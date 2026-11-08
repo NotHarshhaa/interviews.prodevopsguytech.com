@@ -1,0 +1,328 @@
+---
+title: Advanced Level
+description: Advanced Level Version Control interview questions (50 questions).
+root: version-control
+---
+
+# Advanced Level
+
+50 questions covering  Part 3: GitOps Integration & Enterprise Scenarios.
+
+<Steps>
+
+<Step>
+**Scenario: An engineer accidentally committed AWS secrets to a public GitHub repo 10 commits ago. Walk through the complete remediation.**
+
+1. **Rotate Keys Immediately:** Invalidate and delete the AWS access key in AWS IAM within 60 seconds.
+2. **Purge Git History:**
+   ```bash
+   git-filter-repo --path-match "secrets.env" --invert-paths
+   git push origin --force --all
+   ```
+3. **Contact GitHub Support:** Request manual cache purge of cached commit views.
+</Step>
+
+<Step>
+**Scenario: A developer accidentally ran `git reset --hard` and lost 3 days of uncommitted and committed work. How do you recover?**
+
+- **For Committed Work:** Run `git reflog` to locate the commit hash before the reset, then run `git checkout -b recovery_branch <commit_hash>`.
+- **For Uncommitted Staged Work:** Run `git fsck --lost-found`, inspect recovered dangling blobs in `.git/lost-found/other/` using `git cat-file -p <blob_sha>`.
+</Step>
+
+<Step>
+**What is Git Sparse Checkout?**
+
+Allows cloning massive enterprise monorepos while checking out only specific subdirectories onto your local disk, saving gigabytes of disk space and build time.
+</Step>
+
+<Step>
+**What is Git Shallow Clone (`git clone --depth 1`)?**
+
+Clones only the single most recent commit without downloading historical commit history, drastically speeding up CI/CD pipeline checkout times.
+</Step>
+
+<Step>
+**What is Git Worktree?**
+
+Allows checking out multiple branches of the same repository simultaneously into different local directory folders on disk without cloning multiple repos (`git worktree add ../hotfix hotfix-branch`).
+</Step>
+
+<Step>
+**What is Git LFS (Large File Storage)?**
+
+Replaces large binary files (videos, dataset models, zip archives) with lightweight pointer files inside the Git repository, storing real large binary payloads on remote LFS servers.
+</Step>
+
+<Step>
+**What is Git Merge Strategy (Recursive, Ort, Resolve, Octupus)?**
+
+- **Ort (Default in Git 2.34+):** Modern rewrite of the recursive merge strategy; vastly faster with superior conflict detection and automatic rename handling.
+- **Octopus:** Merges more than two parent branches in a single merge commit.
+</Step>
+
+<Step>
+**What is Git Bare Repository (`git init --bare`)?**
+
+A repository containing *only* the `.git` database with zero working directory files, used exclusively as remote central server hubs.
+</Step>
+
+<Step>
+**What is Git Patch (`git format-patch` and `git am`)?**
+
+Generates email-compatible plaintext patch files containing commit diffs and metadata, applied onto target branches using `git am`.
+</Step>
+
+<Step>
+**What is an Enterprise GitOps Repository Architecture?**
+
+- **App Repo:** Contains application source code, Dockerfiles, unit tests. CI builds container images and pushes to OCI registry.
+- **GitOps Config Repo (Separate):** Contains declarative Helm/Kustomize environment manifests (dev, staging, prod) monitored by ArgoCD, enforcing strict PR reviews and separation of concerns.
+</Step>
+
+<Step>
+**What is Git Pre-Receive Hook vs Post-Receive Hook?**
+
+- `pre-receive`: Runs on the remote server before refs are updated; can reject pushes that violate branch protection or contain un-signed commits.
+- `post-receive`: Runs after push completes, triggering CI/CD webhooks.
+</Step>
+
+<Step>
+**What is Git Commit Hook (`commit-msg`)?**
+
+Validates commit message structure locally before commit creation (enforces Conventional Commits: `feat:`, `fix:`).
+</Step>
+
+<Step>
+**What is `git maintenance`?**
+
+Runs background optimization tasks (prefetching remotes, loose object packing, commit-graph writing) to keep large repositories fast.
+</Step>
+
+<Step>
+**What is Git Commit-Graph (`.git/objects/info/commit-graph`)?**
+
+Binary cache file of DAG commit graph structures, speeding up `git log --graph` by over 10x in massive repos.
+</Step>
+
+<Step>
+**What is Git Multi-Pack Index (MIDX)?**
+
+Indexes multiple `.pack` packfiles into a single index structure, accelerating object lookups across gigabyte repositories.
+</Step>
+
+<Step>
+**What is Git Server-Side Object Quotas?**
+
+Server-side hooks rejecting commits pushing individual files exceeding size thresholds (e.g., $> 100\text\{MB}$).
+</Step>
+
+<Step>
+**What is GitHub Merge Queue?**
+
+Automated train that tests and merges PRs sequentially to prevent broken `main` branches caused by overlapping PR merges.
+</Step>
+
+<Step>
+**What is GitHub Branch Protection Required Reviewers?**
+
+Enforces that PRs must have approval from at least $N$ designated code owners (`CODEOWNERS`) before merge.
+</Step>
+
+<Step>
+**What is `CODEOWNERS` File?**
+
+Declares which teams or users own specific paths and files in a repository, automatically adding them as required PR reviewers.
+</Step>
+
+<Step>
+**What is GitHub Dependabot Automated Pull Requests?**
+
+Automatically opens PRs with dependency version bumps when security vulnerabilities are detected.
+</Step>
+
+<Step>
+**What is Renovate Bot Configuration (`renovate.json`)?**
+
+Declarative dependency automation tool supporting regex managers, auto-merging non-breaking patch releases, and custom schedules.
+</Step>
+
+<Step>
+**What is Semantic Release Automated Versioning?**
+
+Parses Conventional Commit messages in CI to determine SemVer bumps (`feat:` $\rightarrow$ MINOR, `fix:` $\rightarrow$ PATCH, `BREAKING CHANGE:` $\rightarrow$ MAJOR) and publishes GitHub releases automatically.
+</Step>
+
+<Step>
+**What is Release Please?**
+
+Google release tool that maintains a perpetual "Release PR" containing changelog updates and version bumps based on commit history.
+</Step>
+
+<Step>
+**What is Git GPG Key Expiration and Renewal?**
+
+Updating the expiration date on your GPG key (`gpg --edit-key <KEY_ID> expire`) and re-uploading public keys to GitHub to maintain verified commit badges.
+</Step>
+
+<Step>
+**What is SSH Commit Signing in Git 2.34+?**
+
+Using your existing SSH key pair (`git config gpg.format ssh`) to sign commits cryptographically without configuring GPG keys.
+</Step>
+
+<Step>
+**What is Git Credential Manager (GCM)?**
+
+Secure credential helper storing OAuth tokens in OS credential stores (Windows Credential Manager, macOS Keychain) with 2FA/SSO support.
+</Step>
+
+<Step>
+**What is Git Interactive Add (`git add -p`)?**
+
+Allows staging individual hunks of changed files interactively, crafting atomic commits.
+</Step>
+
+<Step>
+**What is Git Patch Mode (`git checkout -p` / `git reset -p`)?**
+
+Interactively discard or un-stage individual code hunks without modifying the rest of the file.
+</Step>
+
+<Step>
+**What is Git Commit `--no-verify` Flag?**
+
+Bypasses local pre-commit and commit-msg hooks (`git commit -m "msg" --no-verify`). *Use with extreme caution.*
+</Step>
+
+<Step>
+**What is Git Push `--no-verify` Flag?**
+
+Bypasses local pre-push hooks during push.
+</Step>
+
+<Step>
+**What is Git Refspec (`refs/heads/*:refs/remotes/origin/*`)?**
+
+Maps remote references to local tracking references in `.git/config`.
+</Step>
+
+<Step>
+**What is Git Force Push Lease Failure (`stale info`)?**
+
+Occurs when another engineer pushed to the remote branch after your last fetch; `--force-with-lease` blocks the push to prevent overwriting their work.
+</Step>
+
+<Step>
+**What is Git Dangling Blob vs Unreachable Commit?**
+
+- **Dangling Blob:** A blob created via `git add` that was never referenced in any commit.
+- **Unreachable Commit:** A commit that is no longer reachable from any branch tip or tag (e.g., after `git reset --hard`).
+</Step>
+
+<Step>
+**What is Git Object Pruning Expiry (`git gc --prune=now`)?**
+
+Forcibly purges all unreachable loose objects from disk immediately rather than waiting for the default 14-day grace period.
+</Step>
+
+<Step>
+**What is Git Reflog Expiry (`git reflog expire --expire=now --all`)?**
+
+Clears all reflog history immediately, making unreferenced commits eligible for instant garbage collection.
+</Step>
+
+<Step>
+**What is Git Submodule Deinit (`git submodule deinit -f <path>`)?**
+
+Unregisters a submodule and wipes its working directory files without deleting `.gitmodules`.
+</Step>
+
+<Step>
+**What is Git Submodule Sync (`git submodule sync`)?**
+
+Synchronizes submodule remote URL changes declared in `.gitmodules` into `.git/config`.
+</Step>
+
+<Step>
+**What is Git Subtree Split (`git subtree split --prefix=<path> -b <branch>`)?**
+
+Extracts the complete historical commit history of a subdirectory in a monorepo into an independent standalone branch.
+</Step>
+
+<Step>
+**What is Git Remote Rename (`git remote rename origin old-origin`)?**
+
+Renames a remote handle and updates all associated remote-tracking branches.
+</Step>
+
+<Step>
+**What is Git Remote Set-URL (`git remote set-url origin <new-url>`)?**
+
+Updates the fetch and push URL of a configured remote.
+</Step>
+
+<Step>
+**What is Git Config `--show-origin`?**
+
+Displays the exact configuration file on disk where each git config setting is defined.
+</Step>
+
+<Step>
+**What is Git Safe Directory (`safe.directory`)?**
+
+Security setting in Git 2.35.2+ preventing execution in repositories owned by different OS user accounts to stop privilege escalation.
+</Step>
+
+<Step>
+**What is Git Credential Helper Store vs Cache?**
+
+- `store`: Persists plain text credentials unencrypted in `~/.git-credentials`.
+- `cache`: Caches credentials in memory for a configurable duration (default: 15 minutes).
+</Step>
+
+<Step>
+**What is Git Environment Variable `GIT_DIR`?**
+
+Overrides the location of the `.git` metadata repository directory.
+</Step>
+
+<Step>
+**What is Git Environment Variable `GIT_WORK_TREE`?**
+
+Overrides the root directory of the working tree.
+</Step>
+
+<Step>
+**What is Git Environment Variable `GIT_AUTHOR_NAME` and `GIT_COMMITTER_NAME`?**
+
+Overrides author and committer identity metadata during commit creation in CI scripts.
+</Step>
+
+<Step>
+**What is Git Environment Variable `GIT_SSH_COMMAND`?**
+
+Specifies custom SSH parameters or private key files (`GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"`).
+</Step>
+
+<Step>
+**What is Git Protocol v2?**
+
+Modern server communication protocol allowing client filtering of refs, reducing bandwidth during `git fetch` in massive repos with millions of tags.
+</Step>
+
+<Step>
+**What is Git Hook Directory Customization (`core.hooksPath`)?**
+
+Redirects Git hooks from `.git/hooks/` to a version-controlled repository folder (`.husky/` or `.githooks/`), sharing hooks across team members.
+</Step>
+
+<Step>
+**What is an Enterprise Version Control Branching & Release Strategy?**
+
+1. **Trunk-Based Development:** Short-lived feature branches ($< 1$ day) merged to `main` via PRs with mandatory CI tests.
+2. **Automated Semantic Releases:** Conventional Commits generate SemVer tags and changelogs.
+3. **Signed Commits:** Cryptographic verification enforced on protected branches.
+4. **GitOps Promotion:** Separate GitOps config repositories drive continuous deployment to Kubernetes via ArgoCD.
+</Step>
+
+</Steps>

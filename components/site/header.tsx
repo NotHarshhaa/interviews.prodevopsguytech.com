@@ -1,0 +1,158 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Dialog } from "@base-ui/react/dialog"
+import { Cancel01Icon, MenuIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+
+import { HeaderButton } from "@/components/site/header-button"
+import { SiteSearch } from "@/components/site/search"
+import { ThemeToggle } from "@/components/site/theme-toggle"
+import { GithubStarLink } from "@/components/site/github-star"
+import { DocsNav } from "@/components/docs/nav"
+import { SiteCorners, SiteMark, SiteRule } from "@/components/site/corners"
+import type { NavGroup, SearchHit } from "@/lib/docs/content"
+import { Mark, MARK_THEME } from "@/lib/og/mark"
+import { SITE_NAME_SHORT, SITE_NAV } from "@/lib/site"
+import { cn } from "@/lib/utils"
+
+function SiteHeader({
+  stars,
+  searchHits,
+  nav,
+}: {
+  stars: number | null
+  searchHits: SearchHit[]
+  nav: NavGroup[]
+}) {
+  const pathname = usePathname()
+  const docs = pathname.startsWith("/docs")
+
+  return (
+    <>
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm">
+        <SiteRule className="bottom-0 z-20" />
+        <div className="relative isolate mx-auto w-full site-width min-w-0 px-4 sm:px-6 lg:px-8">
+          <SiteRule className="left-0 z-20" orientation="y" />
+          <SiteRule className="right-0 z-20" orientation="y" />
+          <SiteCorners />
+          {docs ? (
+            <SiteMark className="bottom-0 left-64 -translate-x-1/2 translate-y-1/2 max-lg:hidden" />
+          ) : null}
+          <div className="flex h-16 items-center justify-between gap-4">
+            <div className="flex items-center gap-6">
+              <Link
+                aria-label="Homepage"
+                className="flex shrink-0 items-center gap-2.5 text-foreground"
+                href="/"
+              >
+                <Mark className="size-4" palette={MARK_THEME} size={16} />
+                {SITE_NAME_SHORT}
+              </Link>
+
+              <nav aria-label="Primary" className="max-lg:hidden">
+                <ul className="flex items-center gap-4" role="list">
+                  {SITE_NAV.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        aria-current={
+                          pathname === item.href ? "page" : undefined
+                        }
+                        className="text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground"
+                        href={item.href}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+
+            <div className="flex items-center gap-1 sm:gap-2">
+              <ThemeToggle />
+              <SiteSearch hits={searchHits} />
+              <GithubStarLink className="max-lg:hidden" stars={stars} />
+              <MobileMenu nav={nav} stars={stars} />
+            </div>
+          </div>
+        </div>
+      </header>
+    </>
+  )
+}
+
+function MobileMenu({
+  nav,
+  stars,
+}: {
+  nav: NavGroup[]
+  stars: number | null
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog.Root onOpenChange={setOpen} open={open}>
+      <Dialog.Trigger
+        render={<HeaderButton className="lg:hidden" label="Open menu" />}
+      >
+        <HugeiconsIcon
+          className="size-5 shrink-0"
+          icon={MenuIcon}
+          size={20}
+          strokeWidth={1.5}
+        />
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Popup
+          className={cn(
+            "graph-motion fixed inset-0 z-50 flex flex-col gap-10 overflow-y-auto overscroll-contain bg-background px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6",
+            "origin-top-right transition-[opacity,transform] duration-200 ease-out-cubic",
+            "data-starting-style:scale-95 data-starting-style:opacity-0",
+            "data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-150"
+          )}
+        >
+          <div className="flex h-8 items-center justify-between">
+            <Dialog.Title className="text-foreground">menu</Dialog.Title>
+            <Dialog.Close render={<HeaderButton label="Close menu" />}>
+              <HugeiconsIcon
+                className="size-5 shrink-0"
+                icon={Cancel01Icon}
+                size={20}
+                strokeWidth={1.5}
+              />
+            </Dialog.Close>
+          </div>
+          <nav aria-label="Primary">
+            <ul className="flex flex-col gap-6" role="list">
+              {SITE_NAV.map((item) => (
+                <li key={item.href}>
+                  <Dialog.Close
+                    nativeButton={false}
+                    render={
+                      <Link
+                        className="text-2xl text-foreground"
+                        href={item.href}
+                      />
+                    }
+                  >
+                    {item.label}
+                  </Dialog.Close>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          {/* The docs folder tree, so every section is reachable from any page. */}
+          <div className="min-w-0">
+            <DocsNav nav={nav} onNavigate={() => setOpen(false)} />
+          </div>
+          <GithubStarLink className="-ml-2.5 self-start" stars={stars} />
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
+export { SiteHeader }

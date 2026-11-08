@@ -1,0 +1,624 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-heading: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-mono--font-feature-settings: "ss01" 1, "zero" 1;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-graph-accent: var(--graph-accent);
+  --color-graph-accent-2: var(--graph-accent-2);
+  --color-graph-accent-3: var(--graph-accent-3);
+  --color-graph-frame: var(--graph-frame);
+  --color-stage: var(--stage);
+  --color-site-rail: var(--site-rail);
+  --color-graph-muted: var(--graph-muted);
+  --color-graph-faint: var(--graph-faint);
+  --color-contrast-14: var(--contrast-14);
+  --color-contrast-23: var(--contrast-23);
+  --color-contrast-45: var(--contrast-45);
+  --color-contrast-70: var(--contrast-70);
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.988 0.002 250);
+  --foreground: oklch(0.21 0.01 260);
+  --card: oklch(0.988 0.002 250);
+  --card-foreground: oklch(0.205 0 0);
+  --popover: oklch(0.988 0.002 250);
+  --popover-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.004 250);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.955 0.005 250);
+  --muted-foreground: oklch(0.47 0.01 250);
+  --accent: oklch(0.85 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.205 0 0);
+  --input: oklch(0.205 0 0);
+  --ring: oklch(0.45 0 0);
+  --chart-1: oklch(0.55 0.18 255);
+  --chart-2: oklch(0.5 0 0);
+  --chart-3: oklch(0.44 0 0);
+  --chart-4: oklch(0.37 0 0);
+  --chart-5: oklch(0.27 0 0);
+  --radius: 0;
+  --sidebar: oklch(0.97 0 0);
+  --sidebar-foreground: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.54 0 0);
+  --sidebar-ring: oklch(0.45 0 0);
+  --graph-accent: oklch(0.5 0.14 228);
+  --graph-accent-2: oklch(0.48 0.18 259);
+  --graph-accent-3: oklch(0.5 0.14 248);
+  --graph-frame: oklch(0.74 0.01 250);
+  /* Where figures sit: one step below the canvas so they read as objects. */
+  --stage: oklch(0.962 0.006 250);
+  --site-rail: oklch(0.38 0 0);
+  --graph-muted: oklch(0.55 0 0);
+  --graph-faint: oklch(0.82 0 0);
+  --contrast-14: oklch(0.88 0 0);
+  --contrast-23: oklch(0.76 0 0);
+  --contrast-45: oklch(0.48 0 0);
+  --contrast-70: oklch(0.28 0 0);
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.135 0.006 260);
+  --foreground: oklch(0.9 0.006 260);
+  --card: oklch(0.16 0.007 260);
+  --card-foreground: oklch(0.86 0 0);
+  --popover: oklch(0.16 0.007 260);
+  --popover-foreground: oklch(0.86 0 0);
+  --primary: oklch(0.86 0 0);
+  --primary-foreground: oklch(0.135 0.006 260);
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(0.86 0 0);
+  --muted: oklch(0.195 0.008 260);
+  --muted-foreground: oklch(0.7 0.01 260);
+  --accent: oklch(0.18 0 0);
+  --accent-foreground: oklch(0.86 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(0.28 0 0);
+  --input: oklch(0.28 0 0);
+  --ring: oklch(0.72 0 0);
+  --chart-1: oklch(0.68 0.12 255);
+  --chart-2: oklch(0.56 0 0);
+  --chart-3: oklch(0.44 0 0);
+  --chart-4: oklch(0.37 0 0);
+  --chart-5: oklch(0.27 0 0);
+  --sidebar: oklch(0.14 0 0);
+  --sidebar-foreground: oklch(0.86 0 0);
+  --sidebar-primary: oklch(0.68 0.12 255);
+  --sidebar-primary-foreground: oklch(0.11 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.86 0 0);
+  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-ring: oklch(0.72 0 0);
+  --graph-accent: oklch(0.77 0.15 228);
+  --graph-accent-2: oklch(0.68 0.18 259);
+  --graph-accent-3: oklch(0.72 0.15 248);
+  --graph-frame: oklch(0.46 0.012 260);
+  --stage: oklch(0.165 0.008 260);
+  --site-rail: oklch(0.22 0 0);
+  --graph-muted: oklch(0.6 0 0);
+  --graph-faint: oklch(0.28 0 0);
+  --contrast-14: oklch(0.22 0 0);
+  --contrast-23: oklch(0.34 0 0);
+  --contrast-45: oklch(0.62 0 0);
+  --contrast-70: oklch(0.84 0 0);
+  color-scheme: dark;
+}
+
+html[data-accent="theme"] {
+  --graph-accent: oklch(0.32 0 0);
+  --graph-accent-2: oklch(0.5 0 0);
+  --graph-accent-3: oklch(0.42 0 0);
+}
+html.dark[data-accent="theme"] {
+  --graph-accent: oklch(0.92 0 0);
+  --graph-accent-2: oklch(0.72 0 0);
+  --graph-accent-3: oklch(0.55 0 0);
+}
+
+html[data-accent="mint"] {
+  --graph-accent: oklch(0.52 0.14 163);
+  --graph-accent-2: oklch(0.58 0.1 163);
+  --graph-accent-3: oklch(0.45 0.08 163);
+}
+html.dark[data-accent="mint"] {
+  --graph-accent: oklch(0.77 0.15 163);
+  --graph-accent-2: oklch(0.68 0.1 163);
+  --graph-accent-3: oklch(0.58 0.08 163);
+}
+
+html[data-accent="orange"] {
+  --graph-accent: oklch(0.58 0.16 55);
+  --graph-accent-2: oklch(0.5 0.12 55);
+  --graph-accent-3: oklch(0.42 0.08 55);
+}
+html.dark[data-accent="orange"] {
+  --graph-accent: oklch(0.76 0.14 55);
+  --graph-accent-2: oklch(0.66 0.12 55);
+  --graph-accent-3: oklch(0.55 0.08 55);
+}
+
+html[data-accent="green"] {
+  --graph-accent: oklch(0.5 0.14 145);
+  --graph-accent-2: oklch(0.58 0.1 145);
+  --graph-accent-3: oklch(0.42 0.08 145);
+}
+html.dark[data-accent="green"] {
+  --graph-accent: oklch(0.74 0.14 145);
+  --graph-accent-2: oklch(0.64 0.1 145);
+  --graph-accent-3: oklch(0.55 0.08 145);
+}
+
+html[data-accent="cyan"] {
+  --graph-accent: oklch(0.5 0.1 210);
+  --graph-accent-2: oklch(0.58 0.08 210);
+  --graph-accent-3: oklch(0.42 0.06 210);
+}
+html.dark[data-accent="cyan"] {
+  --graph-accent: oklch(0.76 0.1 210);
+  --graph-accent-2: oklch(0.66 0.08 210);
+  --graph-accent-3: oklch(0.55 0.06 210);
+}
+
+html[data-accent="blue"] {
+  --graph-accent: oklch(0.5 0.18 255);
+  --graph-accent-2: oklch(0.58 0.12 255);
+  --graph-accent-3: oklch(0.42 0.1 255);
+}
+html.dark[data-accent="blue"] {
+  --graph-accent: oklch(0.7 0.12 255);
+  --graph-accent-2: oklch(0.62 0.1 255);
+  --graph-accent-3: oklch(0.52 0.08 255);
+}
+
+html[data-accent="purple"] {
+  --graph-accent: oklch(0.5 0.16 300);
+  --graph-accent-2: oklch(0.58 0.12 300);
+  --graph-accent-3: oklch(0.42 0.08 300);
+}
+html.dark[data-accent="purple"] {
+  --graph-accent: oklch(0.72 0.12 300);
+  --graph-accent-2: oklch(0.62 0.1 300);
+  --graph-accent-3: oklch(0.55 0.08 300);
+}
+
+html[data-accent="pink"] {
+  --graph-accent: oklch(0.55 0.18 8);
+  --graph-accent-2: oklch(0.5 0.12 8);
+  --graph-accent-3: oklch(0.42 0.08 8);
+}
+html.dark[data-accent="pink"] {
+  --graph-accent: oklch(0.74 0.14 8);
+  --graph-accent-2: oklch(0.64 0.1 8);
+  --graph-accent-3: oklch(0.55 0.08 8);
+}
+
+html[data-accent="sunset"] {
+  --graph-accent: oklch(0.55 0.18 19);
+  --graph-accent-2: oklch(0.55 0.14 74);
+  --graph-accent-3: oklch(0.52 0.12 89);
+}
+html.dark[data-accent="sunset"] {
+  --graph-accent: oklch(0.7 0.19 19);
+  --graph-accent-2: oklch(0.86 0.12 74);
+  --graph-accent-3: oklch(0.92 0.1 89);
+}
+
+html[data-accent="ocean"] {
+  --graph-accent: oklch(0.5 0.14 228);
+  --graph-accent-2: oklch(0.48 0.18 259);
+  --graph-accent-3: oklch(0.5 0.14 248);
+}
+html.dark[data-accent="ocean"] {
+  --graph-accent: oklch(0.77 0.15 228);
+  --graph-accent-2: oklch(0.68 0.18 259);
+  --graph-accent-3: oklch(0.72 0.15 248);
+}
+
+html[data-accent="neon"] {
+  --graph-accent: oklch(0.48 0.16 129);
+  --graph-accent-2: oklch(0.48 0.14 162);
+  --graph-accent-3: oklch(0.5 0.12 220);
+}
+html.dark[data-accent="neon"] {
+  --graph-accent: oklch(0.92 0.23 129);
+  --graph-accent-2: oklch(0.89 0.18 162);
+  --graph-accent-3: oklch(0.8 0.15 220);
+}
+
+html[data-accent="aurora"] {
+  --graph-accent: oklch(0.55 0.2 351);
+  --graph-accent-2: oklch(0.5 0.14 307);
+  --graph-accent-3: oklch(0.48 0.14 244);
+}
+html.dark[data-accent="aurora"] {
+  --graph-accent: oklch(0.68 0.25 351);
+  --graph-accent-2: oklch(0.7 0.14 307);
+  --graph-accent-3: oklch(0.7 0.13 244);
+}
+
+html[data-accent="fire"] {
+  --graph-accent: oklch(0.55 0.18 33);
+  --graph-accent-2: oklch(0.52 0.18 1);
+  --graph-accent-3: oklch(0.55 0.14 72);
+}
+html.dark[data-accent="fire"] {
+  --graph-accent: oklch(0.67 0.22 33);
+  --graph-accent-2: oklch(0.68 0.2 1);
+  --graph-accent-3: oklch(0.82 0.15 72);
+}
+
+html[data-accent="prism"] {
+  --graph-accent: oklch(0.5 0.12 220);
+  --graph-accent-2: oklch(0.52 0.16 313);
+  --graph-accent-3: oklch(0.55 0.18 21);
+}
+html.dark[data-accent="prism"] {
+  --graph-accent: oklch(0.75 0.14 220);
+  --graph-accent-2: oklch(0.69 0.19 313);
+  --graph-accent-3: oklch(0.66 0.2 21);
+}
+
+@utility site-rail {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--site-rail) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--site-rail) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--site-rail) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--site-rail) 0 1px,
+      transparent 1px 4px
+    );
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    0 0;
+  background-size:
+    100% 1px,
+    1px 100%,
+    100% 1px,
+    1px 100%;
+}
+
+@utility graph-frame {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--graph-frame) 0 2px,
+      transparent 2px 7px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--graph-frame) 0 2px,
+      transparent 2px 7px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--graph-frame) 0 2px,
+      transparent 2px 7px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--graph-frame) 0 2px,
+      transparent 2px 7px
+    );
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    0 0;
+  background-size:
+    100% 1px,
+    1px 100%,
+    100% 1px,
+    1px 100%;
+}
+
+@utility graph-rule {
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--graph-frame) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+@utility graph-rule-y {
+  width: 1px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--graph-frame) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-graph {
+  scrollbar-width: thin;
+  scrollbar-color: var(--graph-frame) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--graph-frame);
+    border-radius: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--graph-muted);
+    }
+  }
+}
+
+@utility graph-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Page width. Docs pages widen it to fit a right rail, and the header and
+   footer follow so the dashed rails stay in one line. */
+@utility site-width {
+  max-width: 72rem;
+}
+
+body:has([data-wide-layout]) .site-width {
+  max-width: 96rem;
+}
+
+@utility site-rule {
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--site-rail) 0 1px,
+    transparent 1px 4px
+  );
+}
+
+@utility site-rule-y {
+  width: 1px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--site-rail) 0 1px,
+    transparent 1px 4px
+  );
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    @apply overflow-x-clip font-sans antialiased;
+    font-synthesis: none;
+    scroll-padding-top: 5rem;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--graph-frame) transparent;
+  }
+
+  html::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html::-webkit-scrollbar-thumb {
+    background-color: var(--graph-frame);
+    border-radius: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    html::-webkit-scrollbar-thumb:hover {
+      background-color: var(--graph-muted);
+    }
+  }
+
+  body {
+    @apply overflow-x-clip bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--graph-accent) 28%, transparent);
+  }
+  :focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+html[data-accent-kind="gradient"] .graph-title-ink {
+  background-image: linear-gradient(
+    90deg,
+    var(--graph-accent),
+    var(--graph-accent-2),
+    var(--graph-accent-3)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html.accent-wiping::view-transition-group(root) {
+  animation: none;
+}
+
+html.accent-wiping::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
+html.accent-wiping::view-transition-new(root) {
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(90deg, #000 0%, #000 72%, transparent 100%);
+  -webkit-mask-size: 260% 100%;
+  mask-size: 260% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: accent-wipe 0.42s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+}
+
+html.accent-shimmer {
+  overflow: hidden;
+}
+
+html.accent-shimmer::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    color-mix(in oklch, var(--graph-accent) 40%, transparent) 46%,
+    color-mix(in oklch, var(--graph-accent-2) 45%, transparent) 54%,
+    transparent 68%
+  );
+  animation: accent-shimmer 0.42s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+}
+
+@keyframes accent-wipe {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+
+@keyframes accent-shimmer {
+  from {
+    transform: translateX(-25%);
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(25%);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-motion {
+    animation: none;
+    transition: none;
+  }
+
+  html.accent-wiping::view-transition-old(root),
+  html.accent-wiping::view-transition-new(root) {
+    animation: none;
+  }
+
+  html.accent-shimmer::after {
+    animation: none;
+    display: none;
+  }
+}

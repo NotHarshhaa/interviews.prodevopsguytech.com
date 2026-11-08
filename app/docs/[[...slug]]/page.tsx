@@ -1,68 +1,74 @@
-import { source } from '@/lib/source';
-import {
-  DocsPage,
-  DocsBody,
-  DocsTitle,
-  DocsDescription,
-} from 'fumadocs-ui/page';
+import type { Metadata } from "next"
+import { evaluate } from "@mdx-js/mdx"
+import * as runtime from "react/jsx-runtime"
+import rehypeSlug from "rehype-slug"
+import remarkGfm from "remark-gfm"
 
+import { DocsPager } from "@/components/docs/pager"
+import { docMdxComponents } from "@/components/docs/mdx-components"
+import { TopicsGrid } from "@/components/docs/topics-grid"
+import { docPages, parseFrontmatter, readDoc } from "@/lib/docs/content"
+import { pageMeta } from "@/lib/seo"
 
-import { notFound } from 'next/navigation';
-import { ComponentProps, FC } from 'react';
-import defaultMdxComponents from 'fumadocs-ui/mdx';
+export const dynamic = "force-static"
+export const dynamicParams = false
 
-import { Callout } from '@/components/callout';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { createRelativeLink } from 'fumadocs-ui/mdx';
-// import type { MDXComponents } from 'mdx/types';
-// import Link from 'next/link';
+type Params = { params: Promise<{ slug?: string[] }> }
 
-export default async function Page(props: {
-  params: Promise<{ slug?: string[] }>;
-}) {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
-  if (!page) notFound();
+function pathOf(slug: string[] | undefined) {
+  return (slug ?? []).join("/")
+}
 
-  const MDX = page.data.body;
+export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
+  return (await docPages()).map((page) => ({
+    slug: page.slug === "" ? [] : page.slug.split("/"),
+  }))
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { slug } = await params
+  const path = pathOf(slug)
+  const page = (await docPages()).find((entry) => entry.slug === path)
+
+  return pageMeta({
+    title: page?.title,
+    description:
+      page?.description ??
+      "DevOps interview questions with detailed answers.",
+    path: `/docs${path === "" ? "" : `/${path}`}`,
+  })
+}
+
+/**
+ * One content page from `content/docs/**`. The MDX source stays on disk
+ * exactly as it is written; tags resolve through `docMdxComponents`.
+ */
+export default async function DocPage({ params }: Params) {
+  const { slug } = await params
+  const path = pathOf(slug)
+  const raw = await readDoc(path)
+  // Frontmatter is metadata, not content; leading import lines are satisfied
+  // by `docMdxComponents` — `evaluate` runs as a function body and cannot
+  // resolve module imports.
+  const { body } = parseFrontmatter(raw)
+  const source = body
+    .trimStart()
+    .replace(/^(?:import[\s\S]*?from\s+["'][^"']+["'];?\s*\n+)+/, "")
+    .trim()
+
+  const { default: Content } = await evaluate(source, {
+    ...runtime,
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [rehypeSlug],
+  } as Parameters<typeof evaluate>[1])
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}
-      tableOfContent={{
-        style: 'clerk',
-        single: false,
-      }}
-    >
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
-        <MDX components={{
-          ...defaultMdxComponents,
-          a: createRelativeLink(source, page),
-          blockquote: Callout as unknown as FC<ComponentProps<'blockquote'>>,
-          Tab, Tabs,
-          Callout,
-          // ...((await import('lucide-react')) as unknown as MDXComponents),
-          // Link,
-         }} />
-      </DocsBody>
-    </DocsPage>
-  );
-}
-
-export async function generateStaticParams() {
-  return source.generateParams();
-}
-
-export async function generateMetadata(props: {
-  params: Promise<{ slug?: string[] }>;
-}) {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
-  if (!page) notFound();
-
-  return {
-    title: page.data.title,
-    description: page.data.description,
-  };
+    <div className="flex flex-col gap-6 lg:gap-8">
+      <div className="flex flex-col gap-4">
+        <Content components={docMdxComponents} />
+      </div>
+      {path === "" ? <TopicsGrid /> : null}
+      <DocsPager slug={path} />
+    </div>
+  )
 }
